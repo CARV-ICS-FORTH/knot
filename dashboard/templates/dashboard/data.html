@@ -3,10 +3,10 @@
 
 {% block toolbar %}
 <div class="btn-group mr-2" role="group" aria-label="Basic example">
-  <a href="{% url 'data' %}" class="btn btn-outline-secondary {% if domain == 'local' %}active{% endif %}" role="button">
+  <a class="btn btn-outline-secondary {% if domain == 'local' %}active{% endif %}" role="button" href="{% url 'data' 'local' %}">
     <i class="fa fa-laptop" aria-hidden="true"></i> Local
   </a>
-  <a href="{% url 'data' %}" class="btn btn-outline-secondary {% if domain == 'remote' %}active{% endif %}" role="button">
+  <a class="btn btn-outline-secondary {% if domain == 'remote' %}active{% endif %}" role="button" href="{% url 'data' 'remote' %}" >
     <i class="fa fa-sitemap" aria-hidden="true"></i> Remote
   </a>
 </div>
@@ -17,8 +17,11 @@
   <ol class="breadcrumb">
     {% if route %}
     {% for point in route %}
-    <li class="breadcrumb-item"><a href="{{ point.url }}">{{ point.name }}</a></li>
-    <!-- <li class="breadcrumb-item active" aria-current="page">Library</li> -->
+    {% if point.url %}
+    <li class="breadcrumb-item"><a href="{{ point.url }}">{{ point.name|safe }}</a></li>
+    {% else %}
+    <li class="breadcrumb-item active">{{ point.name|safe }}</li>
+    {% endif %}
     {% endfor %}
     {% else %}
     &nbsp;
@@ -40,12 +43,12 @@
     <tr>
       <th scope="row">
         {% if content.type == 'dir' %}
-        <i class="fa fa-folder" aria-hidden="true"></i>
+        <i class="fa fa-folder-o" aria-hidden="true"></i>
         {% else %}
-        <i class="fa fa-file" aria-hidden="true"></i>
+        <i class="fa fa-file-text-o" aria-hidden="true"></i>
         {% endif %}
       </th>
-      <td><a href="{{ content.url }}">{{ content.name }}</a></td>
+      <td><a class="text-secondary" href="{{ content.url }}">{{ content.name }}</a></td>
       <td>{{ content.modified }}</td>
       <td>{% if content.size %}{{ content.size|filesizeformat }}{% endif %}</td>
     </tr>

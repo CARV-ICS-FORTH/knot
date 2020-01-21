@@ -35,14 +35,12 @@ def code(request):
 
 @login_required
 def data(request, path='/'):
-    print('***** %s' % path)
     # Normalize given path and split.
     path = os.path.normpath(path)
     path = path.lstrip('/')
     if path == '':
         path = 'local'
     path_components = [p for p in path.split('/') if p]
-    print(path_components)
 
     # Figure out the real path we are working on.
     for domain, folder in settings.DATA_DOMAINS.items():
@@ -52,7 +50,6 @@ def data(request, path='/'):
     else:
         messages.error(request, 'Unknown path.')
         return redirect('data')
-    print(real_path)
 
     # Respond appropriately.
     if os.path.isfile(real_path):
@@ -62,14 +59,15 @@ def data(request, path='/'):
         return redirect('data')
 
     route = []
-    for i, path_component in enumerate(path_components[1:-1]):
+    route.append({'name': '<i class="fa fa-hdd-o" aria-hidden="true"></i>',
+                  'url': reverse('data', args=[domain]) if len(path_components) != 1 else None})
+    for i, path_component in enumerate(path_components[1:]):
         route.append({'name': path_component,
-                      'url': reverse('data_with_path', kwargs={'path': os.path.join(*path_components[:i + 1])})})
+                      'url': reverse('data', args=[os.path.join(*path_components[:i + 2])]) if i != (len(path_components) - 2) else None})
 
     contents = []
     for file_name in os.listdir(real_path):
         file_path = os.path.join(real_path, file_name)
-        print(os.path.join(domain, file_path))
         if os.path.isdir(file_path):
             file_type = 'dir'
         elif os.path.isfile(file_path):
@@ -80,13 +78,9 @@ def data(request, path='/'):
                          'modified': datetime.fromtimestamp(os.path.getmtime(file_path)).strftime('%d/%m/%Y %H:%M'),
                          'type': file_type,
                          'size': os.path.getsize(file_path),
-                         'url': reverse('data_with_path', kwargs={'path': os.path.join(path, file_name)})})
+                         'url': reverse('data', args=[os.path.join(path, file_name)])})
     contents = sorted(contents, key=lambda x: x['name'])
 
-    print('*** %s' % {'title': 'Data',
-                                                   'domain': domain,
-                                                   'route': route,
-                                                   'contents': contents})
     return render(request, 'dashboard/data.html', {'title': 'Data',
                                                    'domain': domain,
                                                    'route': route,

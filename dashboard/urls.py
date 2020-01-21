@@ -23,8 +23,8 @@ from . import views
 urlpatterns = [
     path('', views.dashboard, name='dashboard'),
     path('code', views.code, name='code'),
-    path('data', views.data, {'path': '/'}, name='data'),
-    path('data/<path:path>', views.data, name='data_with_path'),
+    path('data', views.data, name='data'),
+    path('data/<path:path>', views.data, name='data'),
 
     path('signup', views.signup, name='signup'),
     path('login', auth_views.LoginView.as_view(template_name='dashboard/login.html'), name='login'),
