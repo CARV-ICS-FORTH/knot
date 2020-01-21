@@ -2,51 +2,6 @@
 {% load static %}
 {% load crispy_forms_tags %}
 
-{% block header %}
-<style>
-html, body {
-  /*height: 100%;*/
-  height: 100vh;
-}
-.container-fluid .row {
-  height: 100vh;  
-}
-nav {
-  background-color: rgb(41, 42, 102)!important;
-  /*background-color: rgb(45, 29, 98);*/
-  color: #f8f9fa;
-}
-.btn-success,
-.btn-success:visited {
-  color: #212529!important;
-  background-color: rgb(58, 250, 250)!important;
-  border-color: rgb(58, 250, 250)!important;
-  box-shadow: none!important;
-}
-.btn-success:hover,
-.btn-success:active,
-.btn-success:focus {
-  color: #212529!important;
-  background-color: #e2e6ea!important;
-  border-color: #dae0e5!important;
-  box-shadow: none!important;
-}
-a,
-a:visited {
-  color: rgb(58, 250, 250);
-}
-a:hover,
-a:active,
-a:focus {
-  color: #e2e6ea;
-}
-.nav-pills .nav-link.active, .nav-pills .show>.nav-link {
-  color: #212529!important;
-  background-color: rgb(58, 250, 250)!important;
-}
-</style>
-{% endblock %}
-
 {% block content %}
 <div class="container-fluid">
   <div class="row">
@@ -57,17 +12,17 @@ a:focus {
 
       <ul class="nav nav-pills flex-column mb-3 mr-auto">
         <li class="nav-item">
-          <a class="nav-link active" href="#">
+          <a class="nav-link {% if title == 'Dashboard' %}active{% endif %}" href="{% url 'dashboard' %}">
             <i class="fa fa-tachometer" aria-hidden="true"></i> Dashboard
           </a>
         </li>
         <li class="nav-item">
-          <a class="nav-link" href="#">
+          <a class="nav-link {% if title == 'Code' %}active{% endif %}" href="{% url 'code' %}">
             <i class="fa fa-cog" aria-hidden="true"></i> Code
           </a>
         </li>
         <li class="nav-item">
-          <a class="nav-link" href="#">
+          <a class="nav-link {% if title == 'Data' %}active{% endif %}" href="{% url 'data' %}">
             <i class="fa fa-database" aria-hidden="true"></i> Data
           </a>
         </li>
@@ -75,25 +30,29 @@ a:focus {
     </nav>
 
     <main role="main" class="col-md-9 ml-sm-auto pt-3 px-4">
+      {% for message in messages %}
+      <div class="alert {{ message.tags }} alert-dismissible" role="alert">
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+        {{ message }}
+      </div>
+      {% endfor %}
+
       <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-2 mb-3 border-bottom">
-        <h1 class="h2">Dashboard</h1>
+        <h1 class="h2">{{ title }}</h1>
         <div class="btn-toolbar mb-2 mb-md-0">
           <div class="btn-group">
             <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="dropdownUserButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
               <i class="fa fa-user" aria-hidden="true"></i> {{ user.username }}
             </button>
             <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownUserButton">
-              <a class="dropdown-item text-secondary" href="#">Change password</a>
-              <a class="dropdown-item text-secondary" href="#">Logout</a>
+              <a class="dropdown-item text-secondary" href="{% url 'change_password' %}">Change password</a>
+              <a class="dropdown-item text-secondary" href="{% url 'logout' %}">Logout</a>
             </div>
           </div>
         </div>
       </div>
-
-      <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Maecenas augue augue, tempus eu orci convallis, feugiat interdum ex. Duis rutrum neque sed sapien sollicitudin, quis pretium ante efficitur. Quisque porttitor tortor vitae pharetra suscipit. Nulla ut tellus id magna pretium auctor. Fusce pharetra lectus eu nulla pellentesque tincidunt. Nunc consequat augue quam, quis semper nisi laoreet quis. Pellentesque iaculis neque nibh, ac vehicula lectus porta mattis. Nam sit amet elit fringilla, bibendum est nec, convallis felis. Ut laoreet lacinia ullamcorper.</p>
-      <p>Aenean lectus nisl, tempor et arcu id, hendrerit scelerisque lectus. Sed placerat sapien vitae orci tincidunt, non laoreet velit ultrices. Nulla in augue efficitur, suscipit leo ac, lacinia nibh. Donec consectetur, leo eget condimentum fermentum, libero nisl mollis sapien, ac suscipit nisi nunc id leo. Donec sit amet eros congue, ullamcorper libero nec, auctor nisl. Vivamus lacinia mollis neque, sit amet porttitor tellus condimentum non. Morbi ultrices scelerisque mattis. Maecenas ultrices nibh a elit tempus varius. Mauris finibus sem non molestie suscipit. Nullam rutrum dui pretium quam tristique, id rutrum nisl elementum. Ut lacinia finibus ex. Aenean et mauris varius, finibus erat non, elementum eros.</p>
-      <p>Vestibulum volutpat, dui eu bibendum vestibulum, dolor velit dapibus lacus, id imperdiet erat odio quis elit. Aenean eu mi ac nulla mattis sodales. Nunc interdum a sem luctus aliquet. Ut a eleifend metus. In hac habitasse platea dictumst. Orci varius natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Etiam ut auctor dui. Nullam sit amet lobortis neque, non pharetra justo. Curabitur blandit nunc a magna ultricies imperdiet. Proin dictum, velit consequat rutrum mollis, enim libero accumsan turpis, in tempus augue dolor ac eros. Phasellus lacinia ac elit nec sollicitudin. Vivamus nisl risus, pretium in imperdiet ut, rhoncus a odio. Proin et cursus magna. Integer nec neque bibendum, sollicitudin urna eu, vehicula sapien. Suspendisse et volutpat metus.</p>
-
     </main>
   </div>
 </div>

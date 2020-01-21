@@ -153,3 +153,16 @@ LOGOUT_REDIRECT_URL = '/'
 # Form styling with crispy-forms
 
 CRISPY_TEMPLATE_PACK = 'bootstrap4'
+
+
+# Bootstrap compatible messages
+
+from django.contrib.messages import constants as messages
+
+MESSAGE_TAGS = {
+    messages.DEBUG: 'alert-info',
+    messages.INFO: 'alert-info',
+    messages.SUCCESS: 'alert-success',
+    messages.WARNING: 'alert-warning',
+    messages.ERROR: 'alert-danger',
+}

@@ -22,8 +22,16 @@ from .forms import SignUpForm, ChangePasswordForm
 
 
 @login_required
-def main(request):
-    return render(request, 'dashboard/main.html')
+def dashboard(request):
+    return render(request, 'dashboard/main.html', {'title': 'Dashboard'})
+
+@login_required
+def code(request):
+    return render(request, 'dashboard/main.html', {'title': 'Code'})
+
+@login_required
+def data(request):
+    return render(request, 'dashboard/main.html', {'title': 'Data'})
 
 def signup(request):
     if request.method == 'POST':
@@ -54,9 +62,8 @@ def change_password(request):
             return redirect(next)
     else:
         form = ChangePasswordForm(request.user)
-    return render(request, 'dashboard/account.html', {'message': 'Change your password.',
-                                                          'form': form,
-                                                          'next': next})
+    return render(request, 'dashboard/change_password.html', {'form': form,
+                                                              'next': next})
 
 @login_required
 def logout(request, next):
