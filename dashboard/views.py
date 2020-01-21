@@ -51,20 +51,22 @@ def data(request, path='/'):
         messages.error(request, 'Unknown path.')
         return redirect('data')
 
-    # Respond appropriately.
+    # Respond appropriately if the path is not a directory.
     if os.path.isfile(real_path):
         return FileResponse(open(real_path, 'rb'), as_attachment=True, filename=os.path.basename(real_path))
     if not os.path.isdir(real_path):
         messages.error(request, 'Invalid path.')
         return redirect('data')
 
-    route = []
-    route.append({'name': '<i class="fa fa-hdd-o" aria-hidden="true"></i>',
+    # This is a directory. Leave a trail of breadcrumbs.
+    trail = []
+    trail.append({'name': '<i class="fa fa-hdd-o" aria-hidden="true"></i>',
                   'url': reverse('data', args=[domain]) if len(path_components) != 1 else None})
     for i, path_component in enumerate(path_components[1:]):
-        route.append({'name': path_component,
+        trail.append({'name': path_component,
                       'url': reverse('data', args=[os.path.join(*path_components[:i + 2])]) if i != (len(path_components) - 2) else None})
 
+    # Fill in the contents.
     contents = []
     for file_name in os.listdir(real_path):
         file_path = os.path.join(real_path, file_name)
@@ -74,17 +76,36 @@ def data(request, path='/'):
             file_type = 'file'
         else:
             continue
+        mtime = os.path.getmtime(file_path)
         contents.append({'name': file_name,
-                         'modified': datetime.fromtimestamp(os.path.getmtime(file_path)).strftime('%d/%m/%Y %H:%M'),
+                         'timestamp': mtime,
+                         'modified': datetime.fromtimestamp(mtime).strftime('%d/%m/%Y %H:%M'),
                          'type': file_type,
                          'size': os.path.getsize(file_path),
                          'url': reverse('data', args=[os.path.join(path, file_name)])})
-    contents = sorted(contents, key=lambda x: x['name'])
+
+    # Sort them up.
+    sort_by = request.GET.get('sort_by')
+    if sort_by and sort_by in ('name', 'modified', 'size'):
+        request.session['data_sort_by'] = sort_by
+    else:
+        sort_by = request.session.get('data_sort_by', 'name')
+    order = request.GET.get('order')
+    if order and order in ('asc', 'desc'):
+        request.session['data_order'] = order
+    else:
+        order = request.session.get('data_order', 'asc')
+
+    contents = sorted(contents,
+                      key=lambda x: x[sort_by if sort_by != 'modified' else 'timestamp'],
+                      reverse=True if order == 'desc' else False)
 
     return render(request, 'dashboard/data.html', {'title': 'Data',
                                                    'domain': domain,
-                                                   'route': route,
-                                                   'contents': contents})
+                                                   'trail': trail,
+                                                   'contents': contents,
+                                                   'sort_by': sort_by,
+                                                   'order': order})
 
 def signup(request):
     if request.method == 'POST':

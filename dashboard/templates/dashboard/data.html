@@ -15,17 +15,15 @@
 {% block main %}
 <nav aria-label="breadcrumb">
   <ol class="breadcrumb">
-    {% if route %}
-    {% for point in route %}
-    {% if point.url %}
-    <li class="breadcrumb-item"><a href="{{ point.url }}">{{ point.name|safe }}</a></li>
+    {% for breadcrumb in trail %}
+    {% if breadcrumb.url %}
+    <li class="breadcrumb-item"><a href="{{ breadcrumb.url }}">{{ breadcrumb.name|safe }}</a></li>
     {% else %}
-    <li class="breadcrumb-item active">{{ point.name|safe }}</li>
+    <li class="breadcrumb-item active">{{ breadcrumb.name|safe }}</li>
     {% endif %}
-    {% endfor %}
-    {% else %}
+    {% empty %}
     &nbsp;
-    {% endif %}
+    {% endfor %}
   </ol>
 </nav>
 
@@ -33,24 +31,35 @@
   <thead>
     <tr>
       <th scope="col"></th>
-      <th scope="col">Name</th>
-      <th scope="col">Modified</th>
-      <th scope="col">Size</th>
+      {% with 'name modified size' as list %}
+      {% for item in list.split %}
+      <th scope="col">
+        {% if sort_by == item and order == 'asc' %}
+        <a class="text-dark" href="{{ request.path }}?sort_by={{ item }}&amp;order=desc">{{ item|title }}</a>
+        {% else %}
+        <a class="text-dark" href="{{ request.path }}?sort_by={{ item }}&amp;order=asc">{{ item|title }}</a>
+        {% endif %}
+        {% if sort_by == item %}
+        <i class="fa fa-caret-{% if order == 'asc' %}up{% else %}down{% endif %}" aria-hidden="true"></i>
+        {% endif %}
+      </th>
+      {% endfor %}
+      {% endwith %}
     </tr>
   </thead>
   <tbody>
-    {% for content in contents %}
+    {% for item in contents %}
     <tr>
       <th scope="row">
-        {% if content.type == 'dir' %}
+        {% if item.type == 'dir' %}
         <i class="fa fa-folder-o" aria-hidden="true"></i>
         {% else %}
         <i class="fa fa-file-text-o" aria-hidden="true"></i>
         {% endif %}
       </th>
-      <td><a class="text-secondary" href="{{ content.url }}">{{ content.name }}</a></td>
-      <td>{{ content.modified }}</td>
-      <td>{% if content.size %}{{ content.size|filesizeformat }}{% endif %}</td>
+      <td><a class="text-secondary" href="{{ item.url }}">{{ item.name }}</a></td>
+      <td>{{ item.modified }}</td>
+      <td>{% if item.size %}{{ item.size|filesizeformat }}{% endif %}</td>
     </tr>
     {% endfor %}
   </tbody>
