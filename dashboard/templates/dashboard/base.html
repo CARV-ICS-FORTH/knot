@@ -66,6 +66,13 @@
     .dropdown-item.active, .dropdown-item:active {
       background-color: rgb(58, 250, 250)!important;
     }
+    .breadcrumb {
+      background-color: rgb(41, 42, 102);
+    }
+    .breadcrumb-item.active,
+    .breadcrumb-item+.breadcrumb-item::before {
+      color: #e2e6ea;
+    }
     </style>
     {% block header %}
     {% endblock %}
@@ -79,7 +86,7 @@
     <title>Evolve Dashboard</title>
   </head>
   <body>
-    {% block content %}
+    {% block body %}
     {% endblock %}
   </body>
 </html>

@@ -1,8 +1,7 @@
 {% extends 'dashboard/base.html' %}
 {% load static %}
-{% load crispy_forms_tags %}
 
-{% block content %}
+{% block body %}
 <div class="container-fluid">
   <div class="row">
     <nav class="col-md-3 d-block">
@@ -42,6 +41,8 @@
       <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-2 mb-3 border-bottom">
         <h1 class="h2">{{ title }}</h1>
         <div class="btn-toolbar mb-2 mb-md-0">
+          {% block toolbar %}
+          {% endblock %}
           <div class="btn-group">
             <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="dropdownUserButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
               <i class="fa fa-user" aria-hidden="true"></i> {{ user.username }}
@@ -53,6 +54,9 @@
           </div>
         </div>
       </div>
+
+      {% block main %}
+      {% endblock %}
     </main>
   </div>
 </div>

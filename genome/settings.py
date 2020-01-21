@@ -166,3 +166,11 @@ MESSAGE_TAGS = {
     messages.WARNING: 'alert-warning',
     messages.ERROR: 'alert-danger',
 }
+
+
+# Data management domains
+
+DATA_DOMAINS = {
+    'local': '/Users/chazapis/Source',
+    'remote': '/Users/chazapis/Documents'
+}
