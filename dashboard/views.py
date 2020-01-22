@@ -22,7 +22,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from datetime import datetime
 
-from .forms import SignUpForm, ChangePasswordForm
+from .forms import SignUpForm, ChangePasswordForm, AddFolderForm
 
 
 @login_required
@@ -50,6 +50,23 @@ def data(request, path='/'):
     else:
         messages.error(request, 'Unknown path.')
         return redirect('data')
+
+    # Handle changes.
+    if (request.method == 'POST'):
+        if request.POST['action'] == 'Create':
+            form = AddFolderForm(request.POST)
+            if form.is_valid():
+                name = form.cleaned_data['name']
+                if os.path.exists(os.path.join(real_path, name)):
+                    messages.error(request, 'Can not add "%s". An item with the same name already exists.' % name)
+                else:
+                    os.mkdir(os.path.join(real_path, name))
+                    messages.success(request, 'Folder "%s" created.' % name)
+            else:
+                # XXX Show form errors in messages.
+                pass
+
+        return redirect('data', path)
 
     # Respond appropriately if the path is not a directory.
     if os.path.isfile(real_path):
@@ -105,7 +122,8 @@ def data(request, path='/'):
                                                    'trail': trail,
                                                    'contents': contents,
                                                    'sort_by': sort_by,
-                                                   'order': order})
+                                                   'order': order,
+                                                   'add_folder_form': AddFolderForm()})
 
 def signup(request):
     if request.method == 'POST':

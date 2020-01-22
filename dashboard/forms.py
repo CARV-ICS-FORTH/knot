@@ -54,3 +54,6 @@ class ChangePasswordForm(PasswordChangeForm):
             'new_password2',
             Submit('submit', 'Submit', css_class='btn-success btn-lg btn-block')
         )
+
+class AddFolderForm(forms.Form):
+    name = forms.CharField(label='Folder name', min_length=1, max_length=255, initial='New Folder')

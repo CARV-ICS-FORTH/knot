@@ -1,5 +1,6 @@
 {% extends 'dashboard/main.html' %}
 {% load static %}
+{% load crispy_forms_tags %}
 
 {% block toolbar %}
 <div class="btn-group mr-2" role="group" aria-label="Basic example">
@@ -15,8 +16,31 @@
 {% block main %}
 <div class="row">
   <div class="col-md-2 order-md-2">
-    <a class="d-block btn btn-success mb-2" role="button" href="{% url 'data' 'remote' %}"><i class="fa fa-folder" aria-hidden="true"></i> New folder</a>
+    <button type="button" class="d-block btn btn-success mb-2 w-100" data-toggle="modal" data-target="#newFolderModal"><i class="fa fa-folder" aria-hidden="true"></i> New folder</button>
     <a class="d-block btn btn-success mb-2" role="button" href="{% url 'data' 'remote' %}"><i class="fa fa-download" aria-hidden="true"></i> Add files</a>
+  </div>
+
+  <div class="modal fade" id="newFolderModal" tabindex="-1" role="dialog" aria-labelledby="newFolderModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="newFolderModalLabel">New folder</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <form method="post">
+          <div class="modal-body">
+            {% csrf_token %}
+            {{ add_folder_form|crispy }}
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            <input type="submit" class="btn btn-success" name="action" value="Create" />
+          </div>
+        </form>
+      </div>
+    </div>
   </div>
 
   <div class="col-md-10 order-md-1">
