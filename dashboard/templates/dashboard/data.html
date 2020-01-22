@@ -2,6 +2,29 @@
 {% load static %}
 {% load crispy_forms_tags %}
 
+{% block style %}
+<style>
+  .asteriskField {
+    display: none;
+  }
+  table tbody tr td .btn {
+    display: none;
+  }
+  table tbody tr:hover td .btn {
+    display:inline-block;
+  }
+</style>
+{% endblock %}
+
+{% block script %}
+<script>
+  $(document).on('click', '.confirm-delete', function () {
+    $("#deleteNameText").text($(this).attr("id"));
+    $("#deleteNameInput").val($(this).attr("id"));
+  });
+</script>
+{% endblock %}
+
 {% block toolbar %}
 <div class="btn-group mr-2" role="group" aria-label="Basic example">
   <a class="btn btn-outline-secondary {% if domain == 'local' %}active{% endif %}" role="button" href="{% url 'data' 'local' %}">
@@ -76,25 +99,54 @@
           </th>
           {% endfor %}
           {% endwith %}
+          <th scope="col" style="width: 120px;"></th>
         </tr>
       </thead>
       <tbody>
         {% for item in contents %}
         <tr>
-          <th scope="row">
+          <th scope="row" class="align-middle">
             {% if item.type == 'dir' %}
             <i class="fa fa-folder-o" aria-hidden="true"></i>
             {% else %}
             <i class="fa fa-file-text-o" aria-hidden="true"></i>
             {% endif %}
           </th>
-          <td><a class="text-secondary" href="{{ item.url }}">{{ item.name }}</a></td>
-          <td>{{ item.modified }}</td>
-          <td>{% if item.type != 'dir' and item.size %}{{ item.size|filesizeformat }}{% endif %}</td>
+          <td class="align-middle"><a class="text-secondary" href="{{ item.url }}">{{ item.name }}</a></td>
+          <td class="align-middle">{{ item.modified }}</td>
+          <td class="align-middle">{% if item.type != 'dir' and item.size %}{{ item.size|filesizeformat }}{% endif %}</td>
+          <td class="align-middle py-0">
+            <button type="button" class="btn btn-sm btn-outline-secondary confirm-delete" data-toggle="modal" data-target="#deleteModal" id="{{ item.name }}"><i class="fa fa-trash" aria-hidden="true"></i> Delete</button>
+          </td>
         </tr>
         {% endfor %}
       </tbody>
     </table>
+
+    <div class="modal fade" id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel" aria-hidden="true">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="deleteModalLabel">Delete</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <form method="post">
+            <div class="modal-body">
+              Are you sure you want to delete "<span id="deleteNameText"></span>"? The action will be permanent.
+              {% csrf_token %}
+              <input type="hidden" name="name" value="" id="deleteNameInput" />
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+              <input type="submit" class="btn btn-success" name="action" value="Delete" />
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
   </div>
 </div>
 {% endblock %}

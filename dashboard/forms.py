@@ -56,4 +56,4 @@ class ChangePasswordForm(PasswordChangeForm):
         )
 
 class AddFolderForm(forms.Form):
-    name = forms.CharField(label='Folder name', min_length=1, max_length=255, initial='New Folder')
+    name = forms.CharField(label='Enter a name for the new folder:', min_length=1, max_length=255, initial='New Folder')
