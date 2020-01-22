@@ -57,3 +57,6 @@ class ChangePasswordForm(PasswordChangeForm):
 
 class AddFolderForm(forms.Form):
     name = forms.CharField(label='Enter a name for the new folder:', min_length=1, max_length=255, initial='New Folder')
+
+class AddFilesForm(forms.Form):
+    file_field = forms.FileField(label='Select files to add:', widget=forms.ClearableFileInput(attrs={'multiple': True}))

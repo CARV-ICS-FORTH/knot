@@ -22,7 +22,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from datetime import datetime
 
-from .forms import SignUpForm, ChangePasswordForm, AddFolderForm
+from .forms import SignUpForm, ChangePasswordForm, AddFolderForm, AddFilesForm
 
 
 @login_required
@@ -53,18 +53,57 @@ def data(request, path='/'):
 
     # Handle changes.
     if (request.method == 'POST'):
-        if request.POST['action'] == 'Create':
+        if 'action' not in request.POST:
+            messages.error(request, 'Invalid action.')
+        elif request.POST['action'] == 'Create':
             form = AddFolderForm(request.POST)
             if form.is_valid():
                 name = form.cleaned_data['name']
-                if os.path.exists(os.path.join(real_path, name)):
+                real_name = os.path.join(real_path, name)
+                if os.path.exists(real_name):
                     messages.error(request, 'Can not add "%s". An item with the same name already exists.' % name)
                 else:
-                    os.mkdir(os.path.join(real_path, name))
+                    os.mkdir(real_name)
                     messages.success(request, 'Folder "%s" created.' % name)
             else:
                 # XXX Show form errors in messages.
                 pass
+        elif request.POST['action'] == 'Add':
+            form = AddFilesForm(request.POST, request.FILES)
+            files = request.FILES.getlist('file_field')
+            if form.is_valid():
+                for f in files:
+                    real_name = os.path.join(real_path, f.name)
+                    if os.path.exists(real_name):
+                        messages.error(request, 'Can not add "%s". An item with the same name already exists.' % f.name)
+                        break
+                else:
+                    for f in files:
+                        real_name = os.path.join(real_path, f.name)
+                        with open(real_name, 'wb') as dest:
+                            for chunk in f.chunks():
+                                dest.write(chunk)
+                    messages.success(request, 'Item%s %s added.' % ('s' if len(files) > 1 else '', ', '.join(['"%s"' % f.name for f in files])))
+            else:
+                # XXX Show form errors in messages.
+                pass
+        elif request.POST['action'] == 'Delete':
+            name = request.POST.get('name', None)
+            if name:
+                real_name = os.path.join(real_path, name)
+                if not os.path.exists(real_name):
+                    messages.error(request, 'Item "%s" not found in folder.' % name)
+                else:
+                    try:
+                        if os.path.isfile(real_name):
+                            os.remove(real_name)
+                        else:
+                            os.rmdir(real_name)
+                    except Exception as e:
+                        # messages.error(request, 'Failed to delete "%s": %s' % (name, str(e)))
+                        messages.error(request, 'Failed to delete "%s". Probably not permitted or directory not empty.' % name)
+                    else:
+                        messages.success(request, 'Item "%s" deleted.' % name)
 
         return redirect('data', path)
 
@@ -123,7 +162,8 @@ def data(request, path='/'):
                                                    'contents': contents,
                                                    'sort_by': sort_by,
                                                    'order': order,
-                                                   'add_folder_form': AddFolderForm()})
+                                                   'add_folder_form': AddFolderForm(),
+                                                   'add_files_form': AddFilesForm()})
 
 def signup(request):
     if request.method == 'POST':

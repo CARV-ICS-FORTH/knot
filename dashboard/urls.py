@@ -31,6 +31,3 @@ urlpatterns = [
     path('change_password', views.change_password, name='change_password'),
     path('logout', views.logout, {'next': settings.LOGOUT_REDIRECT_URL}, name='logout'),
 ]
-
-if settings.DEBUG:
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

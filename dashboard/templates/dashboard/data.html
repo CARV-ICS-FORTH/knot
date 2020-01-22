@@ -40,7 +40,7 @@
 <div class="row">
   <div class="col-md-2 order-md-2">
     <button type="button" class="d-block btn btn-success mb-2 w-100" data-toggle="modal" data-target="#newFolderModal"><i class="fa fa-folder" aria-hidden="true"></i> New folder</button>
-    <a class="d-block btn btn-success mb-2" role="button" href="{% url 'data' 'remote' %}"><i class="fa fa-download" aria-hidden="true"></i> Add files</a>
+    <button type="button" class="d-block btn btn-success mb-2 w-100" data-toggle="modal" data-target="#addFilesModal"><i class="fa fa-download" aria-hidden="true"></i> Add files</button>
   </div>
 
   <div class="modal fade" id="newFolderModal" tabindex="-1" role="dialog" aria-labelledby="newFolderModalLabel" aria-hidden="true">
@@ -60,6 +60,29 @@
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
             <input type="submit" class="btn btn-success" name="action" value="Create" />
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="addFilesModal" tabindex="-1" role="dialog" aria-labelledby="addFilesModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="addFilesModalLabel">Add files</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <form method="post" enctype="multipart/form-data">
+          <div class="modal-body">
+            {% csrf_token %}
+            {{ add_files_form|crispy }}
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            <input type="submit" class="btn btn-success" name="action" value="Add" />
           </div>
         </form>
       </div>

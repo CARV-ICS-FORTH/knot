@@ -11,7 +11,6 @@ pip install -r requirements.txt
 
 Then:
 ```
-mkdir media
 python manage.py migrate
 python manage.py createsuperuser
 python manage.py runserver
