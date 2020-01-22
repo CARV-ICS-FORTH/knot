@@ -81,7 +81,7 @@ def data(request, path='/'):
                          'timestamp': mtime,
                          'modified': datetime.fromtimestamp(mtime).strftime('%d/%m/%Y %H:%M'),
                          'type': file_type,
-                         'size': os.path.getsize(file_path),
+                         'size': os.path.getsize(file_path) if file_type != 'dir' else 0,
                          'url': reverse('data', args=[os.path.join(path, file_name)])})
 
     # Sort them up.

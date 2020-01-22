@@ -66,7 +66,7 @@
           </th>
           <td><a class="text-secondary" href="{{ item.url }}">{{ item.name }}</a></td>
           <td>{{ item.modified }}</td>
-          <td>{% if item.size %}{{ item.size|filesizeformat }}{% endif %}</td>
+          <td>{% if item.type != 'dir' and item.size %}{{ item.size|filesizeformat }}{% endif %}</td>
         </tr>
         {% endfor %}
       </tbody>
