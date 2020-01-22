@@ -6,62 +6,71 @@
   <a class="btn btn-outline-secondary {% if domain == 'local' %}active{% endif %}" role="button" href="{% url 'data' 'local' %}">
     <i class="fa fa-laptop" aria-hidden="true"></i> Local
   </a>
-  <a class="btn btn-outline-secondary {% if domain == 'remote' %}active{% endif %}" role="button" href="{% url 'data' 'remote' %}" >
+  <a class="btn btn-outline-secondary {% if domain == 'remote' %}active{% endif %}" role="button" href="{% url 'data' 'remote' %}">
     <i class="fa fa-sitemap" aria-hidden="true"></i> Remote
   </a>
 </div>
 {% endblock %}
 
 {% block main %}
-<nav aria-label="breadcrumb">
-  <ol class="breadcrumb">
-    {% for breadcrumb in trail %}
-    {% if breadcrumb.url %}
-    <li class="breadcrumb-item"><a href="{{ breadcrumb.url }}">{{ breadcrumb.name|safe }}</a></li>
-    {% else %}
-    <li class="breadcrumb-item active">{{ breadcrumb.name|safe }}</li>
-    {% endif %}
-    {% empty %}
-    &nbsp;
-    {% endfor %}
-  </ol>
-</nav>
+<div class="row">
+  <div class="col-md-2 order-md-2">
+    <a class="d-block btn btn-success mb-2" role="button" href="{% url 'data' 'remote' %}"><i class="fa fa-folder" aria-hidden="true"></i> New folder</a>
+    <a class="d-block btn btn-success mb-2" role="button" href="{% url 'data' 'remote' %}"><i class="fa fa-download" aria-hidden="true"></i> Add files</a>
+  </div>
 
-<table class="table table-hover">
-  <thead>
-    <tr>
-      <th scope="col"></th>
-      {% with 'name modified size' as list %}
-      {% for item in list.split %}
-      <th scope="col">
-        {% if sort_by == item and order == 'asc' %}
-        <a class="text-dark" href="{{ request.path }}?sort_by={{ item }}&amp;order=desc">{{ item|title }}</a>
+  <div class="col-md-10 order-md-1">
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb">
+        {% for breadcrumb in trail %}
+        {% if breadcrumb.url %}
+        <li class="breadcrumb-item"><a href="{{ breadcrumb.url }}">{{ breadcrumb.name|safe }}</a></li>
         {% else %}
-        <a class="text-dark" href="{{ request.path }}?sort_by={{ item }}&amp;order=asc">{{ item|title }}</a>
+        <li class="breadcrumb-item active">{{ breadcrumb.name|safe }}</li>
         {% endif %}
-        {% if sort_by == item %}
-        <i class="fa fa-caret-{% if order == 'asc' %}up{% else %}down{% endif %}" aria-hidden="true"></i>
-        {% endif %}
-      </th>
-      {% endfor %}
-      {% endwith %}
-    </tr>
-  </thead>
-  <tbody>
-    {% for item in contents %}
-    <tr>
-      <th scope="row">
-        {% if item.type == 'dir' %}
-        <i class="fa fa-folder-o" aria-hidden="true"></i>
-        {% else %}
-        <i class="fa fa-file-text-o" aria-hidden="true"></i>
-        {% endif %}
-      </th>
-      <td><a class="text-secondary" href="{{ item.url }}">{{ item.name }}</a></td>
-      <td>{{ item.modified }}</td>
-      <td>{% if item.size %}{{ item.size|filesizeformat }}{% endif %}</td>
-    </tr>
-    {% endfor %}
-  </tbody>
-</table>
+        {% empty %}
+        &nbsp;
+        {% endfor %}
+      </ol>
+    </nav>
+
+    <table class="table table-hover">
+      <thead>
+        <tr>
+          <th scope="col"></th>
+          {% with 'name modified size' as list %}
+          {% for item in list.split %}
+          <th scope="col">
+            {% if sort_by == item and order == 'asc' %}
+            <a class="text-dark" href="{{ request.path }}?sort_by={{ item }}&amp;order=desc">{{ item|title }}</a>
+            {% else %}
+            <a class="text-dark" href="{{ request.path }}?sort_by={{ item }}&amp;order=asc">{{ item|title }}</a>
+            {% endif %}
+            {% if sort_by == item %}
+            <i class="fa fa-caret-{% if order == 'asc' %}up{% else %}down{% endif %}" aria-hidden="true"></i>
+            {% endif %}
+          </th>
+          {% endfor %}
+          {% endwith %}
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in contents %}
+        <tr>
+          <th scope="row">
+            {% if item.type == 'dir' %}
+            <i class="fa fa-folder-o" aria-hidden="true"></i>
+            {% else %}
+            <i class="fa fa-file-text-o" aria-hidden="true"></i>
+            {% endif %}
+          </th>
+          <td><a class="text-secondary" href="{{ item.url }}">{{ item.name }}</a></td>
+          <td>{{ item.modified }}</td>
+          <td>{% if item.size %}{{ item.size|filesizeformat }}{% endif %}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
 {% endblock %}
