@@ -2,20 +2,6 @@
 {% load static %}
 {% load crispy_forms_tags %}
 
-{% block style %}
-<style>
-  .asteriskField {
-    display: none;
-  }
-  table tbody tr td .btn {
-    display: none;
-  }
-  table tbody tr:hover td .btn {
-    display:inline-block;
-  }
-</style>
-{% endblock %}
-
 {% block script %}
 <script>
   $(document).on('click', '.confirm-delete', function () {

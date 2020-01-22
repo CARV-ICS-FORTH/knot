@@ -1,2 +1,114 @@
 {% extends 'dashboard/main.html' %}
 {% load static %}
+
+{% block main %}
+<div class="row">
+  <div class="col-md-2 order-md-2">
+    <button type="button" class="d-block btn btn-success mb-2 w-100" data-toggle="modal" data-target="#newServerModal"><i class="fa fa-laptop" aria-hidden="true"></i> New server</button>
+  </div>
+
+  <div class="modal fade" id="newServerModal" tabindex="-1" role="dialog" aria-labelledby="newServerModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="newServerModalLabel">New server</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <form method="post">
+          <div class="modal-body">
+            {% csrf_token %}
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            <input type="submit" class="btn btn-success" name="action" value="Create" />
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-10 order-md-1">
+    <table class="table table-hover">
+      <thead>
+        <tr>
+          <th scope="col"></th>
+          {% with 'name uptime' as list %}
+          {% for item in list.split %}
+          <th scope="col">
+            {% if sort_by == item and order == 'asc' %}
+            <a class="text-dark" href="{{ request.path }}?sort_by={{ item }}&amp;order=desc">{{ item|title }}</a>
+            {% else %}
+            <a class="text-dark" href="{{ request.path }}?sort_by={{ item }}&amp;order=asc">{{ item|title }}</a>
+            {% endif %}
+            {% if sort_by == item %}
+            <i class="fa fa-caret-{% if order == 'asc' %}up{% else %}down{% endif %}" aria-hidden="true"></i>
+            {% endif %}
+          </th>
+          {% endfor %}
+          {% endwith %}
+          <th scope="col" style="width: 120px;"></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <th scope="row" class="align-middle">
+            <i class="fa fa-laptop" aria-hidden="true"></i>
+          </th>
+          <td class="align-middle"><a class="text-secondary" href="#">Zeppelin server 1</a></td>
+          <td class="align-middle">2 days</td>
+          <td class="align-middle py-0">
+            <button type="button" class="btn btn-sm btn-outline-secondary confirm-delete" data-toggle="modal" data-target="#deleteModal"><i class="fa fa-trash" aria-hidden="true"></i> Delete</button>
+          </td>
+        </tr>
+        <tr>
+          <th scope="row" class="align-middle">
+            <i class="fa fa-laptop" aria-hidden="true"></i>
+          </th>
+          <td class="align-middle"><a class="text-secondary" href="#">Zeppelin server 2</a></td>
+          <td class="align-middle">4 hours</td>
+          <td class="align-middle py-0">
+            <button type="button" class="btn btn-sm btn-outline-secondary confirm-delete" data-toggle="modal" data-target="#deleteModal"><i class="fa fa-trash" aria-hidden="true"></i> Delete</button>
+          </td>
+        </tr>
+        <tr>
+          <th scope="row" class="align-middle">
+            <i class="fa fa-laptop" aria-hidden="true"></i>
+          </th>
+          <td class="align-middle"><a class="text-secondary" href="#">Zeppelin server 3</a></td>
+          <td class="align-middle">23 days</td>
+          <td class="align-middle py-0">
+            <button type="button" class="btn btn-sm btn-outline-secondary confirm-delete" data-toggle="modal" data-target="#deleteModal"><i class="fa fa-trash" aria-hidden="true"></i> Delete</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="modal fade" id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel" aria-hidden="true">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="deleteModalLabel">Delete</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <form method="post">
+            <div class="modal-body">
+              Are you sure you want to delete "<span id="deleteNameText"></span>"? The action will be permanent.
+              {% csrf_token %}
+              <input type="hidden" name="name" value="" id="deleteNameInput" />
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+              <input type="submit" class="btn btn-success" name="action" value="Delete" />
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}
