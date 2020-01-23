@@ -29,7 +29,7 @@ docker build -t genome .
 Run it:
 ```
 docker run -d --rm --name genome \
-    --env GENOME_ADMIN_PASSWORD=admin2 \
+    --env GENOME_ADMIN_PASSWORD=admin \
     --mount type=bind,source=$PWD,destination=/db \
     --mount type=bind,source=$PWD/local,destination=/local \
     --mount type=bind,source=$PWD/remote,destination=/remote \
