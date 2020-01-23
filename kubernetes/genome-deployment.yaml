@@ -1,0 +1,71 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: genome
+  labels:
+    app: genome
+spec:
+  ports:
+    - port: 80
+      targetPort: 8000
+  selector:
+    app: genome
+    tier: frontend
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: genome-pv-claim
+  labels:
+    app: genome
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: genome
+  labels:
+    app: genome
+spec:
+  selector:
+    matchLabels:
+      app: genome
+      tier: frontend
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: genome
+        tier: frontend
+    spec:
+      containers:
+      - image: genome:latest
+        imagePullPolicy: Never
+        name: genome
+        env:
+        - name: DJANGO_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: genome-secret
+              key: django-secret
+        - name: GENOME_ADMIN_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: genome-secret
+              key: admin-password
+        ports:
+        - containerPort: 8000
+          name: genome
+        volumeMounts:
+        - name: genome-persistent-storage
+          mountPath: /db
+      volumes:
+      - name: genome-persistent-storage
+        persistentVolumeClaim:
+          claimName: genome-pv-claim

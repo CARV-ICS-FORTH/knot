@@ -38,3 +38,20 @@ docker run -d --rm --name genome \
 ```
 
 You can also override the `DJANGO_SECRET` with an environment variable.
+
+## Run in Kubernetes
+
+Having built the Docker image, go into `kubernetes` and run:
+```
+kubectl apply -k ./
+```
+
+The reverse is:
+```
+kubectl delete -k ./
+```
+
+Access locally at port `8000` with:
+```
+kubectl port-forward service/genome 8000:80
+```
