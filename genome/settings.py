@@ -35,7 +35,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # See https://docs.djangoproject.com/en/3.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = '%ad&%4*!xpf*$wd3^t56+#ode4=@y^ju_t+j9f+20ajsta^gog'
+SECRET_KEY = os.getenv('DJANGO_SECRET', '%ad&%4*!xpf*$wd3^t56+#ode4=@y^ju_t+j9f+20ajsta^gog')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -93,7 +93,7 @@ WSGI_APPLICATION = 'genome.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        'NAME': os.path.join(os.getenv('GENOME_DATABASE_DIR', BASE_DIR), 'db.sqlite3'),
     }
 }
 
@@ -165,6 +165,6 @@ MESSAGE_TAGS = {
 # Data management domains
 
 DATA_DOMAINS = {
-    'local': '/Users/chazapis/Source',
-    'remote': '/Users/chazapis/Documents'
+    'local': os.getenv('GENOME_LOCAL_DIR', os.path.join(BASE_DIR, 'local')),
+    'remote': os.getenv('GENOME_REMOTE_DIR', os.path.join(BASE_DIR, 'remote'))
 }
