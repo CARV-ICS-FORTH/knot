@@ -65,7 +65,17 @@ spec:
         volumeMounts:
         - name: genome-persistent-storage
           mountPath: /db
+        - name: local-volume
+          mountPath: /local
+        - name: remote-volume
+          mountPath: /remote
       volumes:
       - name: genome-persistent-storage
         persistentVolumeClaim:
           claimName: genome-pv-claim
+      - name: local-volume
+        hostPath:
+          path: /Users/chazapis/Source/FORTH/integration/genome/local
+      - name: remote-volume
+        hostPath:
+          path: /Users/chazapis/Source/FORTH/integration/genome/remote
