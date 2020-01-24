@@ -7,6 +7,9 @@ WORKDIR /app
 
 RUN pip install -r requirements.txt
 
+RUN curl -o /usr/local/bin/kubectl https://storage.googleapis.com/kubernetes-release/release/v1.14.8/bin/linux/amd64/kubectl
+RUN chmod +x /usr/local/bin/kubectl
+
 VOLUME /db
 VOLUME /local
 VOLUME /remote

@@ -16,8 +16,13 @@
           </a>
         </li>
         <li class="nav-item">
-          <a class="nav-link {% if title == 'Code' %}active{% endif %}" href="{% url 'code' %}">
-            <i class="fa fa-cog" aria-hidden="true"></i> Code
+          <a class="nav-link {% if title == 'Services' %}active{% endif %}" href="{% url 'services' %}">
+            <i class="fa fa-cogs" aria-hidden="true"></i> Services
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link {% if title == 'Containers' %}active{% endif %}" href="{% url 'containers' %}">
+            <i class="fa fa-cubes" aria-hidden="true"></i> Containers
           </a>
         </li>
         <li class="nav-item">

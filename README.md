@@ -21,6 +21,8 @@ Then run `start.sh`.
 
 ## Running in Docker
 
+Edit `Dockerfile` and set the version of `kubectl` to match your Kubernetes cluster.
+
 Build the image:
 ```
 docker build -t genome .

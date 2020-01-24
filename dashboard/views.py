@@ -30,8 +30,12 @@ def dashboard(request):
     return render(request, 'dashboard/dashboard.html', {'title': 'Dashboard'})
 
 @login_required
-def code(request):
-    return render(request, 'dashboard/code.html', {'title': 'Code'})
+def services(request):
+    return render(request, 'dashboard/services.html', {'title': 'Services'})
+
+@login_required
+def containers(request):
+    return render(request, 'dashboard/containers.html', {'title': 'Containers'})
 
 @login_required
 def data(request, path='/'):
