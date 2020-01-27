@@ -168,3 +168,8 @@ DATA_DOMAINS = {
     'local': os.getenv('GENOME_LOCAL_DIR', os.path.join(BASE_DIR, 'local')),
     'remote': os.getenv('GENOME_REMOTE_DIR', os.path.join(BASE_DIR, 'remote'))
 }
+
+
+# Docker registry endpoint
+
+DOCKER_REGISTRY = os.getenv('GENOME_DOCKER_REGISTRY', 'http://127.0.0.1:5000')

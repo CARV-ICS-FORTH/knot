@@ -5,8 +5,9 @@ metadata:
   labels:
     app: genome
 spec:
+  type: LoadBalancer
   ports:
-    - port: 80
+    - port: 8000
       targetPort: 8000
   selector:
     app: genome
@@ -59,12 +60,16 @@ spec:
             secretKeyRef:
               name: genome-secret
               key: admin-password
+        - name: GENOME_DOCKER_REGISTRY
+          value: http://139.91.92.132:5000
         ports:
         - containerPort: 8000
           name: genome
         volumeMounts:
         - name: genome-persistent-storage
           mountPath: /db
+        - name: docker-socket
+          mountPath: /var/run/docker.sock
         - name: local-volume
           mountPath: /local
         - name: remote-volume
@@ -73,6 +78,9 @@ spec:
       - name: genome-persistent-storage
         persistentVolumeClaim:
           claimName: genome-pv-claim
+      - name: docker-socket
+        hostPath:
+          path: /var/run/docker.sock
       - name: local-volume
         hostPath:
           path: /Users/chazapis/Source/FORTH/integration/genome/local

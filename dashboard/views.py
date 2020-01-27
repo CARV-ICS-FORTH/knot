@@ -20,9 +20,11 @@ from django.conf import settings
 from django.contrib.auth import login, logout as auth_logout, update_session_auth_hash
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from urllib.parse import urlparse
+from dxf import DXF
 from datetime import datetime
 
-from .forms import SignUpForm, ChangePasswordForm, AddFolderForm, AddFilesForm
+from .forms import SignUpForm, ChangePasswordForm, AddImageForm, AddFolderForm, AddFilesForm
 
 
 @login_required
@@ -34,8 +36,46 @@ def services(request):
     return render(request, 'dashboard/services.html', {'title': 'Services'})
 
 @login_required
-def containers(request):
-    return render(request, 'dashboard/containers.html', {'title': 'Containers'})
+def images(request):
+    # There is no hierarchy here.
+    docker_registry_url = urlparse(settings.DOCKER_REGISTRY)
+    docker_registry_host = '%s:%s' % (docker_registry_url.hostname, docker_registry_url.port)
+    trail = [{'name': '<i class="fa fa-archive" aria-hidden="true"></i> %s' % docker_registry_host}]
+
+    # Fill in the contents.
+    contents = []
+    dxf = DXF(docker_registry_host, '', insecure=docker_registry_url.scheme == 'http')
+    for repo in dxf.list_repos():
+        repo_dxf = DXF(docker_registry_host, repo, insecure=docker_registry_url.scheme == 'http')
+        for alias in repo_dxf.list_aliases():
+            hashes = repo_dxf.get_alias(alias, sizes=True)
+            contents.append({'name': repo,
+                             'tag': alias,
+                             'size': sum([h[1] for h in hashes])})
+
+    # Sort them up.
+    sort_by = request.GET.get('sort_by')
+    if sort_by and sort_by in ('name', 'tag', 'size'):
+        request.session['data_sort_by'] = sort_by
+    else:
+        sort_by = request.session.get('data_sort_by', 'name')
+    order = request.GET.get('order')
+    if order and order in ('asc', 'desc'):
+        request.session['data_order'] = order
+    else:
+        order = request.session.get('data_order', 'asc')
+
+    contents = sorted(contents,
+                      key=lambda x: x[sort_by if sort_by != 'modified' else 'timestamp'],
+                      reverse=True if order == 'desc' else False)
+
+    return render(request, 'dashboard/images.html', {'title': 'Images',
+                                                     'trail': trail,
+                                                     'contents': contents,
+                                                     'sort_by': sort_by,
+                                                     'order': order,
+                                                     'add_image_form': AddImageForm()})
+
 
 @login_required
 def data(request, path='/'):
@@ -43,7 +83,7 @@ def data(request, path='/'):
     path = os.path.normpath(path)
     path = path.lstrip('/')
     if path == '':
-        path = 'local'
+        path = list(settings.DATA_DOMAINS.keys())[0] # First is the default.
     path_components = [p for p in path.split('/') if p]
 
     # Figure out the real path we are working on.

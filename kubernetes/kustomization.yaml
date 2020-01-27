@@ -4,4 +4,5 @@ secretGenerator:
   - django-secret='%ad&%4*!xpf*$wd3^t56+#ode4=@y^ju_t+j9f+20ajsta^gog'
   - admin-password='admin'
 resources:
-- genome-deployment.yaml
+- docker-registry.yaml
+- genome.yaml

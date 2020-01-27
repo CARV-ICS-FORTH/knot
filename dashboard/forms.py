@@ -55,6 +55,11 @@ class ChangePasswordForm(PasswordChangeForm):
             Submit('submit', 'Submit', css_class='btn-success btn-lg btn-block')
         )
 
+class AddImageForm(forms.Form):
+    repository = forms.CharField(label='Enter image name:', min_length=1, max_length=255)
+    tag = forms.CharField(label='Enter tag:', min_length=1, max_length=255, initial='latest')
+    file_field = forms.FileField(label='Select file to add:', widget=forms.ClearableFileInput(attrs={'multiple': False}))
+
 class AddFolderForm(forms.Form):
     name = forms.CharField(label='Enter a name for the new folder:', min_length=1, max_length=255, initial='New Folder')
 

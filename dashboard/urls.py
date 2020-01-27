@@ -23,7 +23,7 @@ from . import views
 urlpatterns = [
     path('', views.dashboard, name='dashboard'),
     path('services', views.services, name='services'),
-    path('containers', views.containers, name='containers'),
+    path('images', views.images, name='images'),
     path('data', views.data, name='data'),
     path('data/<path:path>', views.data, name='data'),
 

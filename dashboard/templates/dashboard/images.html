@@ -1,0 +1,120 @@
+{% extends 'dashboard/main.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block script %}
+<script>
+  $(document).on('click', '.confirm-delete', function () {
+    $("#deleteNameText").text($(this).attr("id"));
+    $("#deleteNameInput").val($(this).attr("id"));
+  });
+</script>
+{% endblock %}
+
+{% block main %}
+<div class="row">
+  <div class="col-md-2 order-md-2">
+    <button type="button" class="d-block btn btn-success mb-2 w-100" data-toggle="modal" data-target="#addImageModal"><i class="fa fa-download" aria-hidden="true"></i> Add image</button>
+  </div>
+
+  <div class="modal fade" id="addImageModal" tabindex="-1" role="dialog" aria-labelledby="addImageModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="addImageModalLabel">Add image</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <form method="post">
+          <div class="modal-body">
+            {% csrf_token %}
+            {{ add_image_form|crispy }}
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            <input type="submit" class="btn btn-success" name="action" value="Add" />
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-10 order-md-1">
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb">
+        {% for breadcrumb in trail %}
+        {% if breadcrumb.url %}
+        <li class="breadcrumb-item"><a href="{{ breadcrumb.url }}">{{ breadcrumb.name|safe }}</a></li>
+        {% else %}
+        <li class="breadcrumb-item active">{{ breadcrumb.name|safe }}</li>
+        {% endif %}
+        {% empty %}
+        &nbsp;
+        {% endfor %}
+      </ol>
+    </nav>
+
+    <table class="table table-hover">
+      <thead>
+        <tr>
+          <th scope="col"></th>
+          {% with 'name tag size' as list %}
+          {% for item in list.split %}
+          <th scope="col">
+            {% if sort_by == item and order == 'asc' %}
+            <a class="text-dark" href="{{ request.path }}?sort_by={{ item }}&amp;order=desc">{{ item|title }}</a>
+            {% else %}
+            <a class="text-dark" href="{{ request.path }}?sort_by={{ item }}&amp;order=asc">{{ item|title }}</a>
+            {% endif %}
+            {% if sort_by == item %}
+            <i class="fa fa-caret-{% if order == 'asc' %}up{% else %}down{% endif %}" aria-hidden="true"></i>
+            {% endif %}
+          </th>
+          {% endfor %}
+          {% endwith %}
+          <th scope="col" style="width: 120px;"></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in contents %}
+        <tr>
+          <th scope="row" class="align-middle"><i class="fa fa-cube" aria-hidden="true"></i></th>
+          <td class="align-middle">{{ item.name }}</td>
+          <td class="align-middle">{{ item.tag }}</td>
+          <td class="align-middle">{{ item.size|filesizeformat }}</td>
+          <td class="align-middle py-0">
+            <button type="button" class="btn btn-sm btn-outline-secondary confirm-delete" data-toggle="modal" data-target="#deleteModal" id="{{ item.name }}:{{ item.tag }}"><i class="fa fa-trash" aria-hidden="true"></i> Delete</button>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <div class="modal fade" id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel" aria-hidden="true">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="deleteModalLabel">Delete</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <form method="post">
+            <div class="modal-body">
+              Are you sure you want to delete "<span id="deleteNameText"></span>"? The action will be permanent.
+              {% csrf_token %}
+              <input type="hidden" name="name" value="" id="deleteNameInput" />
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+              <input type="submit" class="btn btn-success" name="action" value="Delete" />
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}

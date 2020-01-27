@@ -43,7 +43,9 @@ You can also override the `DJANGO_SECRET` with an environment variable.
 
 ## Run in Kubernetes
 
-Having built the Docker image, go into `kubernetes` and run:
+Having built the Docker image, go into `kubernetes` and edit `genome.yaml` to set the options according to your Kubernetes configuration. You need to adjust the storage paths and use your external cluster IP in `GENOME_DOCKER_REGISTRY`. You must also add this IP as an insecure Docker registry across all nodes in your cluster (see [here](https://docs.docker.com/registry/insecure/) for instructions).
+
+Then run:
 ```
 kubectl apply -k ./
 ```
@@ -53,7 +55,4 @@ The reverse is:
 kubectl delete -k ./
 ```
 
-Access locally at port `8000` with:
-```
-kubectl port-forward service/genome 8000:80
-```
+Access Genome at your external cluster IP, at port `8000`.
