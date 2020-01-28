@@ -14,11 +14,15 @@
 
 from django import forms
 from django.core.exceptions import ValidationError
+from django.core.validators import RegexValidator
 from django.contrib.auth.forms import UserCreationForm, PasswordChangeForm
 from django.contrib.auth.models import User
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Submit
 
+
+validate_docker_name = RegexValidator(r'^[0-9a-z\-\.]*$', 'Only alphanumeric characters are allowed.')
+validate_docker_tag = RegexValidator(r'^[0-9a-zA-Z_\-\.]*$', 'Only alphanumeric characters are allowed.')
 
 class SignUpForm(UserCreationForm):
     email = forms.EmailField(max_length=254, help_text='Required. Please use a valid email address.')
@@ -56,12 +60,16 @@ class ChangePasswordForm(PasswordChangeForm):
         )
 
 class AddImageForm(forms.Form):
-    repository = forms.CharField(label='Enter image name:', min_length=1, max_length=255)
-    tag = forms.CharField(label='Enter tag:', min_length=1, max_length=255, initial='latest')
-    file_field = forms.FileField(label='Select file to add:', widget=forms.ClearableFileInput(attrs={'multiple': False}))
+    name = forms.CharField(label='Enter image name:', min_length=1, max_length=128, validators=[validate_docker_name])
+    tag = forms.CharField(label='Enter tag:', min_length=1, max_length=128, initial='latest', validators=[validate_docker_tag])
+    file_field = forms.FileField(label='Select saved image file to add:')
 
 class AddFolderForm(forms.Form):
     name = forms.CharField(label='Enter a name for the new folder:', min_length=1, max_length=255, initial='New Folder')
 
 class AddFilesForm(forms.Form):
     file_field = forms.FileField(label='Select files to add:', widget=forms.ClearableFileInput(attrs={'multiple': True}))
+
+class AddImageFromFileForm(forms.Form):
+    name = forms.CharField(label='Enter image name:', min_length=1, max_length=128, validators=[validate_docker_name])
+    tag = forms.CharField(label='Enter tag:', min_length=1, max_length=128, initial='latest', validators=[validate_docker_tag])

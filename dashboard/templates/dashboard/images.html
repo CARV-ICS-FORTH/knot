@@ -26,7 +26,7 @@
             <span aria-hidden="true">&times;</span>
           </button>
         </div>
-        <form method="post">
+        <form method="post" enctype="multipart/form-data">
           <div class="modal-body">
             {% csrf_token %}
             {{ add_image_form|crispy }}
@@ -73,7 +73,7 @@
           </th>
           {% endfor %}
           {% endwith %}
-          <th scope="col" style="width: 120px;"></th>
+          <th scope="col" style="width: 140px;"></th>
         </tr>
       </thead>
       <tbody>
@@ -84,7 +84,14 @@
           <td class="align-middle">{{ item.tag }}</td>
           <td class="align-middle">{{ item.size|filesizeformat }}</td>
           <td class="align-middle py-0">
-            <button type="button" class="btn btn-sm btn-outline-secondary confirm-delete" data-toggle="modal" data-target="#deleteModal" id="{{ item.name }}:{{ item.tag }}"><i class="fa fa-trash" aria-hidden="true"></i> Delete</button>
+            <div class="btn-group">
+              <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="dropdownActionsButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                <i class="fa fa-wrench" aria-hidden="true"></i> Actions
+              </button>
+              <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownActionsButton">
+                <button type="button" class="dropdown-item btn-sm text-secondary confirm-delete" data-toggle="modal" data-target="#deleteModal" id="{{ item.name }}:{{ item.tag }}"><i class="fa fa-trash" aria-hidden="true"></i> Delete</button>
+              </div>
+            </div>
           </td>
         </tr>
         {% endfor %}

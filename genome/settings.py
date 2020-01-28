@@ -151,7 +151,7 @@ CRISPY_TEMPLATE_PACK = 'bootstrap4'
 
 # Bootstrap compatible messages
 
-from django.contrib.messages import constants as messages
+from django.contrib.messages import constants as messages # noqa: E402
 
 MESSAGE_TAGS = {
     messages.DEBUG: 'alert-info',

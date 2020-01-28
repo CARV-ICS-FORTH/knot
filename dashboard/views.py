@@ -13,18 +13,19 @@
 # limitations under the License.
 
 import os
+import docker
 
 from django.shortcuts import render, redirect, reverse
 from django.http import FileResponse
 from django.conf import settings
-from django.contrib.auth import login, logout as auth_logout, update_session_auth_hash
+from django.contrib.auth import logout as auth_logout, update_session_auth_hash
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from urllib.parse import urlparse
 from dxf import DXF
 from datetime import datetime
 
-from .forms import SignUpForm, ChangePasswordForm, AddImageForm, AddFolderForm, AddFilesForm
+from .forms import SignUpForm, ChangePasswordForm, AddImageForm, AddFolderForm, AddFilesForm, AddImageFromFileForm
 
 
 @login_required
@@ -35,21 +36,89 @@ def dashboard(request):
 def services(request):
     return render(request, 'dashboard/services.html', {'title': 'Services'})
 
+class DockerClient(object):
+    def __init__(self):
+        self._registry_url = urlparse(settings.DOCKER_REGISTRY)
+        self._registry_host = '%s:%s' % (self._registry_url.hostname, self._registry_url.port)
+        self._client = None
+
+    @property
+    def client(self):
+        if not self._client:
+            self._client = docker.from_env()
+        return self._client
+
+    @property
+    def registry_host(self):
+        return self._registry_host
+
+    def registry(self, repository=''):
+        return DXF(self._registry_host, repository, insecure=self._registry_url.scheme == 'http')
+
+    def add_image(self, data, name, tag='latest'):
+        images = self.client.images.load(data)
+        if len(images) == 0:
+            raise ValueError('No images present in file')
+        if len(images) != 1:
+            raise ValueError('More than one images present in file')
+        image = images[0]
+        repository = '%s/%s' % (self._registry_host, name)
+        if not image.tag(repository, tag=tag):
+            raise ValueError('Can not tag image')
+        self.client.images.push(repository, tag=tag, stream=False)
+
 @login_required
 def images(request):
+    docker_client = DockerClient()
+
+    # Handle changes.
+    if (request.method == 'POST'):
+        if 'action' not in request.POST:
+            messages.error(request, 'Invalid action.')
+        elif request.POST['action'] == 'Add':
+            form = AddImageForm(request.POST, request.FILES)
+            files = request.FILES.getlist('file_field')
+            if form.is_valid():
+                name = form.cleaned_data['name']
+                tag = form.cleaned_data['tag']
+                try:
+                    for f in files:
+                        docker_client.add_image(f, name, tag)
+                except Exception as e:
+                    messages.error(request, 'Failed to add image: %s.' % str(e))
+                else:
+                    messages.success(request, 'Image "%s:%s" added.' % (name, tag))
+            else:
+                messages.error(request, 'Failed to add image. Probably invalid characters in name or tag.')
+
+        elif request.POST['action'] == 'Delete':
+            name = request.POST.get('name', None)
+            try:
+                repository, tag = name.split(':')
+            except ValueError:
+                messages.error(request, 'Invalid name.')
+            else:
+                try:
+                    docker_client.registry(repository).del_alias(tag)
+                except Exception as e:
+                    messages.error(request, 'Failed to delete image: %s.' % str(e))
+                else:
+                    messages.success(request, 'Image "%s" deleted. Run garbage collection in the registry to reclaim space.' % name)
+        else:
+            messages.error(request, 'Invalid action.')
+
+        return redirect('images')
+
     # There is no hierarchy here.
-    docker_registry_url = urlparse(settings.DOCKER_REGISTRY)
-    docker_registry_host = '%s:%s' % (docker_registry_url.hostname, docker_registry_url.port)
-    trail = [{'name': '<i class="fa fa-archive" aria-hidden="true"></i> %s' % docker_registry_host}]
+    trail = [{'name': '<i class="fa fa-archive" aria-hidden="true"></i> %s' % docker_client.registry_host}]
 
     # Fill in the contents.
     contents = []
-    dxf = DXF(docker_registry_host, '', insecure=docker_registry_url.scheme == 'http')
-    for repo in dxf.list_repos():
-        repo_dxf = DXF(docker_registry_host, repo, insecure=docker_registry_url.scheme == 'http')
-        for alias in repo_dxf.list_aliases():
-            hashes = repo_dxf.get_alias(alias, sizes=True)
-            contents.append({'name': repo,
+    for repository in docker_client.registry().list_repos():
+        registry = docker_client.registry(repository)
+        for alias in registry.list_aliases():
+            hashes = registry.get_alias(alias, sizes=True)
+            contents.append({'name': repository,
                              'tag': alias,
                              'size': sum([h[1] for h in hashes])})
 
@@ -75,7 +144,6 @@ def images(request):
                                                      'sort_by': sort_by,
                                                      'order': order,
                                                      'add_image_form': AddImageForm()})
-
 
 @login_required
 def data(request, path='/'):
@@ -132,7 +200,7 @@ def data(request, path='/'):
                 # XXX Show form errors in messages.
                 pass
         elif request.POST['action'] == 'Delete':
-            name = request.POST.get('name', None)
+            name = request.POST.get('filename', None)
             if name:
                 real_name = os.path.join(real_path, name)
                 if not os.path.exists(real_name):
@@ -143,11 +211,30 @@ def data(request, path='/'):
                             os.remove(real_name)
                         else:
                             os.rmdir(real_name)
-                    except Exception as e:
-                        # messages.error(request, 'Failed to delete "%s": %s' % (name, str(e)))
+                    except Exception as e: # noqa: F841
+                        # messages.error(request, 'Failed to delete "%s": %s.' % (name, str(e)))
                         messages.error(request, 'Failed to delete "%s". Probably not permitted or directory not empty.' % name)
                     else:
                         messages.success(request, 'Item "%s" deleted.' % name)
+        elif request.POST['action'] == 'Add image':
+            form = AddImageFromFileForm(request.POST)
+            name = request.POST.get('filename', None)
+            if form.is_valid() and name:
+                real_name = os.path.join(real_path, name)
+                name = form.cleaned_data['name']
+                tag = form.cleaned_data['tag']
+                try:
+                    docker_client = DockerClient()
+                    with open(real_name, 'rb') as f:
+                        docker_client.add_image(f, name, tag)
+                except Exception as e:
+                    messages.error(request, 'Failed to add image: %s.' % str(e))
+                else:
+                    messages.success(request, 'Image "%s:%s" added.' % (name, tag))
+            else:
+                messages.error(request, 'Failed to add image. Probably invalid characters in name or tag.')
+        else:
+            messages.error(request, 'Invalid action.')
 
         return redirect('data', path)
 
@@ -207,7 +294,8 @@ def data(request, path='/'):
                                                    'sort_by': sort_by,
                                                    'order': order,
                                                    'add_folder_form': AddFolderForm(),
-                                                   'add_files_form': AddFilesForm()})
+                                                   'add_files_form': AddFilesForm(),
+                                                   'add_image_from_file_form': AddImageFromFileForm()})
 
 def signup(request):
     if request.method == 'POST':
@@ -219,7 +307,7 @@ def signup(request):
 
             message = 'Your account has been created, but in order to login an administrator will have to activate it.'
             return render(request, 'dashboard/signup.html', {'message': message,
-                                                                'next': settings.LOGIN_REDIRECT_URL})
+                                                             'next': settings.LOGIN_REDIRECT_URL})
     else:
         form = SignUpForm()
     return render(request, 'dashboard/signup.html', {'form': form,
