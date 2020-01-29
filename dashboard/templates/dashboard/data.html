@@ -127,7 +127,7 @@
             {% endif %}
           </th>
           <td class="align-middle"><a class="text-secondary" href="{{ item.url }}">{{ item.name }}</a></td>
-          <td class="align-middle">{{ item.modified }}</td>
+          <td class="align-middle">{{ item.modified|date:'j/n/Y H:i' }}</td>
           <td class="align-middle">{% if item.type != 'dir' and item.size %}{{ item.size|filesizeformat }}{% endif %}</td>
           <td class="align-middle py-0">
             <div class="btn-group">

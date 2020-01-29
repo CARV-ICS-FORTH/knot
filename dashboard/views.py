@@ -14,6 +14,8 @@
 
 import os
 import docker
+import kubernetes.client
+import kubernetes.config
 
 from django.shortcuts import render, redirect, reverse
 from django.http import FileResponse
@@ -30,11 +32,8 @@ from .forms import SignUpForm, ChangePasswordForm, AddImageForm, AddFolderForm, 
 
 @login_required
 def dashboard(request):
-    return render(request, 'dashboard/dashboard.html', {'title': 'Dashboard'})
-
-@login_required
-def services(request):
-    return render(request, 'dashboard/services.html', {'title': 'Services'})
+    # return render(request, 'dashboard/dashboard.html', {'title': 'Dashboard'})
+    return redirect('services')
 
 class DockerClient(object):
     def __init__(self):
@@ -66,6 +65,45 @@ class DockerClient(object):
         if not image.tag(repository, tag=tag):
             raise ValueError('Can not tag image')
         self.client.images.push(repository, tag=tag, stream=False)
+
+@login_required
+def services(request):
+    kubernetes.config.load_kube_config()
+    kubernetes_client = kubernetes.client.CoreV1Api()
+
+    # There is no hierarchy here.
+    trail = [{'name': '<i class="fa fa-university" aria-hidden="true"></i> %s' % kubernetes_client.api_client.configuration.host}]
+
+    # Fill in the contents.
+    contents = []
+    for service in kubernetes_client.list_service_for_all_namespaces().items:
+        spec_type = service.spec.type
+        contents.append({'name': service.metadata.name,
+                         'type': 'External' if spec_type == 'LoadBalancer' else 'Internal',
+                         'port': service.spec.ports[0].target_port if spec_type == 'LoadBalancer' else 0,
+                         'created': service.metadata.creation_timestamp})
+
+    # Sort them up.
+    sort_by = request.GET.get('sort_by')
+    if sort_by and sort_by in ('name', 'type', 'port', 'created'):
+        request.session['services_sort_by'] = sort_by
+    else:
+        sort_by = request.session.get('services_sort_by', 'name')
+    order = request.GET.get('order')
+    if order and order in ('asc', 'desc'):
+        request.session['services_order'] = order
+    else:
+        order = request.session.get('services_order', 'asc')
+
+    contents = sorted(contents,
+                      key=lambda x: x[sort_by],
+                      reverse=True if order == 'desc' else False)
+
+    return render(request, 'dashboard/services.html', {'title': 'Services',
+                                                       'trail': trail,
+                                                       'contents': contents,
+                                                       'sort_by': sort_by,
+                                                       'order': order})
 
 @login_required
 def images(request):
@@ -110,7 +148,7 @@ def images(request):
         return redirect('images')
 
     # There is no hierarchy here.
-    trail = [{'name': '<i class="fa fa-archive" aria-hidden="true"></i> %s' % docker_client.registry_host}]
+    trail = [{'name': '<i class="fa fa-archive" aria-hidden="true"></i> %s' % settings.DOCKER_REGISTRY}]
 
     # Fill in the contents.
     contents = []
@@ -125,17 +163,17 @@ def images(request):
     # Sort them up.
     sort_by = request.GET.get('sort_by')
     if sort_by and sort_by in ('name', 'tag', 'size'):
-        request.session['data_sort_by'] = sort_by
+        request.session['images_sort_by'] = sort_by
     else:
-        sort_by = request.session.get('data_sort_by', 'name')
+        sort_by = request.session.get('images_sort_by', 'name')
     order = request.GET.get('order')
     if order and order in ('asc', 'desc'):
-        request.session['data_order'] = order
+        request.session['images_order'] = order
     else:
-        order = request.session.get('data_order', 'asc')
+        order = request.session.get('images_order', 'asc')
 
     contents = sorted(contents,
-                      key=lambda x: x[sort_by if sort_by != 'modified' else 'timestamp'],
+                      key=lambda x: x[sort_by],
                       reverse=True if order == 'desc' else False)
 
     return render(request, 'dashboard/images.html', {'title': 'Images',
@@ -265,8 +303,7 @@ def data(request, path='/'):
             continue
         mtime = os.path.getmtime(file_path)
         contents.append({'name': file_name,
-                         'timestamp': mtime,
-                         'modified': datetime.fromtimestamp(mtime).strftime('%d/%m/%Y %H:%M'),
+                         'modified': datetime.fromtimestamp(mtime),
                          'type': file_type,
                          'size': os.path.getsize(file_path) if file_type != 'dir' else 0,
                          'url': reverse('data', args=[os.path.join(path, file_name)])})
@@ -284,7 +321,7 @@ def data(request, path='/'):
         order = request.session.get('data_order', 'asc')
 
     contents = sorted(contents,
-                      key=lambda x: x[sort_by if sort_by != 'modified' else 'timestamp'],
+                      key=lambda x: x[sort_by],
                       reverse=True if order == 'desc' else False)
 
     return render(request, 'dashboard/data.html', {'title': 'Data',
