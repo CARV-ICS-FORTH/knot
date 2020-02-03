@@ -12,13 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import os
+
 from django import forms
+from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.core.validators import RegexValidator
 from django.contrib.auth.forms import UserCreationForm, PasswordChangeForm
 from django.contrib.auth.models import User
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Submit
+
+from .utils.gene import Gene
 
 
 validate_docker_name = RegexValidator(r'^[0-9a-z\-\.]*$', 'Only alphanumeric characters are allowed.')
@@ -58,6 +63,25 @@ class ChangePasswordForm(PasswordChangeForm):
             'new_password2',
             Submit('submit', 'Submit', css_class='btn-success btn-lg btn-block')
         )
+
+def service_template_choices():
+    choices = []
+    for file_name in os.listdir(settings.SERVICE_TEMPLATE_DIR):
+        if not file_name.endswith('.gene.yaml'):
+            continue
+
+        file_path = os.path.join(settings.SERVICE_TEMPLATE_DIR, file_name)
+        try:
+            with open(file_path, 'rb') as f:
+                gene = Gene(f.read())
+        except:
+            continue
+        choices.append((file_name, str(gene)))
+
+    return choices
+
+class CreateServiceForm(forms.Form):
+    file_name = forms.ChoiceField(label='Select service to create:', choices=service_template_choices)
 
 class AddImageForm(forms.Form):
     name = forms.CharField(label='Enter image name:', min_length=1, max_length=128, validators=[validate_docker_name])

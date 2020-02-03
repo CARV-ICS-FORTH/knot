@@ -1,0 +1,50 @@
+# hello-kubernetes.yaml
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: $NAME
+spec:
+  type: LoadBalancer
+  ports:
+  - port: $PORT
+    targetPort: 8080
+  selector:
+    app: $NAME
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: $NAME
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: $NAME
+  template:
+    metadata:
+      labels:
+        app: $NAME
+    spec:
+      containers:
+      - name: $NAME
+        image: paulbouwer/hello-kubernetes:1.5
+        ports:
+        - containerPort: 8080
+        env:
+        - name: MESSAGE
+          value: I just deployed this on Kubernetes!
+---
+kind: Gene
+name: Hello Kubernetes
+description: Start a pod that shows a message in a web page
+variables:
+- name: NAME
+  default: hello-kubernetes
+- name: PORT
+  default: 8001
+- name: REGISTRY
+  default: paulbouwer/
+- name: MESSAGE
+  default: I just deployed this on Kubernetes!
+  help: Message to display

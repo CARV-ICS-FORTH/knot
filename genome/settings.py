@@ -173,3 +173,9 @@ DATA_DOMAINS = {
 # Docker registry endpoint
 
 DOCKER_REGISTRY = os.getenv('GENOME_DOCKER_REGISTRY', 'http://127.0.0.1:5000')
+
+
+# Service templates
+
+SERVICE_TEMPLATE_DIR = os.getenv('GENOME_SERVICE_TEMPLATE_DIR', os.path.join(BASE_DIR, 'conf'))
+

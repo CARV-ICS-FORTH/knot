@@ -1,5 +1,15 @@
 {% extends 'dashboard/main.html' %}
 {% load static %}
+{% load crispy_forms_tags %}
+
+{% block script %}
+<script>
+  $(document).on('click', '.confirm-delete', function () {
+    $("#deleteNameText").text($(this).attr("id"));
+    $("#deleteNameInput").val($(this).attr("id"));
+  });
+</script>
+{% endblock %}
 
 {% block main %}
 <div class="row">
@@ -19,6 +29,7 @@
         <form method="post">
           <div class="modal-body">
             {% csrf_token %}
+            {{ create_service_form|crispy }}
           </div>
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>

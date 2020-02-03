@@ -13,7 +13,6 @@
 # limitations under the License.
 
 import os
-import docker
 import kubernetes.client
 import kubernetes.config
 
@@ -23,11 +22,11 @@ from django.conf import settings
 from django.contrib.auth import logout as auth_logout, update_session_auth_hash
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from urllib.parse import urlparse
-from dxf import DXF
 from datetime import datetime
 
-from .forms import SignUpForm, ChangePasswordForm, AddImageForm, AddFolderForm, AddFilesForm, AddImageFromFileForm
+from .forms import SignUpForm, ChangePasswordForm, CreateServiceForm, AddImageForm, AddFolderForm, AddFilesForm, AddImageFromFileForm
+from .utils.gene import Gene
+from .utils.docker import DockerClient
 
 
 @login_required
@@ -35,41 +34,26 @@ def dashboard(request):
     # return render(request, 'dashboard/dashboard.html', {'title': 'Dashboard'})
     return redirect('services')
 
-class DockerClient(object):
-    def __init__(self):
-        self._registry_url = urlparse(settings.DOCKER_REGISTRY)
-        self._registry_host = '%s:%s' % (self._registry_url.hostname, self._registry_url.port)
-        self._client = None
-
-    @property
-    def client(self):
-        if not self._client:
-            self._client = docker.from_env()
-        return self._client
-
-    @property
-    def registry_host(self):
-        return self._registry_host
-
-    def registry(self, repository=''):
-        return DXF(self._registry_host, repository, insecure=self._registry_url.scheme == 'http')
-
-    def add_image(self, data, name, tag='latest'):
-        images = self.client.images.load(data)
-        if len(images) == 0:
-            raise ValueError('No images present in file')
-        if len(images) != 1:
-            raise ValueError('More than one images present in file')
-        image = images[0]
-        repository = '%s/%s' % (self._registry_host, name)
-        if not image.tag(repository, tag=tag):
-            raise ValueError('Can not tag image')
-        self.client.images.push(repository, tag=tag, stream=False)
-
 @login_required
 def services(request):
     kubernetes.config.load_kube_config()
     kubernetes_client = kubernetes.client.CoreV1Api()
+
+    # Handle changes.
+    if (request.method == 'POST'):
+        if 'action' not in request.POST:
+            messages.error(request, 'Invalid action.')
+        elif request.POST['action'] == 'Create':
+            form = CreateServiceForm(request.POST)
+            if form.is_valid():
+                file_name = form.cleaned_data['file_name']
+                return redirect('service_create', file_name)
+            else:
+                messages.error(request, 'Failed to create service. Probably invalid service name.')
+        else:
+            messages.error(request, 'Invalid action.')
+
+        return redirect('services')
 
     # There is no hierarchy here.
     trail = [{'name': '<i class="fa fa-university" aria-hidden="true"></i> %s' % kubernetes_client.api_client.configuration.host}]
@@ -80,7 +64,7 @@ def services(request):
         spec_type = service.spec.type
         contents.append({'name': service.metadata.name,
                          'type': 'External' if spec_type == 'LoadBalancer' else 'Internal',
-                         'port': service.spec.ports[0].target_port if spec_type == 'LoadBalancer' else 0,
+                         'port': service.spec.ports[0].port if spec_type == 'LoadBalancer' else 0,
                          'created': service.metadata.creation_timestamp})
 
     # Sort them up.
@@ -99,15 +83,31 @@ def services(request):
                       key=lambda x: x[sort_by],
                       reverse=True if order == 'desc' else False)
 
+    # print(CreateServiceForm().fields['file_name'].choices())
     return render(request, 'dashboard/services.html', {'title': 'Services',
                                                        'trail': trail,
                                                        'contents': contents,
                                                        'sort_by': sort_by,
-                                                       'order': order})
+                                                       'order': order,
+                                                       'create_service_form': CreateServiceForm()})
+
+@login_required
+def service_create(request, file_name=''):
+    # Validate given file name.
+    file_path = os.path.join(settings.SERVICE_TEMPLATE_DIR, file_name)
+    # try:
+    with open(file_path, 'rb') as f:
+        gene = Gene(f.read())
+    # except:
+    #     messages.error(request, 'Invalid service.')
+    #     # return redirect('services')
+
+    print(gene.variables)
+    return ''
 
 @login_required
 def images(request):
-    docker_client = DockerClient()
+    docker_client = DockerClient(settings.DOCKER_REGISTRY)
 
     # Handle changes.
     if (request.method == 'POST'):
@@ -198,7 +198,7 @@ def data(request, path='/'):
             real_path = os.path.join(folder, '/'.join(path_components[1:]))
             break
     else:
-        messages.error(request, 'Unknown path.')
+        messages.error(request, 'Invalid path.')
         return redirect('data')
 
     # Handle changes.
@@ -262,7 +262,7 @@ def data(request, path='/'):
                 name = form.cleaned_data['name']
                 tag = form.cleaned_data['tag']
                 try:
-                    docker_client = DockerClient()
+                    docker_client = DockerClient(settings.DOCKER_REGISTRY)
                     with open(real_name, 'rb') as f:
                         docker_client.add_image(f, name, tag)
                 except Exception as e:
