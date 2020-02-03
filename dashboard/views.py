@@ -103,7 +103,7 @@ def service_create(request, file_name=''):
     #     # return redirect('services')
 
     print(gene.variables)
-    return ''
+    return render(request, 'dashboard/service_create.html', {'title': 'Create Service'})
 
 @login_required
 def images(request):
