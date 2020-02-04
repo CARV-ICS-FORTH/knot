@@ -24,7 +24,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from datetime import datetime
 
-from .forms import SignUpForm, ChangePasswordForm, CreateServiceForm, AddImageForm, AddFolderForm, AddFilesForm, AddImageFromFileForm
+from .forms import SignUpForm, ChangePasswordForm, AddServiceForm, CreateServiceForm, AddImageForm, AddFolderForm, AddFilesForm, AddImageFromFileForm
 from .utils.gene import Gene
 from .utils.docker import DockerClient
 
@@ -44,7 +44,7 @@ def services(request):
         if 'action' not in request.POST:
             messages.error(request, 'Invalid action.')
         elif request.POST['action'] == 'Create':
-            form = CreateServiceForm(request.POST)
+            form = AddServiceForm(request.POST)
             if form.is_valid():
                 file_name = form.cleaned_data['file_name']
                 return redirect('service_create', file_name)
@@ -83,27 +83,46 @@ def services(request):
                       key=lambda x: x[sort_by],
                       reverse=True if order == 'desc' else False)
 
-    # print(CreateServiceForm().fields['file_name'].choices())
     return render(request, 'dashboard/services.html', {'title': 'Services',
                                                        'trail': trail,
                                                        'contents': contents,
                                                        'sort_by': sort_by,
                                                        'order': order,
-                                                       'create_service_form': CreateServiceForm()})
+                                                       'add_service_form': AddServiceForm()})
 
 @login_required
 def service_create(request, file_name=''):
     # Validate given file name.
     file_path = os.path.join(settings.SERVICE_TEMPLATE_DIR, file_name)
-    # try:
-    with open(file_path, 'rb') as f:
-        gene = Gene(f.read())
-    # except:
-    #     messages.error(request, 'Invalid service.')
-    #     # return redirect('services')
+    try:
+        with open(file_path, 'rb') as f:
+            gene = Gene(f.read())
+    except:
+        messages.error(request, 'Invalid service.')
+        return redirect('services')
 
-    print(gene.variables)
-    return render(request, 'dashboard/service_create.html', {'title': 'Create Service'})
+    # Handle changes.
+    if (request.method == 'POST'):
+        if 'action' not in request.POST:
+            messages.error(request, 'Invalid action 1.')
+        elif request.POST['action'] == 'Create':
+            form = CreateServiceForm(request.POST, variables=gene.variables)
+            if form.is_valid():
+                for variable in gene.variables:
+                    name = variable['name']
+                    setattr(gene, name, form.cleaned_data[name])
+                print('***', gene.values)
+        else:
+            messages.error(request, 'Invalid action 2.')
+
+        return redirect('services')
+
+
+
+
+
+    return render(request, 'dashboard/service_create.html', {'title': 'Create Service',
+                                                             'create_service_form': CreateServiceForm(variables=gene.variables)})
 
 @login_required
 def images(request):

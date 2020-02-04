@@ -29,7 +29,7 @@
         <form method="post">
           <div class="modal-body">
             {% csrf_token %}
-            {{ create_service_form|crispy }}
+            {{ add_service_form|crispy }}
           </div>
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>

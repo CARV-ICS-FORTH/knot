@@ -80,8 +80,21 @@ def service_template_choices():
 
     return choices
 
-class CreateServiceForm(forms.Form):
+class AddServiceForm(forms.Form):
     file_name = forms.ChoiceField(label='Select service to create:', choices=service_template_choices)
+
+class CreateServiceForm(forms.Form):
+    def __init__(self, *args, **kwargs):
+        variables = kwargs.pop('variables')
+        super().__init__(*args, **kwargs)
+        for variable in variables:
+            name = variable['name']
+            if name.upper() in ('PORT', 'REGISTRY'):
+                continue
+            self.fields[name] = forms.CharField(label=name.capitalize(),
+                                                disabled=(name.upper() == 'NAME'),
+                                                initial=variable['default'],
+                                                help_text=variable.get('help'))
 
 class AddImageForm(forms.Form):
     name = forms.CharField(label='Enter image name:', min_length=1, max_length=128, validators=[validate_docker_name])
