@@ -13,6 +13,9 @@
 # limitations under the License.
 
 import os
+import random
+import string
+import yaml
 import kubernetes.client
 import kubernetes.config
 
@@ -22,6 +25,7 @@ from django.conf import settings
 from django.contrib.auth import logout as auth_logout, update_session_auth_hash
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from urllib.parse import urlparse
 from datetime import datetime
 
 from .forms import SignUpForm, ChangePasswordForm, AddServiceForm, CreateServiceForm, AddImageForm, AddFolderForm, AddFilesForm, AddImageFromFileForm
@@ -50,6 +54,18 @@ def services(request):
                 return redirect('service_create', file_name)
             else:
                 messages.error(request, 'Failed to create service. Probably invalid service name.')
+        elif request.POST['action'] == 'Remove':
+            name = request.POST.get('service', None)
+            if name:
+                real_name = os.path.join(settings.SERVICE_DATABASE_DIR, '%s.yaml' % name)
+                if not os.path.exists(real_name):
+                    messages.error(request, 'Service description for "%s" not found.' % name)
+                else:
+                    if os.system('kubectl delete -f %s' % real_name) < 0:
+                        messages.error(request, 'Can not remove service "%s".' % name)
+                    else:
+                        messages.success(request, 'Service "%s" removed.' % name)
+                        os.unlink(real_name)
         else:
             messages.error(request, 'Invalid action.')
 
@@ -58,14 +74,24 @@ def services(request):
     # There is no hierarchy here.
     trail = [{'name': '<i class="fa fa-university" aria-hidden="true"></i> %s' % kubernetes_client.api_client.configuration.host}]
 
+    # Get service names from our database.
+    service_database = []
+    for file_name in os.listdir(settings.SERVICE_DATABASE_DIR):
+        if file_name.endswith('.yaml'):
+            service_database.append(file_name[:-5])
+
     # Fill in the contents.
     contents = []
     for service in kubernetes_client.list_service_for_all_namespaces().items:
+        name = service.metadata.name
         spec_type = service.spec.type
-        contents.append({'name': service.metadata.name,
+        ports = [str(p.port) for p in service.spec.ports if p.protocol == 'TCP']
+        contents.append({'name': name,
+                         'url': 'http://%s:%s' % (urlparse(request.build_absolute_uri()).hostname, ports[0]) if spec_type == 'LoadBalancer' and ports else '',
                          'type': 'External' if spec_type == 'LoadBalancer' else 'Internal',
-                         'port': service.spec.ports[0].port if spec_type == 'LoadBalancer' else 0,
-                         'created': service.metadata.creation_timestamp})
+                         'port': ', '.join(ports),
+                         'created': service.metadata.creation_timestamp,
+                         'actions': True if name in service_database else False})
 
     # Sort them up.
     sort_by = request.GET.get('sort_by')
@@ -93,9 +119,9 @@ def services(request):
 @login_required
 def service_create(request, file_name=''):
     # Validate given file name.
-    file_path = os.path.join(settings.SERVICE_TEMPLATE_DIR, file_name)
+    real_name = os.path.join(settings.SERVICE_TEMPLATE_DIR, file_name)
     try:
-        with open(file_path, 'rb') as f:
+        with open(real_name, 'rb') as f:
             gene = Gene(f.read())
     except:
         messages.error(request, 'Invalid service.')
@@ -104,22 +130,57 @@ def service_create(request, file_name=''):
     # Handle changes.
     if (request.method == 'POST'):
         if 'action' not in request.POST:
-            messages.error(request, 'Invalid action 1.')
+            messages.error(request, 'Invalid action.')
         elif request.POST['action'] == 'Create':
             form = CreateServiceForm(request.POST, variables=gene.variables)
             if form.is_valid():
                 for variable in gene.variables:
                     name = variable['name']
+                    if name.upper() in ('PORT', 'REGISTRY'): # Set here later on.
+                        continue
                     setattr(gene, name, form.cleaned_data[name])
-                print('***', gene.values)
+
+                kubernetes.config.load_kube_config()
+                kubernetes_client = kubernetes.client.CoreV1Api()
+
+                # Get active names and ports.
+                names = []
+                ports = []
+                for service in kubernetes_client.list_service_for_all_namespaces().items:
+                    names.append(service.metadata.name)
+                    ports += [p.port for p in service.spec.ports if p.protocol == 'TCP'] # XXX Only TCP...
+
+                # Set name, port, and registry.
+                name = gene.NAME
+                while name in names:
+                    name = form.cleaned_data['NAME'] + '-' + ''.join([random.choice(string.ascii_lowercase) for i in range(4)])
+                gene.NAME = name
+
+                port = gene.PORT
+                while port in ports:
+                    port += 1
+                gene.PORT = port
+
+                gene.REGISTRY = '%s/' % settings.DOCKER_REGISTRY
+
+                # TODO: Inject data folders.
+
+                # Save yaml.
+                if not os.path.exists(settings.SERVICE_DATABASE_DIR):
+                    os.makedirs(settings.SERVICE_DATABASE_DIR)
+                real_name = os.path.join(settings.SERVICE_DATABASE_DIR, '%s.yaml' % name)
+                with open(real_name, 'wb') as f:
+                    f.write(gene.yaml.encode())
+
+                # Apply.
+                if os.system('kubectl apply -f %s' % real_name) < 0:
+                    messages.error(request, 'Can not create service "%s".' % name)
+                else:
+                    messages.success(request, 'Service "%s" created.' % name)
         else:
-            messages.error(request, 'Invalid action 2.')
+            messages.error(request, 'Invalid action.')
 
         return redirect('services')
-
-
-
-
 
     return render(request, 'dashboard/service_create.html', {'title': 'Create Service',
                                                              'create_service_form': CreateServiceForm(variables=gene.variables)})

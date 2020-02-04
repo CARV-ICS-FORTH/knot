@@ -92,7 +92,6 @@ class CreateServiceForm(forms.Form):
             if name.upper() in ('PORT', 'REGISTRY'):
                 continue
             self.fields[name] = forms.CharField(label=name.capitalize(),
-                                                disabled=(name.upper() == 'NAME'),
                                                 initial=variable['default'],
                                                 help_text=variable.get('help'))
 

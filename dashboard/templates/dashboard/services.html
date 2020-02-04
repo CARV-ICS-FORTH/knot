@@ -4,9 +4,9 @@
 
 {% block script %}
 <script>
-  $(document).on('click', '.confirm-delete', function () {
-    $("#deleteNameText").text($(this).attr("id"));
-    $("#deleteNameInput").val($(this).attr("id"));
+  $(document).on('click', '.confirm-remove', function () {
+    $("#removeNameText").text($(this).attr("id"));
+    $("#removeNameInput").val($(this).attr("id"));
   });
 </script>
 {% endblock %}
@@ -80,43 +80,51 @@
         {% for item in contents %}
         <tr>
           <th scope="row" class="align-middle"><i class="fa fa-cog" aria-hidden="true"></i></th>
-          <td class="align-middle">{{ item.name }}</td>
+          <td class="align-middle">
+            {% if item.url %}
+            <a class="text-secondary" href="{{ item.url }}" target="_blank">{{ item.name }}</a>
+            {% else %}
+            {{ item.name }}
+            {% endif %}
+          </td>
           <td class="align-middle">{{ item.type }}</td>
           <td class="align-middle">{% if item.port %}{{ item.port }}{% endif %}</td>
           <td class="align-middle">{{ item.created|date:'j/n/Y H:i' }}</td>
           <td class="align-middle py-0">
+            {% if item.actions %}
             <div class="btn-group">
               <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="dropdownActionsButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                 <i class="fa fa-wrench" aria-hidden="true"></i> Actions
               </button>
               <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownActionsButton">
-                <button type="button" class="dropdown-item btn-sm text-secondary confirm-delete" data-toggle="modal" data-target="#deleteModal" id="{{ item.name }}:{{ item.tag }}"><i class="fa fa-trash" aria-hidden="true"></i> Delete</button>
+                <button type="button" class="dropdown-item btn-sm text-secondary confirm-remove" data-toggle="modal" data-target="#removeModal" id="{{ item.name }}"><i class="fa fa-bomb" aria-hidden="true"></i> Remove</button>
               </div>
             </div>
+            {% endif %}
           </td>
         </tr>
         {% endfor %}
       </tbody>
     </table>
 
-    <div class="modal fade" id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal fade" id="removeModal" tabindex="-1" role="dialog" aria-labelledby="removeModalLabel" aria-hidden="true">
       <div class="modal-dialog" role="document">
         <div class="modal-content">
           <div class="modal-header">
-            <h5 class="modal-title" id="deleteModalLabel">Delete</h5>
+            <h5 class="modal-title" id="removeModalLabel">Remove</h5>
             <button type="button" class="close" data-dismiss="modal" aria-label="Close">
               <span aria-hidden="true">&times;</span>
             </button>
           </div>
           <form method="post">
             <div class="modal-body">
-              Are you sure you want to delete "<span id="deleteNameText"></span>"? The action will be permanent.
+              Are you sure you want to remove "<span id="removeNameText"></span>"? The action will be permanent.
               {% csrf_token %}
-              <input type="hidden" name="name" value="" id="deleteNameInput" />
+              <input type="hidden" name="service" value="" id="removeNameInput" />
             </div>
             <div class="modal-footer">
               <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-              <input type="submit" class="btn btn-success" name="action" value="Delete" />
+              <input type="submit" class="btn btn-success" name="action" value="Remove" />
             </div>
           </form>
         </div>

@@ -33,7 +33,7 @@ spec:
         - containerPort: 8080
         env:
         - name: MESSAGE
-          value: I just deployed this on Kubernetes!
+          value: $MESSAGE
 ---
 kind: Gene
 name: Hello Kubernetes
@@ -42,7 +42,7 @@ variables:
 - name: NAME
   default: hello-kubernetes
 - name: PORT
-  default: 8001
+  default: 10000
 - name: REGISTRY
   default: paulbouwer/
 - name: MESSAGE
