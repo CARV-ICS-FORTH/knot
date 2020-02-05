@@ -56,6 +56,41 @@ class Gene(object):
             return
         super().__setattr__(name, value)
 
+    def inject_hostpath_volumes(self, volumes):
+        def add_volumes_to_spec(spec):
+            # Add volumes.
+            if not 'volumes' in spec:
+                spec['volumes'] = []
+            for name, variables in volumes.items():
+                if not variables['dir'] or not variables['host_dir']:
+                    continue
+                volume_name = 'genome-volume-%s' % name
+                spec['volumes'].append({'name': volume_name, 'hostPath': {'path': variables['host_dir']}})
+
+            # Mount volumes in containers.
+            for container in spec['containers']:
+                if 'volumeMounts' not in container:
+                    container['volumeMounts'] = []
+                for name, variables in volumes.items():
+                    if not variables['dir'] or not variables['host_dir']:
+                        continue
+                    volume_name = 'genome-volume-%s' % name
+                    container['volumeMounts'].append({'name': volume_name, 'mountPath': variables['dir']})
+
+        for part in self._template:
+            try:
+                if part['kind'] == 'Deployment':
+                    spec = part['spec']['template']['spec']
+                elif part['kind'] == 'Pod':
+                    spec = part['spec']
+                else:
+                    continue
+            except:
+                continue
+            if not spec or not 'containers' in spec:
+                continue
+            add_volumes_to_spec(spec)
+
     @property
     def name(self):
         return self._name

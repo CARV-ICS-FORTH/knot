@@ -62,6 +62,10 @@ spec:
               key: admin-password
         - name: GENOME_DOCKER_REGISTRY
           value: http://139.91.92.132:5000
+        - name: GENOME_LOCAL_HOST_DIR
+          value: /Users/chazapis/Source/FORTH/integration/genome/local
+        - name: GENOME_REMOTE_HOST_DIR
+          value: /Users/chazapis/Source/FORTH/integration/genome/remote
         ports:
         - containerPort: 8000
           name: genome

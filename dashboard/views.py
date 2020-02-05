@@ -163,7 +163,8 @@ def service_create(request, file_name=''):
 
                 gene.REGISTRY = '%s/' % settings.DOCKER_REGISTRY
 
-                # TODO: Inject data folders.
+                # Inject data folders.
+                gene.inject_hostpath_volumes(settings.DATA_DOMAINS)
 
                 # Save yaml.
                 if not os.path.exists(settings.SERVICE_DATABASE_DIR):
@@ -273,7 +274,8 @@ def data(request, path='/'):
     path_components = [p for p in path.split('/') if p]
 
     # Figure out the real path we are working on.
-    for domain, folder in settings.DATA_DOMAINS.items():
+    for domain, variables in settings.DATA_DOMAINS.items():
+        folder = variables['dir']
         if path_components[0] == domain:
             real_path = os.path.join(folder, '/'.join(path_components[1:]))
             break

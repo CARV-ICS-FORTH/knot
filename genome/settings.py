@@ -164,11 +164,18 @@ MESSAGE_TAGS = {
 
 # Data management domains
 
-DATA_DOMAINS = {
-    'local': os.getenv('GENOME_LOCAL_DIR', os.path.join(BASE_DIR, 'local')),
-    'remote': os.getenv('GENOME_REMOTE_DIR', os.path.join(BASE_DIR, 'remote'))
-}
+local_name = os.getenv('GENOME_LOCAL_NAME', 'local')
+remote_name = os.getenv('GENOME_REMOTE_NAME', 'remote')
 
+DATA_DOMAINS = {}
+if local_name:
+    local_default_dir = os.path.join(BASE_DIR, local_name)
+    DATA_DOMAINS[local_name] = {'dir': os.getenv('GENOME_LOCAL_DIR', local_default_dir),
+                                'host_dir': os.getenv('GENOME_LOCAL_HOST_DIR', local_default_dir)}
+if remote_name:
+    remote_default_dir = os.path.join(BASE_DIR, remote_name)
+    DATA_DOMAINS[remote_name] = {'dir': os.getenv('GENOME_REMOTE_DIR', remote_default_dir),
+                                 'host_dir': os.getenv('GENOME_REMOTE_HOST_DIR', remote_default_dir)}
 
 # Docker registry endpoint
 
