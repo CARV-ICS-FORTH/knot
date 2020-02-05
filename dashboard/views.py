@@ -139,7 +139,7 @@ def service_create(request, file_name=''):
             if form.is_valid():
                 for variable in gene.variables:
                     name = variable['name']
-                    if name.upper() in ('PORT', 'REGISTRY'): # Set here later on.
+                    if name.upper() in ('PORT', 'REGISTRY', 'LOCAL', 'REMOTE'): # Set here later on.
                         continue
                     setattr(gene, name, form.cleaned_data[name])
 
@@ -168,6 +168,9 @@ def service_create(request, file_name=''):
                 gene.PORT = port
 
                 gene.REGISTRY = '%s/' % settings.DOCKER_REGISTRY
+
+                gene.LOCAL = '%s' % settings.DATA_DOMAINS['local']['dir'].rstrip('/')
+                gene.REMOTE = '%s' % settings.DATA_DOMAINS['remote']['dir'].rstrip('/')
 
                 # Inject data folders.
                 gene.inject_hostpath_volumes(settings.DATA_DOMAINS)

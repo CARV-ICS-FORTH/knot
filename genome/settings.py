@@ -164,8 +164,10 @@ MESSAGE_TAGS = {
 
 # Data management domains
 
-local_name = os.getenv('GENOME_LOCAL_NAME', 'local')
-remote_name = os.getenv('GENOME_REMOTE_NAME', 'remote')
+# local_name = os.getenv('GENOME_LOCAL_NAME', 'local')
+# remote_name = os.getenv('GENOME_REMOTE_NAME', 'remote')
+local_name = 'local'
+remote_name = 'remote'
 
 DATA_DOMAINS = {}
 if local_name:
@@ -184,5 +186,5 @@ DOCKER_REGISTRY = os.getenv('GENOME_DOCKER_REGISTRY', 'http://127.0.0.1:5000')
 
 # Service templates
 
-SERVICE_TEMPLATE_DIR = os.getenv('GENOME_SERVICE_TEMPLATE_DIR', os.path.join(BASE_DIR, 'conf'))
+SERVICE_TEMPLATE_DIR = os.getenv('GENOME_SERVICE_TEMPLATE_DIR', os.path.join(BASE_DIR, 'services'))
 SERVICE_DATABASE_DIR = os.getenv('GENOME_SERVICE_DATABASE_DIR', BASE_DIR)

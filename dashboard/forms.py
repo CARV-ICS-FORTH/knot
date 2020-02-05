@@ -89,7 +89,7 @@ class CreateServiceForm(forms.Form):
         super().__init__(*args, **kwargs)
         for variable in variables:
             name = variable['name']
-            if name.upper() in ('PORT', 'REGISTRY'):
+            if name.upper() in ('PORT', 'REGISTRY', 'LOCAL', 'REMOTE'):
                 continue
             self.fields[name] = forms.CharField(label=name.capitalize(),
                                                 initial=variable['default'],

@@ -1,4 +1,4 @@
-# hello-kubernetes.yaml
+# hello-kubernetes.genge.yaml
 
 apiVersion: v1
 kind: Service
@@ -43,8 +43,6 @@ variables:
   default: hello-kubernetes
 - name: PORT
   default: 10000
-- name: REGISTRY
-  default: paulbouwer/
 - name: MESSAGE
   default: I just deployed this on Kubernetes!
   help: Message to display
