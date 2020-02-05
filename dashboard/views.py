@@ -40,7 +40,10 @@ def dashboard(request):
 
 @login_required
 def services(request):
-    kubernetes.config.load_kube_config()
+    try:
+        kubernetes.config.load_kube_config()
+    except:
+        kubernetes.config.load_incluster_config()
     kubernetes_client = kubernetes.client.CoreV1Api()
 
     # Handle changes.
@@ -140,7 +143,10 @@ def service_create(request, file_name=''):
                         continue
                     setattr(gene, name, form.cleaned_data[name])
 
-                kubernetes.config.load_kube_config()
+                try:
+                    kubernetes.config.load_kube_config()
+                except:
+                    kubernetes.config.load_incluster_config()
                 kubernetes_client = kubernetes.client.CoreV1Api()
 
                 # Get active names and ports.
