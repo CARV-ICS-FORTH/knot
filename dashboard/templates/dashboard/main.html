@@ -30,6 +30,13 @@
             <i class="fa fa-database" aria-hidden="true"></i> Data
           </a>
         </li>
+        {% if user.is_staff %}
+        <li class="nav-item">
+          <a class="nav-link {% if title == 'Users' %}active{% endif %}" href="{% url 'users' %}">
+            <i class="fa fa-users" aria-hidden="true"></i> Users
+          </a>
+        </li>
+        {% endif %}
       </ul>
     </nav>
 

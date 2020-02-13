@@ -26,6 +26,7 @@ urlpatterns = [
     path('images', views.images, name='images'),
     path('data', views.data, name='data'),
     path('data/<path:path>', views.data, name='data'),
+    path('users', views.users, name='users'),
 
     path('signup', views.signup, name='signup'),
     path('login', auth_views.LoginView.as_view(template_name='dashboard/login.html'), name='login'),

@@ -24,6 +24,7 @@ from django.http import FileResponse
 from django.conf import settings
 from django.contrib.auth import logout as auth_logout, update_session_auth_hash
 from django.contrib.auth.decorators import login_required
+from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib import messages
 from urllib.parse import urlparse
 from datetime import datetime
@@ -424,6 +425,29 @@ def data(request, path='/'):
                                                    'add_folder_form': AddFolderForm(),
                                                    'add_files_form': AddFilesForm(),
                                                    'add_image_from_file_form': AddImageFromFileForm()})
+
+@staff_member_required
+def users(request):
+
+    # Handle changes.
+    if (request.method == 'POST'):
+        if 'action' not in request.POST:
+            messages.error(request, 'Invalid action.')
+        elif request.POST['action'] == 'Enable':
+            pass
+        elif request.POST['action'] == 'Disable':
+            pass
+        else:
+            messages.error(request, 'Invalid action.')
+
+        return redirect('images')
+
+    # return render(request, 'dashboard/users.html', {'title': 'Users',
+    #                                                 'trail': '',
+    #                                                 'contents': contents,
+    #                                                 'sort_by': sort_by,
+    #                                                 'order': order})
+    return render(request, 'dashboard/users.html', {'title': 'Users'})
 
 def signup(request):
     if request.method == 'POST':
