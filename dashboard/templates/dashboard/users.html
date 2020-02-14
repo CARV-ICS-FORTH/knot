@@ -4,6 +4,10 @@
 
 {% block script %}
 <script>
+  $(document).on('click', '.confirm-promote', function () {
+    $("#promoteNameText").text($(this).attr("id"));
+    $("#promoteNameInput").val($(this).attr("id"));
+  });
   $(document).on('click', '.confirm-delete', function () {
     $("#deleteNameText").text($(this).attr("id"));
     $("#deleteNameInput").val($(this).attr("id"));
@@ -17,25 +21,11 @@
   </div>
 
   <div class="col-md-10 order-md-1">
-    <nav aria-label="breadcrumb">
-      <ol class="breadcrumb">
-        {% for breadcrumb in trail %}
-        {% if breadcrumb.url %}
-        <li class="breadcrumb-item"><a href="{{ breadcrumb.url }}">{{ breadcrumb.name|safe }}</a></li>
-        {% else %}
-        <li class="breadcrumb-item active">{{ breadcrumb.name|safe }}</li>
-        {% endif %}
-        {% empty %}
-        &nbsp;
-        {% endfor %}
-      </ol>
-    </nav>
-
     <table class="table table-hover">
       <thead>
         <tr>
           <th scope="col"></th>
-          {% with 'username email admin active' as list %}
+          {% with 'username email active admin' as list %}
           {% for item in list.split %}
           <th scope="col">
             {% if sort_by == item and order == 'asc' %}
@@ -58,8 +48,8 @@
           <th scope="row" class="align-middle"><i class="fa fa-user" aria-hidden="true"></i></th>
           <td class="align-middle">{{ item.username }}</td>
           <td class="align-middle">{{ item.email }}</td>
-          <td class="align-middle">{% if item.admin %}<i class="fa fa-check" aria-hidden="true"></i>{% endif %}</td>
           <td class="align-middle">{% if item.active %}<i class="fa fa-check" aria-hidden="true"></i>{% endif %}</td>
+          <td class="align-middle">{% if item.admin %}<i class="fa fa-check" aria-hidden="true"></i>{% endif %}</td>
           <td class="align-middle py-0">
             {% if item.actions %}
             <div class="btn-group">
@@ -78,7 +68,19 @@
                   <button type="submit" class="dropdown-item btn-sm text-secondary"><i class="fa fa-user-plus" aria-hidden="true"></i> Activate</button>
                   {% endif %}
                 </form>
-                <button type="button" class="dropdown-item btn-sm text-secondary confirm-delete" data-toggle="modal" data-target="#deleteModal" id="{{ item.name }}:{{ item.tag }}"><i class="fa fa-trash" aria-hidden="true"></i> Delete</button>
+                {% if item.admin %}
+                <form method="post">
+                  {% csrf_token %}
+                  <input type="hidden" name="username" value="{{ item.username }}" />
+                  <input type="hidden" name="action" value="Demote" />
+                  <button type="submit" class="dropdown-item btn-sm text-secondary"><i class="fa fa-lock" aria-hidden="true"></i> Demote</button>
+                </form>
+                {% else %}
+                <button type="button" class="dropdown-item btn-sm text-secondary confirm-promote" data-toggle="modal" data-target="#promoteModal" id="{{ item.username }}"><i class="fa fa-unlock-alt" aria-hidden="true"></i> Promote</button>
+                {% endif %}
+                <a href="{% url 'user_edit' item.username %}" class="dropdown-item btn btn-sm text-secondary"><i class="fa fa-edit" aria-hidden="true"></i> Edit</a>                
+                <a href="{% url 'user_change_password' item.username %}" class="dropdown-item btn btn-sm text-secondary"><i class="fa fa-wrench" aria-hidden="true"></i> Change password</a>
+                <button type="button" class="dropdown-item btn-sm text-secondary confirm-delete" data-toggle="modal" data-target="#deleteModal" id="{{ item.username }}"><i class="fa fa-trash" aria-hidden="true"></i> Delete</button>
               </div>
             </div>
             {% endif %}
@@ -87,6 +89,30 @@
         {% endfor %}
       </tbody>
     </table>
+
+    <div class="modal fade" id="promoteModal" tabindex="-1" role="dialog" aria-labelledby="promoteModalLabel" aria-hidden="true">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="promoteModalLabel">Promote</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <form method="post">
+            <div class="modal-body">
+              Are you sure you want to promote "<span id="promoteNameText"></span>" to an admin?
+              {% csrf_token %}
+              <input type="hidden" name="username" value="" id="promoteNameInput" />
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+              <input type="submit" class="btn btn-success" name="action" value="Promote" />
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
 
     <div class="modal fade" id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel" aria-hidden="true">
       <div class="modal-dialog" role="document">

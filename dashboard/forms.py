@@ -18,7 +18,7 @@ from django import forms
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.core.validators import RegexValidator
-from django.contrib.auth.forms import UserCreationForm, PasswordChangeForm
+from django.contrib.auth.forms import UserCreationForm, UserChangeForm
 from django.contrib.auth.models import User
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Submit
@@ -53,17 +53,6 @@ class SignUpForm(UserCreationForm):
             raise ValidationError('A user with that email already exists.')
         return email
 
-class ChangePasswordForm(PasswordChangeForm):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.helper = FormHelper()
-        self.helper.layout = Layout(
-            'old_password',
-            'new_password1',
-            'new_password2',
-            Submit('submit', 'Submit', css_class='btn-success btn-lg btn-block')
-        )
-
 def service_template_choices():
     choices = []
     for file_name in os.listdir(settings.SERVICE_TEMPLATE_DIR):
@@ -81,7 +70,7 @@ def service_template_choices():
     return choices
 
 class AddServiceForm(forms.Form):
-    file_name = forms.ChoiceField(label='Select service to create:', choices=service_template_choices)
+    file_name = forms.ChoiceField(label='Service to create', choices=service_template_choices)
 
 class CreateServiceForm(forms.Form):
     def __init__(self, *args, **kwargs):
@@ -96,16 +85,19 @@ class CreateServiceForm(forms.Form):
                                                 help_text=variable.get('help'))
 
 class AddImageForm(forms.Form):
-    name = forms.CharField(label='Enter image name:', min_length=1, max_length=128, validators=[validate_docker_name])
-    tag = forms.CharField(label='Enter tag:', min_length=1, max_length=128, initial='latest', validators=[validate_docker_tag])
-    file_field = forms.FileField(label='Select saved image file to add:')
+    name = forms.CharField(label='Image name', min_length=1, max_length=128, validators=[validate_docker_name])
+    tag = forms.CharField(label='Tag', min_length=1, max_length=128, initial='latest', validators=[validate_docker_tag])
+    file_field = forms.FileField(label='Saved image file to add')
 
 class AddFolderForm(forms.Form):
-    name = forms.CharField(label='Enter a name for the new folder:', min_length=1, max_length=255, initial='New Folder')
+    name = forms.CharField(label='Name for the new folder', min_length=1, max_length=255, initial='New Folder')
 
 class AddFilesForm(forms.Form):
-    file_field = forms.FileField(label='Select files to add:', widget=forms.ClearableFileInput(attrs={'multiple': True}))
+    file_field = forms.FileField(label='Files to add', widget=forms.ClearableFileInput(attrs={'multiple': True}))
 
 class AddImageFromFileForm(forms.Form):
-    name = forms.CharField(label='Enter image name:', min_length=1, max_length=128, validators=[validate_docker_name])
-    tag = forms.CharField(label='Enter tag:', min_length=1, max_length=128, initial='latest', validators=[validate_docker_tag])
+    name = forms.CharField(label='Image name', min_length=1, max_length=128, validators=[validate_docker_name])
+    tag = forms.CharField(label='Tag', min_length=1, max_length=128, initial='latest', validators=[validate_docker_tag])
+
+class EditUserForm(forms.Form):
+    email = forms.EmailField(label='Email')

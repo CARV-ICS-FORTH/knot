@@ -25,12 +25,13 @@ from django.conf import settings
 from django.contrib.auth import logout as auth_logout, update_session_auth_hash
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
+from django.contrib.auth.forms import SetPasswordForm, PasswordChangeForm
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib import messages
 from urllib.parse import urlparse
 from datetime import datetime
 
-from .forms import SignUpForm, ChangePasswordForm, AddServiceForm, CreateServiceForm, AddImageForm, AddFolderForm, AddFilesForm, AddImageFromFileForm
+from .forms import SignUpForm, EditUserForm, AddServiceForm, CreateServiceForm, AddImageForm, AddFolderForm, AddFilesForm, AddImageFromFileForm
 from .utils.gene import Gene
 from .utils.docker import DockerClient
 
@@ -49,7 +50,7 @@ def services(request):
     kubernetes_client = kubernetes.client.CoreV1Api()
 
     # Handle changes.
-    if (request.method == 'POST'):
+    if request.method == 'POST':
         if 'action' not in request.POST:
             messages.error(request, 'Invalid action.')
         elif request.POST['action'] == 'Create':
@@ -133,7 +134,7 @@ def service_create(request, file_name=''):
         return redirect('services')
 
     # Handle changes.
-    if (request.method == 'POST'):
+    if request.method == 'POST':
         if 'action' not in request.POST:
             messages.error(request, 'Invalid action.')
         elif request.POST['action'] == 'Create':
@@ -194,15 +195,17 @@ def service_create(request, file_name=''):
 
         return redirect('services')
 
-    return render(request, 'dashboard/service_create.html', {'title': 'Create Service',
-                                                             'create_service_form': CreateServiceForm(variables=gene.variables)})
+    return render(request, 'dashboard/form.html', {'title': 'Create Service',
+                                                   'form': CreateServiceForm(variables=gene.variables),
+                                                   'action': 'Create',
+                                                   'next': reverse('services')})
 
 @login_required
 def images(request):
     docker_client = DockerClient(settings.DOCKER_REGISTRY)
 
     # Handle changes.
-    if (request.method == 'POST'):
+    if request.method == 'POST':
         if 'action' not in request.POST:
             messages.error(request, 'Invalid action.')
         elif request.POST['action'] == 'Add':
@@ -295,7 +298,7 @@ def data(request, path='/'):
         return redirect('data')
 
     # Handle changes.
-    if (request.method == 'POST'):
+    if request.method == 'POST':
         if 'action' not in request.POST:
             messages.error(request, 'Invalid action.')
         elif request.POST['action'] == 'Create':
@@ -429,15 +432,32 @@ def data(request, path='/'):
 
 @staff_member_required
 def users(request):
-
     # Handle changes.
-    if (request.method == 'POST'):
+    if request.method == 'POST':
         if 'action' not in request.POST:
             messages.error(request, 'Invalid action.')
-        elif request.POST['action'] == 'Activate':
-            pass
-        elif request.POST['action'] == 'Deactivate':
-            pass
+        elif request.POST['action'] in ('Activate', 'Deactivate', 'Promote', 'Demote'):
+            action = request.POST['action']
+            username = request.POST.get('username', None)
+            if username and username != request.user.username:
+                user = User.objects.get(username=username)
+                if user:
+                    if action in ('Activate', 'Deactivate'):
+                        user.is_active = True if action == 'Activate' else False
+                    if action in ('Promote', 'Demote'):
+                        user.is_staff = True if action == 'Promote' else False
+                    user.save()
+                    messages.success(request, 'User "%s" %s.' % (username, action.lower() + 'd'))
+            else:
+                messages.error(request, 'Invalid username')
+        elif request.POST['action'] == 'Delete':
+            print('*** DELETE')
+            # if username and username != request.user.username:
+            #     if user:
+            #         print
+            #         messages.success(request, 'User "%s" deleted.' % username)
+            # else:
+            #     messages.error(request, 'Invalid username')
         else:
             messages.error(request, 'Invalid action.')
 
@@ -448,13 +468,13 @@ def users(request):
     for user in User.objects.all():
         contents.append({'username': user.username,
                          'email': user.email,
-                         'admin': 1 if user.is_staff else 0,
                          'active': 1 if user.is_active else 0,
-                         'actions': True}) # if user.username != request.user.username else False})
+                         'admin': 1 if user.is_staff else 0,
+                         'actions': True if user.username != request.user.username else False})
 
     # Sort them up.
     sort_by = request.GET.get('sort_by')
-    if sort_by and sort_by in ('username', 'email', 'admin', 'active'):
+    if sort_by and sort_by in ('username', 'email', 'active', 'admin'):
         request.session['users_sort_by'] = sort_by
     else:
         sort_by = request.session.get('users_sort_by', 'username')
@@ -475,6 +495,59 @@ def users(request):
     #                                                 'order': order})
     return render(request, 'dashboard/users.html', {'title': 'Users',
                                                     'contents': contents})
+
+@staff_member_required
+def user_edit(request, username):
+    # Validate given username.
+    if username == request.user.username:
+        messages.error(request, 'Invalid username.')
+        return redirect('users')
+    user = User.objects.get(username=username)
+    if not user:
+        messages.error(request, 'Invalid username.')
+        return redirect('users')
+
+    if request.method == 'POST':
+        form = EditUserForm(request.POST)
+        if form.is_valid():
+            email = form.cleaned_data['email']
+            user.email = email
+            user.save()
+            messages.success(request, 'User "%s" edited.' % username)
+            return redirect('users')
+    else:
+        form = EditUserForm()
+        form.fields['email'].initial = user.email
+
+    return render(request, 'dashboard/form.html', {'title': 'Edit User',
+                                                   'form': form,
+                                                   'action': 'Edit',
+                                                   'next': reverse('users')})
+
+@staff_member_required
+def user_change_password(request, username):
+    # Validate given username.
+    if username == request.user.username:
+        messages.error(request, 'Invalid username.')
+        return redirect('users')
+    user = User.objects.get(username=username)
+    if not user:
+        messages.error(request, 'Invalid username.')
+        return redirect('users')
+
+    if request.method == 'POST':
+        form = SetPasswordForm(user, request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Password changed for user "%s".' % username)
+            return redirect('users')
+    else:
+        form = SetPasswordForm(user)
+
+    return render(request, 'dashboard/form.html', {'title': 'Change User Password',
+                                                   'form': form,
+                                                   'action': 'Change',
+                                                   'next': reverse('users')})
 
 def signup(request):
     if request.method == 'POST':
@@ -497,16 +570,19 @@ def change_password(request):
     next = request.GET.get('next', settings.LOGIN_REDIRECT_URL)
 
     if request.method == 'POST':
-        form = ChangePasswordForm(request.user, request.POST)
+        form = PasswordChangeForm(request.user, request.POST)
         if form.is_valid():
             user = form.save()
             update_session_auth_hash(request, user)
             messages.success(request, 'Password successfully changed.')
             return redirect(next)
     else:
-        form = ChangePasswordForm(request.user)
-    return render(request, 'dashboard/change_password.html', {'form': form,
-                                                              'next': next})
+        form = PasswordChangeForm(request.user)
+
+    return render(request, 'dashboard/form.html', {'title': 'Change Password',
+                                                   'form': form,
+                                                   'action': 'Change',
+                                                   'next': next})
 
 @login_required
 def logout(request, next):

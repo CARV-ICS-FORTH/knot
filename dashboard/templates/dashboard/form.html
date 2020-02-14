@@ -11,11 +11,11 @@
     <form method="post">
       <div class="modal-body">
         {% csrf_token %}
-        {{ create_service_form|crispy }}
+        {{ form|crispy }}
       </div>
       <div class="modal-footer">
-        <a class="btn btn-secondary" href="{% url 'services' %}">Cancel</a>
-        <input type="submit" class="btn btn-success" name="action" value="Create" />
+        <a class="btn btn-secondary" href="{{ next }}">Cancel</a>
+        <input type="submit" class="btn btn-success" name="action" value="{{ action }}" />
       </div>
     </form>
   </div>
