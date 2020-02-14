@@ -35,7 +35,7 @@
       <thead>
         <tr>
           <th scope="col"></th>
-          {% with 'username email admin' as list %}
+          {% with 'username email admin active' as list %}
           {% for item in list.split %}
           <th scope="col">
             {% if sort_by == item and order == 'asc' %}
@@ -55,19 +55,33 @@
       <tbody>
         {% for item in contents %}
         <tr>
-          <th scope="row" class="align-middle"><i class="fa fa-cube" aria-hidden="true"></i></th>
+          <th scope="row" class="align-middle"><i class="fa fa-user" aria-hidden="true"></i></th>
           <td class="align-middle">{{ item.username }}</td>
           <td class="align-middle">{{ item.email }}</td>
           <td class="align-middle">{% if item.admin %}<i class="fa fa-check" aria-hidden="true"></i>{% endif %}</td>
+          <td class="align-middle">{% if item.active %}<i class="fa fa-check" aria-hidden="true"></i>{% endif %}</td>
           <td class="align-middle py-0">
+            {% if item.actions %}
             <div class="btn-group">
               <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="dropdownActionsButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                 <i class="fa fa-wrench" aria-hidden="true"></i> Actions
               </button>
               <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownActionsButton">
+                <form method="post">
+                  {% csrf_token %}
+                  <input type="hidden" name="username" value="{{ item.username }}" />
+                  {% if item.active %}
+                  <input type="hidden" name="action" value="Deactivate" />
+                  <button type="submit" class="dropdown-item btn-sm text-secondary"><i class="fa fa-user-times" aria-hidden="true"></i> Deactivate</button>
+                  {% else %}
+                  <input type="hidden" name="action" value="Activate" />
+                  <button type="submit" class="dropdown-item btn-sm text-secondary"><i class="fa fa-user-plus" aria-hidden="true"></i> Activate</button>
+                  {% endif %}
+                </form>
                 <button type="button" class="dropdown-item btn-sm text-secondary confirm-delete" data-toggle="modal" data-target="#deleteModal" id="{{ item.name }}:{{ item.tag }}"><i class="fa fa-trash" aria-hidden="true"></i> Delete</button>
               </div>
             </div>
+            {% endif %}
           </td>
         </tr>
         {% endfor %}

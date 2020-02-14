@@ -24,6 +24,7 @@ from django.http import FileResponse
 from django.conf import settings
 from django.contrib.auth import logout as auth_logout, update_session_auth_hash
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import User
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib import messages
 from urllib.parse import urlparse
@@ -433,21 +434,47 @@ def users(request):
     if (request.method == 'POST'):
         if 'action' not in request.POST:
             messages.error(request, 'Invalid action.')
-        elif request.POST['action'] == 'Enable':
+        elif request.POST['action'] == 'Activate':
             pass
-        elif request.POST['action'] == 'Disable':
+        elif request.POST['action'] == 'Deactivate':
             pass
         else:
             messages.error(request, 'Invalid action.')
 
-        return redirect('images')
+        return redirect('users')
+
+    # Fill in the contents.
+    contents = []
+    for user in User.objects.all():
+        contents.append({'username': user.username,
+                         'email': user.email,
+                         'admin': 1 if user.is_staff else 0,
+                         'active': 1 if user.is_active else 0,
+                         'actions': True}) # if user.username != request.user.username else False})
+
+    # Sort them up.
+    sort_by = request.GET.get('sort_by')
+    if sort_by and sort_by in ('username', 'email', 'admin', 'active'):
+        request.session['users_sort_by'] = sort_by
+    else:
+        sort_by = request.session.get('users_sort_by', 'username')
+    order = request.GET.get('order')
+    if order and order in ('asc', 'desc'):
+        request.session['users_order'] = order
+    else:
+        order = request.session.get('data_order', 'asc')
+
+    contents = sorted(contents,
+                      key=lambda x: x[sort_by],
+                      reverse=True if order == 'desc' else False)
 
     # return render(request, 'dashboard/users.html', {'title': 'Users',
     #                                                 'trail': '',
     #                                                 'contents': contents,
     #                                                 'sort_by': sort_by,
     #                                                 'order': order})
-    return render(request, 'dashboard/users.html', {'title': 'Users'})
+    return render(request, 'dashboard/users.html', {'title': 'Users',
+                                                    'contents': contents})
 
 def signup(request):
     if request.method == 'POST':
