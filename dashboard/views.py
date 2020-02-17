@@ -302,7 +302,11 @@ def data(request, path='/'):
     for domain, variables in settings.DATA_DOMAINS.items():
         folder = variables['dir']
         if path_components[0] == domain:
-            real_path = os.path.join(folder, '/'.join(path_components[1:]))
+            user_path = os.path.join(folder, request.user.username)
+            if not os.path.exists(user_path):
+                os.makedirs(user_path)
+
+            real_path = os.path.join(folder if request.user.is_staff else user_path, '/'.join(path_components[1:]))
             request.session['data_path'] = path
             break
     else:
@@ -312,7 +316,7 @@ def data(request, path='/'):
 
     # Handle changes.
     if request.method == 'POST':
-        if 'action' not in request.POST:
+        if 'action' not in request.POST or (request.user.is_staff and len(path_components) == 1):
             messages.error(request, 'Invalid action.')
         elif request.POST['action'] == 'Create':
             form = AddFolderForm(request.POST)
@@ -439,6 +443,7 @@ def data(request, path='/'):
                                                    'contents': contents,
                                                    'sort_by': sort_by,
                                                    'order': order,
+                                                   'actions': False if request.user.is_staff and len(path_components) == 1 else True,
                                                    'add_folder_form': AddFolderForm(),
                                                    'add_files_form': AddFilesForm(),
                                                    'add_image_from_file_form': AddImageFromFileForm()})
