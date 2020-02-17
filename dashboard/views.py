@@ -66,11 +66,13 @@ def services(request):
                 if not os.path.exists(real_name):
                     messages.error(request, 'Service description for "%s" not found.' % name)
                 else:
-                    if kubernetes_client.remove_service(real_name, namespace_for_user(request.user)):
+                    try:
+                        kubernetes_client.remove_service(real_name, namespace_for_user(request.user))
+                    except Exception as e:
+                        messages.error(request, 'Can not remove service "%s": %s' % (name, str(e)))
+                    else:
                         messages.success(request, 'Service "%s" removed.' % name)
                         os.unlink(real_name)
-                    else:
-                        messages.error(request, 'Can not remove service "%s".' % name)
         else:
             messages.error(request, 'Invalid action.')
 
@@ -189,10 +191,12 @@ def service_create(request, file_name=''):
                     f.write(gene.yaml.encode())
 
                 # Apply.
-                if kubernetes_client.create_service(real_name, namespace_for_user(request.user)):
-                    messages.success(request, 'Service "%s" created.' % name)
+                try:
+                    kubernetes_client.create_service(real_name, namespace_for_user(request.user))
+                except Exception as e:
+                    messages.error(request, 'Can not create service "%s": %s' % (name, str(e)))
                 else:
-                    messages.error(request, 'Can not create service "%s".' % name)
+                    messages.success(request, 'Service "%s" created.' % name)
         else:
             messages.error(request, 'Invalid action.')
 
