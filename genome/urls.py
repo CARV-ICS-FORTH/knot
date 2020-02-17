@@ -34,5 +34,6 @@ from django.urls import include, path
 
 urlpatterns = [
     path('', include('dashboard.urls')),
+    path('impersonate/', include('impersonate.urls')),
     path('admin/', admin.site.urls),
 ]

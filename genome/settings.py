@@ -48,6 +48,7 @@ ALLOWED_HOSTS = []
 INSTALLED_APPS = [
     'dashboard.apps.DashboardConfig',
     'crispy_forms',
+    'impersonate',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -64,6 +65,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'impersonate.middleware.ImpersonateMiddleware',
 ]
 
 ROOT_URLCONF = 'genome.urls'

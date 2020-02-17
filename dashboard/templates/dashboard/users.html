@@ -57,6 +57,7 @@
                 <i class="fa fa-wrench" aria-hidden="true"></i> Actions
               </button>
               <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownActionsButton">
+                {% if user.is_staff %}<a href="{% url 'impersonate-start' item.id %}" class="dropdown-item btn btn-sm text-secondary"><i class="fa fa-user-secret" aria-hidden="true"></i> Impersonate</a>{% endif %}
                 <form method="post">
                   {% csrf_token %}
                   <input type="hidden" name="username" value="{{ item.username }}" />
@@ -78,7 +79,7 @@
                 {% else %}
                 <button type="button" class="dropdown-item btn-sm text-secondary confirm-promote" data-toggle="modal" data-target="#promoteModal" id="{{ item.username }}"><i class="fa fa-unlock-alt" aria-hidden="true"></i> Promote</button>
                 {% endif %}
-                <a href="{% url 'user_edit' item.username %}" class="dropdown-item btn btn-sm text-secondary"><i class="fa fa-edit" aria-hidden="true"></i> Edit</a>                
+                <a href="{% url 'user_edit' item.username %}" class="dropdown-item btn btn-sm text-secondary"><i class="fa fa-edit" aria-hidden="true"></i> Edit</a>
                 <a href="{% url 'user_change_password' item.username %}" class="dropdown-item btn btn-sm text-secondary"><i class="fa fa-wrench" aria-hidden="true"></i> Change password</a>
                 <button type="button" class="dropdown-item btn-sm text-secondary confirm-delete" data-toggle="modal" data-target="#deleteModal" id="{{ item.username }}"><i class="fa fa-trash" aria-hidden="true"></i> Delete</button>
               </div>

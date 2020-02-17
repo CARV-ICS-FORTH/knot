@@ -1,5 +1,6 @@
 Django==3.0.2
 django-crispy-forms==1.8.1
+django-impersonate==1.4.1
 python-dxf==7.5.3
 docker==4.1.0
 kubernetes==10.0.1

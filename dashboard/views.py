@@ -469,7 +469,8 @@ def users(request):
     # Fill in the contents.
     contents = []
     for user in User.objects.all():
-        contents.append({'username': user.username,
+        contents.append({'id': user.id,
+                         'username': user.username,
                          'email': user.email,
                          'active': 1 if user.is_active else 0,
                          'admin': 1 if user.is_staff else 0,
@@ -491,13 +492,10 @@ def users(request):
                       key=lambda x: x[sort_by],
                       reverse=True if order == 'desc' else False)
 
-    # return render(request, 'dashboard/users.html', {'title': 'Users',
-    #                                                 'trail': '',
-    #                                                 'contents': contents,
-    #                                                 'sort_by': sort_by,
-    #                                                 'order': order})
     return render(request, 'dashboard/users.html', {'title': 'Users',
-                                                    'contents': contents})
+                                                    'contents': contents,
+                                                    'sort_by': sort_by,
+                                                    'order': order})
 
 @staff_member_required
 def user_edit(request, username):
