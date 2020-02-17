@@ -59,8 +59,9 @@
       <thead>
         <tr>
           <th scope="col"></th>
-          {% with 'name type port created' as list %}
+          {% with 'name namespace type port created' as list %}
           {% for item in list.split %}
+          {% if user.is_staff or item != 'namespace' %}
           <th scope="col">
             {% if sort_by == item and order == 'asc' %}
             <a class="text-dark" href="{{ request.path }}?sort_by={{ item }}&amp;order=desc">{{ item|title }}</a>
@@ -71,6 +72,7 @@
             <i class="fa fa-caret-{% if order == 'asc' %}up{% else %}down{% endif %}" aria-hidden="true"></i>
             {% endif %}
           </th>
+          {% endif %}
           {% endfor %}
           {% endwith %}
           <th scope="col" style="width: 140px;"></th>
@@ -87,6 +89,7 @@
             {{ item.name }}
             {% endif %}
           </td>
+          {% if user.is_staff %}<td class="align-middle">{{ item.namespace }}</td>{% endif %}
           <td class="align-middle">{{ item.type }}</td>
           <td class="align-middle">{% if item.port %}{{ item.port }}{% endif %}</td>
           <td class="align-middle">{{ item.created|date:'j/n/Y H:i' }}</td>

@@ -16,8 +16,6 @@ import os
 import random
 import string
 import yaml
-import kubernetes.client
-import kubernetes.config
 
 from django.shortcuts import render, redirect, reverse
 from django.http import FileResponse
@@ -33,6 +31,7 @@ from datetime import datetime
 
 from .forms import SignUpForm, EditUserForm, AddServiceForm, CreateServiceForm, AddImageForm, AddFolderForm, AddFilesForm, AddImageFromFileForm
 from .utils.gene import Gene
+from .utils.kubernetes import KubernetesClient, namespace_for_user
 from .utils.docker import DockerClient
 
 
@@ -43,11 +42,11 @@ def dashboard(request):
 
 @login_required
 def services(request):
-    try:
-        kubernetes.config.load_kube_config()
-    except:
-        kubernetes.config.load_incluster_config()
-    kubernetes_client = kubernetes.client.CoreV1Api()
+    kubernetes_client = KubernetesClient()
+
+    service_database_path = os.path.join(settings.SERVICE_DATABASE_DIR, request.user.username)
+    if not os.path.exists(service_database_path):
+        os.makedirs(service_database_path)
 
     # Handle changes.
     if request.method == 'POST':
@@ -63,45 +62,51 @@ def services(request):
         elif request.POST['action'] == 'Remove':
             name = request.POST.get('service', None)
             if name:
-                real_name = os.path.join(settings.SERVICE_DATABASE_DIR, '%s.yaml' % name)
+                real_name = os.path.join(service_database_path, '%s.yaml' % name)
                 if not os.path.exists(real_name):
                     messages.error(request, 'Service description for "%s" not found.' % name)
                 else:
-                    if os.system('kubectl delete -f %s' % real_name) < 0:
-                        messages.error(request, 'Can not remove service "%s".' % name)
-                    else:
+                    if kubernetes_client.remove_service(real_name, namespace_for_user(request.user)):
                         messages.success(request, 'Service "%s" removed.' % name)
                         os.unlink(real_name)
+                    else:
+                        messages.error(request, 'Can not remove service "%s".' % name)
         else:
             messages.error(request, 'Invalid action.')
 
         return redirect('services')
 
     # There is no hierarchy here.
-    trail = [{'name': '<i class="fa fa-university" aria-hidden="true"></i> %s' % kubernetes_client.api_client.configuration.host}]
+    trail = [{'name': '<i class="fa fa-university" aria-hidden="true"></i> %s' % kubernetes_client.host}]
 
     # Get service names from our database.
     service_database = []
-    for file_name in os.listdir(settings.SERVICE_DATABASE_DIR):
+    for file_name in os.listdir(service_database_path):
         if file_name.endswith('.yaml'):
             service_database.append(file_name[:-5])
 
     # Fill in the contents.
     contents = []
-    for service in kubernetes_client.list_service_for_all_namespaces().items:
+    for service in kubernetes_client.list_services():
+        namespace = service.metadata.namespace
+        is_user_namespace = (namespace == namespace_for_user(request.user))
+        if not request.user.is_staff and not is_user_namespace:
+            continue
+
         name = service.metadata.name
         spec_type = service.spec.type
         ports = [str(p.port) for p in service.spec.ports if p.protocol == 'TCP']
         contents.append({'name': name,
                          'url': 'http://%s:%s' % (urlparse(request.build_absolute_uri()).hostname, ports[0]) if spec_type == 'LoadBalancer' and ports else '',
+                         'namespace': namespace,
                          'type': 'External' if spec_type == 'LoadBalancer' else 'Internal',
                          'port': ', '.join(ports),
                          'created': service.metadata.creation_timestamp,
-                         'actions': True if name in service_database else False})
+                         'actions': True if (name in service_database and is_user_namespace) else False})
 
     # Sort them up.
     sort_by = request.GET.get('sort_by')
-    if sort_by and sort_by in ('name', 'type', 'port', 'created'):
+    if sort_by and sort_by in ('name', 'namespace', 'type', 'port', 'created'):
         request.session['services_sort_by'] = sort_by
     else:
         sort_by = request.session.get('services_sort_by', 'name')
@@ -146,17 +151,14 @@ def service_create(request, file_name=''):
                         continue
                     setattr(gene, name, form.cleaned_data[name])
 
-                try:
-                    kubernetes.config.load_kube_config()
-                except:
-                    kubernetes.config.load_incluster_config()
-                kubernetes_client = kubernetes.client.CoreV1Api()
+                kubernetes_client = KubernetesClient()
 
                 # Get active names and ports.
                 names = []
                 ports = []
-                for service in kubernetes_client.list_service_for_all_namespaces().items:
-                    names.append(service.metadata.name)
+                for service in kubernetes_client.list_services():
+                    if service.metadata.namespace == namespace_for_user(request.user):
+                        names.append(service.metadata.name)
                     ports += [p.port for p in service.spec.ports if p.protocol == 'TCP'] # XXX Only TCP...
 
                 # Set name, port, and registry.
@@ -179,17 +181,18 @@ def service_create(request, file_name=''):
                 gene.inject_hostpath_volumes(settings.DATA_DOMAINS)
 
                 # Save yaml.
-                if not os.path.exists(settings.SERVICE_DATABASE_DIR):
-                    os.makedirs(settings.SERVICE_DATABASE_DIR)
-                real_name = os.path.join(settings.SERVICE_DATABASE_DIR, '%s.yaml' % name)
+                service_database_path = os.path.join(settings.SERVICE_DATABASE_DIR, request.user.username)
+                if not os.path.exists(service_database_path):
+                    os.makedirs(service_database_path)
+                real_name = os.path.join(service_database_path, '%s.yaml' % name)
                 with open(real_name, 'wb') as f:
                     f.write(gene.yaml.encode())
 
                 # Apply.
-                if os.system('kubectl apply -f %s' % real_name) < 0:
-                    messages.error(request, 'Can not create service "%s".' % name)
-                else:
+                if kubernetes_client.create_service(real_name, namespace_for_user(request.user)):
                     messages.success(request, 'Service "%s" created.' % name)
+                else:
+                    messages.error(request, 'Can not create service "%s".' % name)
         else:
             messages.error(request, 'Invalid action.')
 
