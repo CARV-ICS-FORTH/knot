@@ -232,18 +232,21 @@ def images(request):
                 messages.error(request, 'Failed to add image. Probably invalid characters in name or tag.')
 
         elif request.POST['action'] == 'Delete':
-            name = request.POST.get('name', None)
-            try:
-                repository, tag = name.split(':')
-            except ValueError:
-                messages.error(request, 'Invalid name.')
+            if not request.user.is_staff:
+                messages.error(request, 'Invalid action.')
             else:
+                name = request.POST.get('name', None)
                 try:
-                    docker_client.registry(repository).del_alias(tag)
-                except Exception as e:
-                    messages.error(request, 'Failed to delete image: %s.' % str(e))
+                    repository, tag = name.split(':')
+                except ValueError:
+                    messages.error(request, 'Invalid name.')
                 else:
-                    messages.success(request, 'Image "%s" deleted. Run garbage collection in the registry to reclaim space.' % name)
+                    try:
+                        docker_client.registry(repository).del_alias(tag)
+                    except Exception as e:
+                        messages.error(request, 'Failed to delete image: %s.' % str(e))
+                    else:
+                        messages.success(request, 'Image "%s" deleted. Run garbage collection in the registry to reclaim space.' % name)
         else:
             messages.error(request, 'Invalid action.')
 
@@ -260,7 +263,8 @@ def images(request):
             hashes = registry.get_alias(alias, sizes=True)
             contents.append({'name': repository,
                              'tag': alias,
-                             'size': sum([h[1] for h in hashes])})
+                             'size': sum([h[1] for h in hashes]),
+                             'actions': request.user.is_staff})
 
     # Sort them up.
     sort_by = request.GET.get('sort_by')

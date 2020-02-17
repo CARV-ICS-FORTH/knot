@@ -84,6 +84,7 @@
           <td class="align-middle">{{ item.tag }}</td>
           <td class="align-middle">{{ item.size|filesizeformat }}</td>
           <td class="align-middle py-0">
+            {% if item.actions %}
             <div class="btn-group">
               <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="dropdownActionsButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                 <i class="fa fa-wrench" aria-hidden="true"></i> Actions
@@ -92,6 +93,7 @@
                 <button type="button" class="dropdown-item btn-sm text-secondary confirm-delete" data-toggle="modal" data-target="#deleteModal" id="{{ item.name }}:{{ item.tag }}"><i class="fa fa-trash" aria-hidden="true"></i> Delete</button>
               </div>
             </div>
+            {% endif %}
           </td>
         </tr>
         {% endfor %}

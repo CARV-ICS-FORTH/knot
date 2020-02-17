@@ -86,7 +86,7 @@ class CreateServiceForm(forms.Form):
 
 class AddImageForm(forms.Form):
     name = forms.CharField(label='Image name', min_length=1, max_length=128, validators=[validate_docker_name])
-    tag = forms.CharField(label='Tag', min_length=1, max_length=128, initial='latest', validators=[validate_docker_tag])
+    tag = forms.CharField(label='Tag', min_length=1, max_length=128, validators=[validate_docker_tag])
     file_field = forms.FileField(label='Saved image file to add')
 
 class AddFolderForm(forms.Form):
@@ -97,7 +97,7 @@ class AddFilesForm(forms.Form):
 
 class AddImageFromFileForm(forms.Form):
     name = forms.CharField(label='Image name', min_length=1, max_length=128, validators=[validate_docker_name])
-    tag = forms.CharField(label='Tag', min_length=1, max_length=128, initial='latest', validators=[validate_docker_tag])
+    tag = forms.CharField(label='Tag', min_length=1, max_length=128, validators=[validate_docker_tag])
 
 class EditUserForm(forms.Form):
     email = forms.EmailField(label='Email')

@@ -37,7 +37,14 @@ class DockerClient(object):
     def registry(self, repository=''):
         return DXF(self._registry_host, repository, insecure=self._registry_url.scheme == 'http')
 
-    def add_image(self, data, name, tag='latest'):
+    def add_image(self, data, name, tag):
+        # Check for image with same name and tag.
+        for repository in self.registry().list_repos():
+            registry = self.registry(repository)
+            for alias in registry.list_aliases():
+                if name == repository and tag == alias:
+                    raise ValueError('Image with same name and tag already exists')
+
         images = self.client.images.load(data)
         if len(images) == 0:
             raise ValueError('No images present in file')
