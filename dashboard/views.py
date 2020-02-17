@@ -295,7 +295,7 @@ def data(request, path='/'):
     path = os.path.normpath(path)
     path = path.lstrip('/')
     if path == '':
-        path = list(settings.DATA_DOMAINS.keys())[0] # First is the default.
+        path = request.session.get('data_path', list(settings.DATA_DOMAINS.keys())[0]) # First is the default.
     path_components = [p for p in path.split('/') if p]
 
     # Figure out the real path we are working on.
@@ -303,9 +303,11 @@ def data(request, path='/'):
         folder = variables['dir']
         if path_components[0] == domain:
             real_path = os.path.join(folder, '/'.join(path_components[1:]))
+            request.session['data_path'] = path
             break
     else:
         messages.error(request, 'Invalid path.')
+        request.session.pop('data_path', None)
         return redirect('data')
 
     # Handle changes.
