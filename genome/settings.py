@@ -169,8 +169,10 @@ MESSAGE_TAGS = {
 
 # local_name = os.getenv('GENOME_LOCAL_NAME', 'local')
 # remote_name = os.getenv('GENOME_REMOTE_NAME', 'remote')
+# shared_name = os.getenv('GENOME_SHARED_NAME', 'shared')
 local_name = 'local'
 remote_name = 'remote'
+shared_name = 'shared'
 
 DATA_DOMAINS = {}
 if local_name:
@@ -181,6 +183,11 @@ if remote_name:
     remote_default_dir = os.path.join(BASE_DIR, remote_name)
     DATA_DOMAINS[remote_name] = {'dir': os.getenv('GENOME_REMOTE_DIR', remote_default_dir),
                                  'host_dir': os.getenv('GENOME_REMOTE_HOST_DIR', remote_default_dir)}
+if shared_name:
+    shared_default_dir = os.path.join(BASE_DIR, shared_name)
+    DATA_DOMAINS[shared_name] = {'dir': os.getenv('GENOME_SHARED_DIR', shared_default_dir),
+                                 'host_dir': os.getenv('GENOME_SHARED_HOST_DIR', shared_default_dir),
+                                 'mode': 'shared'}
 
 # Docker registry endpoint
 

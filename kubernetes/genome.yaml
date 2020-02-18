@@ -66,6 +66,8 @@ spec:
           value: /Users/chazapis/Source/FORTH/integration/genome/local
         - name: GENOME_REMOTE_HOST_DIR
           value: /Users/chazapis/Source/FORTH/integration/genome/remote
+        - name: GENOME_SHARED_HOST_DIR
+          value: /Users/chazapis/Source/FORTH/integration/genome/shared
         ports:
         - containerPort: 8000
           name: genome
@@ -78,6 +80,8 @@ spec:
           mountPath: /local
         - name: remote-volume
           mountPath: /remote
+        - name: shared-volume
+          mountPath: /shared
       volumes:
       - name: genome-persistent-storage
         persistentVolumeClaim:
@@ -91,3 +95,6 @@ spec:
       - name: remote-volume
         hostPath:
           path: /Users/chazapis/Source/FORTH/integration/genome/remote
+      - name: shared-volume
+        hostPath:
+          path: /Users/chazapis/Source/FORTH/integration/genome/shared

@@ -179,6 +179,7 @@ def service_create(request, file_name=''):
 
                 gene.LOCAL = settings.DATA_DOMAINS['local']['dir'].rstrip('/')
                 gene.REMOTE = settings.DATA_DOMAINS['remote']['dir'].rstrip('/')
+                gene.SHARED = settings.DATA_DOMAINS['shared']['dir'].rstrip('/')
 
                 # Inject data folders.
                 volumes = {}
@@ -310,13 +311,16 @@ def data(request, path='/'):
 
     # Figure out the real path we are working on.
     for domain, variables in settings.DATA_DOMAINS.items():
-        folder = variables['dir']
         if path_components[0] == domain:
-            user_path = os.path.join(folder, request.user.username)
-            if not os.path.exists(user_path):
-                os.makedirs(user_path)
+            if variables.get('mode') == 'shared':
+                real_path = os.path.join(variables['dir'], '/'.join(path_components[1:]))
+            else:
+                user_path = os.path.join(variables['dir'], request.user.username)
+                if not os.path.exists(user_path):
+                    os.makedirs(user_path)
 
-            real_path = os.path.join(user_path, '/'.join(path_components[1:]))
+                real_path = os.path.join(user_path, '/'.join(path_components[1:]))
+
             request.session['data_path'] = path
             break
     else:

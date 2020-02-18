@@ -11,10 +11,11 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-Create default diretories for local and remote data (or set `GENOME_LOCAL_DIR` and `GENOME_REMOTE_DIR` environment variables):
+Create default directories for local, remote, and shared data:
 ```
 mkdir local
 mkdir remote
+mkdir shared
 ```
 
 Then run `start.sh`.
@@ -35,6 +36,7 @@ docker run -d --rm --name genome \
     --mount type=bind,source=$PWD,destination=/db \
     --mount type=bind,source=$PWD/local,destination=/local \
     --mount type=bind,source=$PWD/remote,destination=/remote \
+    --mount type=bind,source=$PWD/shared,destination=/shared \
     -p 8000:8000/tcp \
     genome:latest
 ```
