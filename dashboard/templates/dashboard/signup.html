@@ -4,8 +4,10 @@
 
 {% block body %}
 <div class="container">
+  <div class="row py-5">&nbsp;</div>
+
   <div class="text-center">
-    <img class="d-block mx-auto mb-4" src="{% static 'dashboard/logo_short.svg' %}" alt="" width="280" height="280">
+    <img class="d-block mx-auto mt-5 mb-4" src="{% static 'dashboard/themes/'|add:dashboard_theme|add:'/logo.png' %}" alt="">
     {% if message %}<p class="lead">{{ message|safe }}</p>{% endif %}
   </div>
 
@@ -20,7 +22,7 @@
 
   <footer class="my-5 pt-5 text-muted text-center text-small">
     <ul class="list-inline">
-      <li class="list-inline-item">Go <a class="text-light" href="{{ next }}">back</a></li>
+      <li class="list-inline-item">Go <a class="text-muted" href="{{ next }}">back</a></li>
     </ul>
   </footer>
 </div>

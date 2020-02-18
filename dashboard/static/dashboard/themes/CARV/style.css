@@ -1,0 +1,18 @@
+html {
+  height: 100%;
+}
+body {
+  height: 100%;
+}
+nav {
+  background-color: #e9ecef!important;
+}
+table tbody tr td .btn {
+  display: none;
+}
+table tbody tr:hover td .btn {
+  display:inline-block;
+}
+.asteriskField {
+  display: none;
+}

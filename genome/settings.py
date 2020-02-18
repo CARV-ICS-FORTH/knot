@@ -81,6 +81,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'dashboard.context_processors.settings',
             ],
         },
     },
@@ -190,3 +191,9 @@ DOCKER_REGISTRY = os.getenv('GENOME_DOCKER_REGISTRY', 'http://127.0.0.1:5000')
 
 SERVICE_TEMPLATE_DIR = os.getenv('GENOME_SERVICE_TEMPLATE_DIR', os.path.join(BASE_DIR, 'services'))
 SERVICE_DATABASE_DIR = os.getenv('GENOME_SERVICE_DATABASE_DIR', os.path.join(BASE_DIR, 'servicedb'))
+
+
+# Theme
+
+DASHBOARD_TITLE = os.getenv('GENOME_DASHBOARD_TITLE', 'Dashboard')
+DASHBOARD_THEME = os.getenv('GENOME_DASHBOARD_THEME', 'evolve')
