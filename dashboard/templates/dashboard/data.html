@@ -30,10 +30,8 @@
 {% block main %}
 <div class="row">
   <div class="col-md-2 order-md-2">
-    {% if actions %}
     <button type="button" class="d-block btn btn-success mb-2 w-100" data-toggle="modal" data-target="#newFolderModal"><i class="fa fa-folder" aria-hidden="true"></i> New folder</button>
     <button type="button" class="d-block btn btn-success mb-2 w-100" data-toggle="modal" data-target="#addFilesModal"><i class="fa fa-download" aria-hidden="true"></i> Add files</button>
-    {% endif %}
   </div>
 
   <div class="modal fade" id="newFolderModal" tabindex="-1" role="dialog" aria-labelledby="newFolderModalLabel" aria-hidden="true">

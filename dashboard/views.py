@@ -16,6 +16,7 @@ import os
 import random
 import string
 import yaml
+import shutil
 
 from django.shortcuts import render, redirect, reverse
 from django.http import FileResponse
@@ -174,13 +175,22 @@ def service_create(request, file_name=''):
                     port += 1
                 gene.PORT = port
 
-                gene.REGISTRY = '%s/' % settings.DOCKER_REGISTRY
+                gene.REGISTRY = '%s/' % settings.DOCKER_REGISTRY.rstrip('/')
 
-                gene.LOCAL = '%s' % settings.DATA_DOMAINS['local']['dir'].rstrip('/')
-                gene.REMOTE = '%s' % settings.DATA_DOMAINS['remote']['dir'].rstrip('/')
+                gene.LOCAL = settings.DATA_DOMAINS['local']['dir'].rstrip('/')
+                gene.REMOTE = settings.DATA_DOMAINS['remote']['dir'].rstrip('/')
 
                 # Inject data folders.
-                gene.inject_hostpath_volumes(settings.DATA_DOMAINS)
+                volumes = {}
+                for domain, variables in dict(settings.DATA_DOMAINS).items():
+                    if not variables['dir'] or not variables['host_dir']:
+                        continue
+                    user_path = os.path.join(variables['host_dir'], request.user.username)
+                    if not os.path.exists(user_path):
+                        os.makedirs(user_path)
+                    variables['host_dir'] = user_path
+                    volumes[domain] = variables
+                gene.inject_hostpath_volumes(volumes)
 
                 # Save yaml.
                 service_database_path = os.path.join(settings.SERVICE_DATABASE_DIR, request.user.username)
@@ -306,7 +316,7 @@ def data(request, path='/'):
             if not os.path.exists(user_path):
                 os.makedirs(user_path)
 
-            real_path = os.path.join(folder if request.user.is_staff else user_path, '/'.join(path_components[1:]))
+            real_path = os.path.join(user_path, '/'.join(path_components[1:]))
             request.session['data_path'] = path
             break
     else:
@@ -316,7 +326,7 @@ def data(request, path='/'):
 
     # Handle changes.
     if request.method == 'POST':
-        if 'action' not in request.POST or (request.user.is_staff and len(path_components) == 1):
+        if 'action' not in request.POST:
             messages.error(request, 'Invalid action.')
         elif request.POST['action'] == 'Create':
             form = AddFolderForm(request.POST)
@@ -393,7 +403,8 @@ def data(request, path='/'):
     if os.path.isfile(real_path):
         return FileResponse(open(real_path, 'rb'), as_attachment=True, filename=os.path.basename(real_path))
     if not os.path.isdir(real_path):
-        messages.error(request, 'Invalid path.')
+        request.session.pop('data_path', None)
+        # messages.error(request, 'Invalid path.')
         return redirect('data')
 
     # This is a directory. Leave a trail of breadcrumbs.
@@ -443,7 +454,6 @@ def data(request, path='/'):
                                                    'contents': contents,
                                                    'sort_by': sort_by,
                                                    'order': order,
-                                                   'actions': False if request.user.is_staff and len(path_components) == 1 else True,
                                                    'add_folder_form': AddFolderForm(),
                                                    'add_files_form': AddFilesForm(),
                                                    'add_image_from_file_form': AddImageFromFileForm()})
@@ -469,13 +479,30 @@ def users(request):
             else:
                 messages.error(request, 'Invalid username')
         elif request.POST['action'] == 'Delete':
-            print('*** DELETE')
-            # if username and username != request.user.username:
-            #     if user:
-            #         print
-            #         messages.success(request, 'User "%s" deleted.' % username)
-            # else:
-            #     messages.error(request, 'Invalid username')
+            username = request.POST.get('username', None)
+            if username and username != request.user.username:
+                user = User.objects.get(username=username)
+                if user:
+                    try:
+                        KubernetesClient().destroy_namespace(namespace_for_user(user))
+                    
+                        service_database_path = os.path.join(settings.SERVICE_DATABASE_DIR, user.username)
+                        if os.path.exists(service_database_path):
+                            shutil.rmtree(service_database_path)
+
+                        for name, variables in dict(settings.DATA_DOMAINS).items():
+                            if not variables['dir'] or not variables['host_dir']:
+                                continue
+                            user_path = os.path.join(variables['host_dir'], user.username)
+                            if os.path.exists(user_path):
+                                shutil.rmtree(user_path)
+                    except:
+                        messages.error(request, 'Failed to delete user "%s": %s.' % (username, str(e)))
+                    else:
+                        user.delete()
+                        messages.success(request, 'User "%s" deleted.' % username)
+            else:
+                messages.error(request, 'Invalid username')
         else:
             messages.error(request, 'Invalid action.')
 
