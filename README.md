@@ -18,6 +18,11 @@ mkdir remote
 mkdir shared
 ```
 
+Create necessary Kubernetes resources:
+```
+kubectl apply -f kubernetes/argo.yaml
+```
+
 Then run `start.sh`.
 
 ## Running in Docker

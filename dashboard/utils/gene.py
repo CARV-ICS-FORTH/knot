@@ -23,6 +23,8 @@ class Gene(object):
         self._template = []
         self._name = ''
         self._description = ''
+        self._singleton = False
+        self._mount = True
         self._variables = None
         self._values = {}
 
@@ -30,6 +32,8 @@ class Gene(object):
             if part['kind'] == 'Gene' and 'name' in part and 'variables' in part:
                 self._name = part['name']
                 self._description = part.get('description', '')
+                self._singleton = part.get('singleton', False)
+                self._mount = part.get('mount', True)
                 self._variables = part['variables']
             else:
                 self._template.append(part)
@@ -91,6 +95,15 @@ class Gene(object):
                 continue
             add_volumes_to_spec(spec)
 
+    def inject_service_label(self):
+        for part in self._template:
+            if part.get('kind') == 'Service':
+                if not 'metadata' in part:
+                    part['metadata'] = {}
+                if not 'labels' in part['metadata']:
+                    part['metadata']['labels'] = {}
+                part['metadata']['labels']['genome-gene'] = self.label
+
     @property
     def name(self):
         return self._name
@@ -100,12 +113,24 @@ class Gene(object):
         return self._description
 
     @property
+    def singleton(self):
+        return self._singleton
+
+    @property
+    def mount(self):
+        return self._mount
+
+    @property
     def variables(self):
         return self._variables
 
     @property
     def values(self):
         return self._values
+
+    @property
+    def label(self):
+        return self._name.replace(' ', '_')
 
     @property
     def yaml(self):

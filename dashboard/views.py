@@ -143,45 +143,47 @@ def service_create(request, file_name=''):
 
     # Handle changes.
     if request.method == 'POST':
-        if 'action' not in request.POST:
-            messages.error(request, 'Invalid action.')
-        elif request.POST['action'] == 'Create':
-            form = CreateServiceForm(request.POST, variables=gene.variables)
-            if form.is_valid():
-                for variable in gene.variables:
-                    name = variable['name']
-                    if name.upper() in ('PORT', 'REGISTRY', 'LOCAL', 'REMOTE'): # Set here later on.
-                        continue
-                    setattr(gene, name, form.cleaned_data[name])
+        form = CreateServiceForm(request.POST, variables=gene.variables)
+        if form.is_valid():
+            for variable in gene.variables:
+                name = variable['name']
+                if name.upper() in ('PORT', 'REGISTRY', 'LOCAL', 'REMOTE'): # Set here later on.
+                    continue
+                setattr(gene, name, form.cleaned_data[name])
 
-                kubernetes_client = KubernetesClient()
+            kubernetes_client = KubernetesClient()
+            if gene.singleton and kubernetes_client.count_services(namespace=namespace_for_user(request.user),
+                                                                   label_selector='genome-gene=%s' % gene.label):
+                messages.warning(request, 'There can be only one "%s" service running.' % gene.name)
+                return redirect('services')
 
-                # Get active names and ports.
-                names = []
-                ports = []
-                for service in kubernetes_client.list_services():
-                    if service.metadata.namespace == namespace_for_user(request.user):
-                        names.append(service.metadata.name)
-                    ports += [p.port for p in service.spec.ports if p.protocol == 'TCP'] # XXX Only TCP...
+            # Get active names and ports.
+            names = []
+            ports = []
+            for service in kubernetes_client.list_services():
+                if service.metadata.namespace == namespace_for_user(request.user):
+                    names.append(service.metadata.name)
+                ports += [p.port for p in service.spec.ports if p.protocol == 'TCP'] # XXX Only TCP...
 
-                # Set name, port, and registry.
-                name = gene.NAME
-                while name in names:
-                    name = form.cleaned_data['NAME'] + '-' + ''.join([random.choice(string.ascii_lowercase) for i in range(4)])
-                gene.NAME = name
+            # Set name, port, and registry.
+            name = gene.NAME
+            while name in names:
+                name = form.cleaned_data['NAME'] + '-' + ''.join([random.choice(string.ascii_lowercase) for i in range(4)])
+            gene.NAME = name
 
-                port = gene.PORT
-                while port in ports:
-                    port += 1
-                gene.PORT = port
+            port = gene.PORT
+            while port in ports:
+                port += 1
+            gene.PORT = port
 
-                gene.REGISTRY = '%s/' % settings.DOCKER_REGISTRY.rstrip('/')
+            gene.REGISTRY = '%s/' % settings.DOCKER_REGISTRY.rstrip('/')
 
-                gene.LOCAL = settings.DATA_DOMAINS['local']['dir'].rstrip('/')
-                gene.REMOTE = settings.DATA_DOMAINS['remote']['dir'].rstrip('/')
-                gene.SHARED = settings.DATA_DOMAINS['shared']['dir'].rstrip('/')
+            gene.LOCAL = settings.DATA_DOMAINS['local']['dir'].rstrip('/')
+            gene.REMOTE = settings.DATA_DOMAINS['remote']['dir'].rstrip('/')
+            gene.SHARED = settings.DATA_DOMAINS['shared']['dir'].rstrip('/')
 
-                # Inject data folders.
+            # Inject data folders.
+            if gene.mount:
                 volumes = {}
                 for domain, variables in dict(settings.DATA_DOMAINS).items():
                     if not variables['dir'] or not variables['host_dir']:
@@ -193,28 +195,31 @@ def service_create(request, file_name=''):
                     volumes[domain] = variables
                 gene.inject_hostpath_volumes(volumes)
 
-                # Save yaml.
-                service_database_path = os.path.join(settings.SERVICE_DATABASE_DIR, request.user.username)
-                if not os.path.exists(service_database_path):
-                    os.makedirs(service_database_path)
-                real_name = os.path.join(service_database_path, '%s.yaml' % name)
-                with open(real_name, 'wb') as f:
-                    f.write(gene.yaml.encode())
+            # Add name label.
+            gene.inject_service_label()
 
-                # Apply.
-                try:
-                    kubernetes_client.create_service(real_name, namespace_for_user(request.user))
-                except Exception as e:
-                    messages.error(request, 'Can not create service "%s": %s' % (name, str(e)))
-                else:
-                    messages.success(request, 'Service "%s" created.' % name)
-        else:
-            messages.error(request, 'Invalid action.')
+            # Save yaml.
+            service_database_path = os.path.join(settings.SERVICE_DATABASE_DIR, request.user.username)
+            if not os.path.exists(service_database_path):
+                os.makedirs(service_database_path)
+            real_name = os.path.join(service_database_path, '%s.yaml' % name)
+            with open(real_name, 'wb') as f:
+                f.write(gene.yaml.encode())
 
-        return redirect('services')
+            # Apply.
+            try:
+                kubernetes_client.create_service(real_name, namespace_for_user(request.user))
+            except Exception as e:
+                messages.error(request, 'Can not create service "%s": %s' % (name, str(e)))
+            else:
+                messages.success(request, 'Service "%s" created.' % name)
+
+            return redirect('services')
+    else:
+        form = CreateServiceForm(variables=gene.variables)
 
     return render(request, 'dashboard/form.html', {'title': 'Create Service',
-                                                   'form': CreateServiceForm(variables=gene.variables),
+                                                   'form': form,
                                                    'action': 'Create',
                                                    'next': reverse('services')})
 

@@ -51,6 +51,9 @@ class KubernetesClient(object):
     def list_services(self):
         return self.client.list_service_for_all_namespaces().items
 
+    def count_services(self, namespace, label_selector):
+        return len(self.client.list_namespaced_service(namespace=namespace, label_selector=label_selector).items)
+
     def create_service(self, yaml_file, namespace=None):
         if namespace:
             if namespace not in [n.metadata.name for n in self.list_namespaces()]:

@@ -37,9 +37,9 @@ spec:
         - name: ZEPPELIN_PORT
           value: "8080"
         - name: ZEPPELIN_NOTEBOOK_DIR
-          value: ${REMOTE}/zeppelin/notebook
+          value: ${REMOTE}/.zeppelin/notebook
         - name: ZEPPELIN_LOG_DIR
-          value: ${REMOTE}/zeppelin/logs
+          value: ${REMOTE}/.zeppelin/logs
 ---
 kind: Gene
 name: Zeppelin

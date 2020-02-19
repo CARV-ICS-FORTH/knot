@@ -26,8 +26,10 @@ from crispy_forms.layout import Layout, Submit
 from .utils.gene import Gene
 
 
-validate_docker_name = RegexValidator(r'^[0-9a-z\-\.]*$', 'Only alphanumeric characters are allowed.')
-validate_docker_tag = RegexValidator(r'^[0-9a-zA-Z_\-\.]*$', 'Only alphanumeric characters are allowed.')
+validate_docker_name = RegexValidator(r'^[0-9a-z\-\.]*$', 'Only alphanumeric characters, dash, and period are allowed.')
+validate_docker_tag = RegexValidator(r'^[0-9a-zA-Z_\-\.]*$', 'Only alphanumeric characters, dash, underscore, and period are allowed.')
+
+validate_kubernetes_label = RegexValidator(r'^(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])?$', 'Only alphanumeric characters, dash, underscore, and period are allowed.')
 
 class SignUpForm(UserCreationForm):
     email = forms.EmailField(max_length=254, help_text='Required. Please use a valid email address.')
@@ -80,9 +82,11 @@ class CreateServiceForm(forms.Form):
             name = variable['name']
             if name.upper() in ('PORT', 'REGISTRY', 'LOCAL', 'REMOTE'):
                 continue
+            kwargs = {'validators': [validate_kubernetes_label]} if name == 'NAME' else {}
             self.fields[name] = forms.CharField(label=name.capitalize(),
                                                 initial=variable['default'],
-                                                help_text=variable.get('help'))
+                                                help_text=variable.get('help'),
+                                                **kwargs)
 
 class AddImageForm(forms.Form):
     name = forms.CharField(label='Image name', min_length=1, max_length=128, validators=[validate_docker_name])
