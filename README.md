@@ -58,3 +58,5 @@ kubectl delete -k ./
 ```
 
 Access Genome at your external cluster IP, at port `8000`.
+
+Genome should run in the `default` namespace.

@@ -15,6 +15,13 @@
 <div class="row">
   <div class="col-md-2 order-md-2">
     <button type="button" class="d-block btn btn-success mb-2 w-100" data-toggle="modal" data-target="#addImageModal"><i class="fa fa-download" aria-hidden="true"></i> Add image</button>
+    {% if user.is_staff %}
+    <form method="post">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="Collect" />
+      <button type="submit" class="d-block btn btn-success mb-2 w-100"><i class="fa fa-trash" aria-hidden="true"></i> Garbage collect</button>
+    </form>
+    {% endif %}
   </div>
 
   <div class="modal fade" id="addImageModal" tabindex="-1" role="dialog" aria-labelledby="addImageModalLabel" aria-hidden="true">

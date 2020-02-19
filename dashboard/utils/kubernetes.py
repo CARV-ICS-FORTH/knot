@@ -16,6 +16,7 @@ import os
 
 import kubernetes.client
 import kubernetes.config
+import kubernetes.stream
 
 
 class KubernetesClient(object):
@@ -60,6 +61,19 @@ class KubernetesClient(object):
     def remove_service(self, yaml_file, namespace=None):
         if os.system('kubectl delete -n %s -f %s' % (namespace if namespace else 'default', yaml_file)) < 0:
             raise SystemError('Can not delete service file')
+
+    def run_command_in_pod(self, namespace, label_selector, command):
+        result = []
+        for pod in self.client.list_namespaced_pod(namespace=namespace, label_selector=label_selector).items:
+            result.append(kubernetes.stream.stream(self.client.connect_get_namespaced_pod_exec,
+                                                   pod.metadata.name,
+                                                   namespace,
+                                                   command=command,
+                                                   stderr=True,
+                                                   stdin=False,
+                                                   stdout=True,
+                                                   tty=False))
+        return result
 
 def namespace_for_user(user):
     return 'genome-%s' % user.username
