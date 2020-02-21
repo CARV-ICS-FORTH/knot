@@ -288,11 +288,21 @@ def images(request):
     for repository in docker_client.registry().list_repos():
         registry = docker_client.registry(repository)
         for alias in registry.list_aliases():
+            digest = registry.get_digest(alias)
+            existing_content = next((c for c in contents if c['digest'] == digest), None)
+            if existing_content:
+                existing_content['aliases'].append(alias)
+                continue
             hashes = registry.get_alias(alias, sizes=True)
             contents.append({'name': repository,
-                             'tag': alias,
+                             'tag': str(alias),
+                             'digest': digest,
+                             'aliases': [str(alias)],
                              'size': sum([h[1] for h in hashes]),
                              'actions': request.user.is_staff})
+    for content in contents:
+        content['aliases'].sort()
+        content['tag'] = content['aliases'][0]
 
     # Sort them up.
     sort_by = request.GET.get('sort_by')
@@ -506,7 +516,7 @@ def users(request):
                 if user:
                     try:
                         KubernetesClient().destroy_namespace(namespace_for_user(user))
-                    
+
                         service_database_path = os.path.join(settings.SERVICE_DATABASE_DIR, user.username)
                         if os.path.exists(service_database_path):
                             shutil.rmtree(service_database_path)
