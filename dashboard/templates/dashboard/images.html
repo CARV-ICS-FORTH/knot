@@ -88,7 +88,7 @@
         <tr>
           <th scope="row" class="align-middle"><i class="fa fa-cube" aria-hidden="true"></i></th>
           <td class="align-middle">{{ item.name }}</td>
-          <td class="align-middle">{{ item.tag }}</td>
+          <td class="align-middle">{{ item.aliases|join:', ' }}</td>
           <td class="align-middle">{{ item.size|filesizeformat }}</td>
           <td class="align-middle py-0">
             {% if item.actions %}
