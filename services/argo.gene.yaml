@@ -1,3 +1,5 @@
+# argo.gene.yaml
+
 apiVersion: v1
 kind: ServiceAccount
 metadata:
@@ -143,10 +145,9 @@ kind: Service
 metadata:
   name: $NAME
 spec:
-  type: LoadBalancer
+  type: ClusterIP
   ports:
-  - port: $PORT
-    targetPort: 8001
+  - port: 8001
   selector:
     app: $NAME
 ---
@@ -215,5 +216,3 @@ mount: no
 variables:
 - name: NAME
   default: argo
-- name: PORT
-  default: 8090

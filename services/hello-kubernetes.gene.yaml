@@ -1,14 +1,13 @@
-# hello-kubernetes.genge.yaml
+# hello-kubernetes.gene.yaml
 
 apiVersion: v1
 kind: Service
 metadata:
   name: $NAME
 spec:
-  type: LoadBalancer
+  type: ClusterIP
   ports:
-  - port: $PORT
-    targetPort: 8080
+  - port: 8080
   selector:
     app: $NAME
 ---
@@ -41,8 +40,6 @@ description: Start a pod that shows a message in a web page
 variables:
 - name: NAME
   default: hello-kubernetes
-- name: PORT
-  default: 10000
 - name: MESSAGE
   default: I just deployed this on Kubernetes!
   help: Message to display

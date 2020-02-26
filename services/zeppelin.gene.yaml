@@ -5,10 +5,9 @@ kind: Service
 metadata:
   name: $NAME
 spec:
-  type: LoadBalancer
+  type: ClusterIP
   ports:
-  - port: $PORT
-    targetPort: 8080
+  - port: 8080
   selector:
     app: $NAME
 ---
@@ -47,7 +46,5 @@ description: Notebook server
 variables:
 - name: NAME
   default: zeppelin
-- name: PORT
-  default: 8080
 - name: REMOTE
   default: /remote

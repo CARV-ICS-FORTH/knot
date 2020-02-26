@@ -48,11 +48,8 @@ class KubernetesClient(object):
         if os.system('kubectl delete namespace %s' % namespace) < 0:
             raise SystemError('Can not delete namespace "%s"' % namespace)
 
-    def list_services(self):
-        return self.client.list_service_for_all_namespaces().items
-
-    def count_services(self, namespace, label_selector):
-        return len(self.client.list_namespaced_service(namespace=namespace, label_selector=label_selector).items)
+    def list_services(self, namespace, label_selector):
+        return self.client.list_namespaced_service(namespace=namespace, label_selector=label_selector).items
 
     def create_service(self, yaml_file, namespace=None):
         if namespace:

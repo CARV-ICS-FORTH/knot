@@ -90,26 +90,20 @@ def services(request):
 
     # Fill in the contents.
     contents = []
-    for service in kubernetes_client.list_services():
-        namespace = service.metadata.namespace
-        is_user_namespace = (namespace == namespace_for_user(request.user))
-        if not request.user.is_staff and not is_user_namespace:
-            continue
-
+    for service in kubernetes_client.list_services(namespace=namespace_for_user(request.user), label_selector=''):
         name = service.metadata.name
         spec_type = service.spec.type
         ports = [str(p.port) for p in service.spec.ports if p.protocol == 'TCP']
         contents.append({'name': name,
                          'url': 'http://%s:%s' % (urlparse(request.build_absolute_uri()).hostname, ports[0]) if spec_type == 'LoadBalancer' and ports else '',
-                         'namespace': namespace,
                          'type': 'External' if spec_type == 'LoadBalancer' else 'Internal',
                          'port': ', '.join(ports),
                          'created': service.metadata.creation_timestamp,
-                         'actions': True if (name in service_database and is_user_namespace) else False})
+                         'actions': True if name in service_database else False})
 
     # Sort them up.
     sort_by = request.GET.get('sort_by')
-    if sort_by and sort_by in ('name', 'namespace', 'type', 'port', 'created'):
+    if sort_by and sort_by in ('name', 'type', 'port', 'created'):
         request.session['services_sort_by'] = sort_by
     else:
         sort_by = request.session.get('services_sort_by', 'name')
@@ -147,23 +141,22 @@ def service_create(request, file_name=''):
         if form.is_valid():
             for variable in gene.variables:
                 name = variable['name']
-                if name.upper() in ('PORT', 'REGISTRY', 'LOCAL', 'REMOTE'): # Set here later on.
+                if name.upper() in ('REGISTRY', 'LOCAL', 'REMOTE'): # Set here later on.
                     continue
                 setattr(gene, name, form.cleaned_data[name])
 
             kubernetes_client = KubernetesClient()
-            if gene.singleton and kubernetes_client.count_services(namespace=namespace_for_user(request.user),
-                                                                   label_selector='genome-gene=%s' % gene.label):
+            if gene.singleton and len(kubernetes_client.list_services(namespace=namespace_for_user(request.user),
+                                                                      label_selector='genome-gene=%s' % gene.label)):
                 messages.warning(request, 'There can be only one "%s" service running.' % gene.name)
                 return redirect('services')
 
             # Get active names and ports.
             names = []
-            ports = []
-            for service in kubernetes_client.list_services():
-                if service.metadata.namespace == namespace_for_user(request.user):
-                    names.append(service.metadata.name)
-                ports += [p.port for p in service.spec.ports if p.protocol == 'TCP'] # XXX Only TCP...
+            # ports = []
+            for service in kubernetes_client.list_services(namespace=namespace_for_user(request.user), label_selector=''):
+                names.append(service.metadata.name)
+                # ports += [p.port for p in service.spec.ports if p.protocol == 'TCP'] # XXX Only TCP...
 
             # Set name, port, and registry.
             name = gene.NAME
@@ -171,10 +164,10 @@ def service_create(request, file_name=''):
                 name = form.cleaned_data['NAME'] + '-' + ''.join([random.choice(string.ascii_lowercase) for i in range(4)])
             gene.NAME = name
 
-            port = gene.PORT
-            while port in ports:
-                port += 1
-            gene.PORT = port
+            # port = gene.PORT
+            # while port in ports:
+            #     port += 1
+            # gene.PORT = port
 
             gene.REGISTRY = '%s/' % settings.DOCKER_REGISTRY.rstrip('/')
 
