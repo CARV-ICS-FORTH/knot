@@ -59,7 +59,7 @@
       <thead>
         <tr>
           <th scope="col"></th>
-          {% with 'name type port created' as list %}
+          {% with 'name created' as list %}
           {% for item in list.split %}
           <th scope="col">
             {% if sort_by == item and order == 'asc' %}
@@ -87,8 +87,6 @@
             {{ item.name }}
             {% endif %}
           </td>
-          <td class="align-middle">{{ item.type }}</td>
-          <td class="align-middle">{% if item.port %}{{ item.port }}{% endif %}</td>
           <td class="align-middle">{{ item.created|date:'j/n/Y H:i' }}</td>
           <td class="align-middle py-0">
             {% if item.actions %}

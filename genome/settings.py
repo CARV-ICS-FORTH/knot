@@ -40,7 +40,8 @@ SECRET_KEY = os.getenv('DJANGO_SECRET', '%ad&%4*!xpf*$wd3^t56+#ode4=@y^ju_t+j9f+
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+INGRESS_DOMAIN = os.getenv('GENOME_INGRESS_DOMAIN', 'localtest.me')
+ALLOWED_HOSTS = [INGRESS_DOMAIN]
 
 
 # Application definition

@@ -46,7 +46,7 @@ class Gene(object):
             self._values[variable['name']] = variable['default']
 
         keys = list(self._values.keys())
-        if 'NAME' not in keys:
+        if 'NAME' not in keys or 'HOSTNAME' not in keys:
             raise ValueError('Missing name variable in gene file')
 
     def __getattr__(self, name):

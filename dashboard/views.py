@@ -92,18 +92,15 @@ def services(request):
     contents = []
     for service in kubernetes_client.list_services(namespace=namespace_for_user(request.user), label_selector=''):
         name = service.metadata.name
-        spec_type = service.spec.type
-        ports = [str(p.port) for p in service.spec.ports if p.protocol == 'TCP']
+        # ports = [str(p.port) for p in service.spec.ports if p.protocol == 'TCP']
         contents.append({'name': name,
-                         'url': 'http://%s:%s' % (urlparse(request.build_absolute_uri()).hostname, ports[0]) if spec_type == 'LoadBalancer' and ports else '',
-                         'type': 'External' if spec_type == 'LoadBalancer' else 'Internal',
-                         'port': ', '.join(ports),
+                         'url': 'http://%s-%s.%s' % (name, request.user.username, urlparse(request.build_absolute_uri()).hostname),
                          'created': service.metadata.creation_timestamp,
                          'actions': True if name in service_database else False})
 
     # Sort them up.
     sort_by = request.GET.get('sort_by')
-    if sort_by and sort_by in ('name', 'type', 'port', 'created'):
+    if sort_by and sort_by in ('name', 'created'):
         request.session['services_sort_by'] = sort_by
     else:
         sort_by = request.session.get('services_sort_by', 'name')
@@ -141,7 +138,7 @@ def service_create(request, file_name=''):
         if form.is_valid():
             for variable in gene.variables:
                 name = variable['name']
-                if name.upper() in ('REGISTRY', 'LOCAL', 'REMOTE'): # Set here later on.
+                if name.upper() in ('HOSTNAME', 'REGISTRY', 'LOCAL', 'REMOTE', 'SHARED'): # Set here later on.
                     continue
                 setattr(gene, name, form.cleaned_data[name])
 
@@ -151,26 +148,18 @@ def service_create(request, file_name=''):
                 messages.warning(request, 'There can be only one "%s" service running.' % gene.name)
                 return redirect('services')
 
-            # Get active names and ports.
+            # Get active names.
             names = []
-            # ports = []
             for service in kubernetes_client.list_services(namespace=namespace_for_user(request.user), label_selector=''):
                 names.append(service.metadata.name)
-                # ports += [p.port for p in service.spec.ports if p.protocol == 'TCP'] # XXX Only TCP...
 
-            # Set name, port, and registry.
+            # Set name, hostname, registry, and storage paths.
             name = gene.NAME
             while name in names:
                 name = form.cleaned_data['NAME'] + '-' + ''.join([random.choice(string.ascii_lowercase) for i in range(4)])
             gene.NAME = name
-
-            # port = gene.PORT
-            # while port in ports:
-            #     port += 1
-            # gene.PORT = port
-
+            gene.HOSTNAME = '%s-%s.%s' % (name, request.user.username, urlparse(request.build_absolute_uri()).hostname)
             gene.REGISTRY = '%s/' % settings.DOCKER_REGISTRY.rstrip('/')
-
             gene.LOCAL = settings.DATA_DOMAINS['local']['dir'].rstrip('/')
             gene.REMOTE = settings.DATA_DOMAINS['remote']['dir'].rstrip('/')
             gene.SHARED = settings.DATA_DOMAINS['shared']['dir'].rstrip('/')
