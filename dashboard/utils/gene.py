@@ -104,6 +104,17 @@ class Gene(object):
                     part['metadata']['labels'] = {}
                 part['metadata']['labels']['genome-gene'] = self.label
 
+    def inject_ingress_auth(self, secret, realm):
+        for part in self._template:
+            if part.get('kind') == 'Ingress':
+                if not 'metadata' in part:
+                    part['metadata'] = {}
+                if not 'annotations' in part['metadata']:
+                    part['metadata']['annotations'] = {}
+                part['metadata']['annotations']['nginx.ingress.kubernetes.io/auth-type'] = 'basic'
+                part['metadata']['annotations']['nginx.ingress.kubernetes.io/auth-secret'] = secret
+                part['metadata']['annotations']['nginx.ingress.kubernetes.io/auth-realm'] = realm
+
     @property
     def name(self):
         return self._name

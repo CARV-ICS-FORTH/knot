@@ -29,12 +29,20 @@ from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib import messages
 from urllib.parse import urlparse
 from datetime import datetime
+from base64 import b64encode
 
 from .forms import SignUpForm, EditUserForm, AddServiceForm, CreateServiceForm, AddImageForm, AddFolderForm, AddFilesForm, AddImageFromFileForm
 from .utils.gene import Gene
-from .utils.kubernetes import KubernetesClient, namespace_for_user
+from .utils.kubernetes import KubernetesClient
 from .utils.docker import DockerClient
 
+
+def namespace_for_user(user):
+    return 'genome-%s' % user.username
+
+def literal_auth_for_user(user):
+    return 'auth=%s:$%s\n' % (user.username, user.password)
+    # return 'auth=%s' % b64encode(('%s:$%s\n' % (user.username, user.password)).encode()).decode()
 
 @login_required
 def dashboard(request):
@@ -157,6 +165,7 @@ def service_create(request, file_name=''):
             name = gene.NAME
             while name in names:
                 name = form.cleaned_data['NAME'] + '-' + ''.join([random.choice(string.ascii_lowercase) for i in range(4)])
+
             gene.NAME = name
             gene.HOSTNAME = '%s-%s.%s' % (name, request.user.username, urlparse(request.build_absolute_uri()).hostname)
             gene.REGISTRY = '%s/' % settings.DOCKER_REGISTRY.rstrip('/')
@@ -179,6 +188,9 @@ def service_create(request, file_name=''):
 
             # Add name label.
             gene.inject_service_label()
+
+            # Add authentication.
+            gene.inject_ingress_auth('genome-auth', 'Authentication Required - %s' % settings.DASHBOARD_TITLE)
 
             # Save yaml.
             service_database_path = os.path.join(settings.SERVICE_DATABASE_DIR, request.user.username)
@@ -483,9 +495,13 @@ def users(request):
             if username and username != request.user.username:
                 user = User.objects.get(username=username)
                 if user:
-                    if action in ('Activate', 'Deactivate'):
-                        user.is_active = True if action == 'Activate' else False
-                    if action in ('Promote', 'Demote'):
+                    if action == 'Activate':
+                        user.is_active = True
+                        KubernetesClient().update_secret(namespace_for_user(user), 'genome-auth', literal_auth_for_user(user))
+                    elif action == 'Deactivate':
+                        user.is_active = False
+                        KubernetesClient().remove_secret(namespace_for_user(user), 'genome-auth')
+                    elif action in ('Promote', 'Demote'):
                         user.is_staff = True if action == 'Promote' else False
                     user.save()
                     messages.success(request, 'User "%s" %s.' % (username, action.lower() + 'd'))
@@ -595,6 +611,7 @@ def user_change_password(request, username):
         form = SetPasswordForm(user, request.POST)
         if form.is_valid():
             form.save()
+            KubernetesClient().update_secret(namespace_for_user(user), 'genome-auth', literal_auth_for_user(user))
             messages.success(request, 'Password changed for user "%s".' % username)
             return redirect('users')
     else:
@@ -630,6 +647,7 @@ def change_password(request):
         if form.is_valid():
             user = form.save()
             update_session_auth_hash(request, user)
+            KubernetesClient().update_secret(namespace_for_user(user), 'genome-auth', literal_auth_for_user(user))
             messages.success(request, 'Password successfully changed.')
             return redirect(next)
     else:

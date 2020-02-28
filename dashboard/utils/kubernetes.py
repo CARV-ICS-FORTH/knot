@@ -51,16 +51,23 @@ class KubernetesClient(object):
     def list_services(self, namespace, label_selector):
         return self.client.list_namespaced_service(namespace=namespace, label_selector=label_selector).items
 
-    def create_service(self, yaml_file, namespace=None):
-        if namespace:
-            if namespace not in [n.metadata.name for n in self.list_namespaces()]:
-                self.create_namespace(namespace)
-        if os.system('kubectl apply -n %s -f %s' % (namespace if namespace else 'default', yaml_file)) < 0:
+    def create_service(self, yaml_file, namespace):
+        if namespace not in [n.metadata.name for n in self.list_namespaces()]:
+            self.create_namespace(namespace)
+        if os.system('kubectl apply -n %s -f %s' % (namespace, yaml_file)) < 0:
             raise SystemError('Can not apply service file')
 
-    def remove_service(self, yaml_file, namespace=None):
-        if os.system('kubectl delete -n %s -f %s' % (namespace if namespace else 'default', yaml_file)) < 0:
+    def remove_service(self, yaml_file, namespace):
+        if os.system('kubectl delete -n %s -f %s' % (namespace, yaml_file)) < 0:
             raise SystemError('Can not delete service file')
+
+    def remove_secret(self, namespace, name):
+        os.system('kubectl delete -n %s secret %s' % (namespace, name))
+
+    def update_secret(self, namespace, name, literal):
+        self.remove_secret(namespace, name)
+        if os.system('kubectl create -n %s secret generic %s --from-literal=\'%s\'' % (namespace, name, literal)) < 0:
+            raise SystemError('Can not create secret')
 
     def run_command_in_pod(self, namespace, label_selector, command):
         result = []
@@ -74,6 +81,3 @@ class KubernetesClient(object):
                                                    stdout=True,
                                                    tty=False))
         return result
-
-def namespace_for_user(user):
-    return 'genome-%s' % user.username
