@@ -5,3 +5,4 @@ python-dxf==7.5.3
 docker==4.1.0
 kubernetes==10.0.1
 PyYAML==5.3
+passlib==1.7.2

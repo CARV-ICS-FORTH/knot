@@ -91,6 +91,16 @@ TEMPLATES = [
 WSGI_APPLICATION = 'genome.wsgi.application'
 
 
+# Password hashes
+
+PASSWORD_HASHERS = [
+    'dashboard.hashers.APR1PasswordHasher',
+    'django.contrib.auth.hashers.PBKDF2PasswordHasher',
+    'django.contrib.auth.hashers.PBKDF2SHA1PasswordHasher',
+    'django.contrib.auth.hashers.Argon2PasswordHasher',
+    'django.contrib.auth.hashers.BCryptSHA256PasswordHasher',
+]
+
 # Database
 # https://docs.djangoproject.com/en/3.0/ref/settings/#databases
 
