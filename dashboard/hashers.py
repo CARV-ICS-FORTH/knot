@@ -35,7 +35,7 @@ class APR1PasswordHasher(BasePasswordHasher):
     def verify(self, password, encoded):
         algorithm, salt, data = encoded.split('$', 2)
         assert algorithm == self.algorithm
-        return constant_time_compare(data, self.encode(password, salt))
+        return constant_time_compare(encoded, self.encode(password, salt))
 
     def safe_summary(self, encoded):
         algorithm, salt, data = encoded.split('$', 2)
