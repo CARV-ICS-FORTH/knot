@@ -1,9 +1,0 @@
-secretGenerator:
-- name: genome-secret
-  literals:
-  - django-secret='%ad&%4*!xpf*$wd3^t56+#ode4=@y^ju_t+j9f+20ajsta^gog'
-  - admin-password='admin'
-resources:
-- genome.yaml
-- docker-registry.yaml
-- argo.yaml

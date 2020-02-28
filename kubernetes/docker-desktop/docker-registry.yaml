@@ -9,19 +9,6 @@ spec:
   selector:
     app: docker-registry
 ---
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: docker-registry-pv-claim
-  labels:
-    app: docker-registry
-spec:
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    requests:
-      storage: 10Gi
----
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -50,4 +37,4 @@ spec:
       volumes:
       - name: docker-image-store
         persistentVolumeClaim:
-          claimName: docker-registry-pv-claim
+          claimName: docker-registry-pvc

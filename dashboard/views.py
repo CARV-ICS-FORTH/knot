@@ -42,7 +42,6 @@ def namespace_for_user(user):
 
 def literal_auth_for_user(user):
     return 'auth=%s:$%s\n' % (user.username, user.password)
-    # return 'auth=%s' % b64encode(('%s:$%s\n' % (user.username, user.password)).encode()).decode()
 
 @login_required
 def dashboard(request):

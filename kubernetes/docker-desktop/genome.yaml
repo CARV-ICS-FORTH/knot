@@ -1,30 +1,25 @@
-apiVersion: v1
-kind: Service
+apiVersion: networking.k8s.io/v1beta1
+kind: Ingress
 metadata:
+  annotations:
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
   name: genome
-  labels:
-    app: genome
 spec:
-  type: LoadBalancer
-  ports:
-    - port: 8000
-      targetPort: 8000
-  selector:
-    app: genome
-    tier: frontend
+  rules:
+  - host: localtest.me
+    http:
+      paths:
+      - backend:
+          serviceName: genome
+          servicePort: 8000
 ---
 apiVersion: v1
-kind: PersistentVolumeClaim
+kind: Secret
+data:
+  admin-password: YWRtaW4=
+  django-secret: JWFkJiU0KiF4cGYqJHdkM150NTYrI29kZTQ9QHleanVfdCtqOWYrMjBhanN0YV5nb2c=
 metadata:
-  name: genome-pv-claim
-  labels:
-    app: genome
-spec:
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    requests:
-      storage: 1Gi
+  name: genome-secret
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -60,6 +55,14 @@ spec:
             secretKeyRef:
               name: genome-secret
               key: admin-password
+        - name: GENOME_DASHBOARD_TITLE
+          value: evolve dashboard
+        - name: GENOME_DASHBOARD_THEME
+          value: evolve
+        - name: GENOME_INGRESS_DOMAIN
+          value: localtest.me
+        - name: GENOME_SERVICE_REDIRECT_SSL
+          value: "1"
         - name: GENOME_DOCKER_REGISTRY
           value: http://139.91.92.132:5000
         - name: GENOME_LOCAL_HOST_DIR
@@ -85,7 +88,7 @@ spec:
       volumes:
       - name: genome-persistent-storage
         persistentVolumeClaim:
-          claimName: genome-pv-claim
+          claimName: genome-pvc
       - name: docker-socket
         hostPath:
           path: /var/run/docker.sock
