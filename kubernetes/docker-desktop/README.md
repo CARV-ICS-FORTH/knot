@@ -33,19 +33,23 @@ kubectl apply -f docker-registry.yaml
 
 ## Genome
 
-Create a 1 GB persistent volume claim for Genome: and then create the service:
+Create a 1 GB persistent volume claim for Genome:
 ```
 kubectl apply -f genome-pvc.yaml
 ```
 
-Adjust the storage paths in `genome.yaml` and use your external IP in `GENOME_DOCKER_REGISTRY`. Then:
+Adjust the storage paths in `genome.yaml` and use your external IP in `GENOME_DOCKER_REGISTRY`. You must also add this registry as an insecure Docker registry in the "Daemon" tab of the Docker Desktop application preferences.
+
+Then:
 ```
 kubectl apply -f genome.yaml
 ```
 
+Genome should run in the `default` namespace (or at least a namespace with permissions to create other namespaces and service accounts).
+
 ## Other
 
-You also need to apply some custom resource definitions:
+You also need to apply some custom resource definitions for service templates (Genes) used in Genome:
 ```
 kubectl apply -f argo.yaml
 ```

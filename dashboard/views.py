@@ -201,6 +201,7 @@ def service_create(request, file_name=''):
 
             # Apply.
             try:
+                kubernetes_client.update_secret(namespace_for_user(request.user), 'genome-auth', literal_auth_for_user(request.user))
                 kubernetes_client.create_service(real_name, namespace_for_user(request.user))
             except Exception as e:
                 messages.error(request, 'Can not create service "%s": %s' % (name, str(e)))

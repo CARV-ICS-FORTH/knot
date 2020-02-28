@@ -14,6 +14,17 @@ spec:
           servicePort: 8000
 ---
 apiVersion: v1
+kind: Service
+metadata:
+  name: genome
+spec:
+  type: ClusterIP
+  ports:
+  - port: 8000
+  selector:
+    app: genome
+---
+apiVersion: v1
 kind: Secret
 data:
   admin-password: YWRtaW4=
