@@ -175,14 +175,14 @@ def service_create(request, file_name=''):
             # Inject data folders.
             if gene.mount:
                 volumes = {}
-                for domain, variables in dict(settings.DATA_DOMAINS).items():
+                for domain, variables in settings.DATA_DOMAINS.items():
                     if not variables['dir'] or not variables['host_dir']:
                         continue
                     user_path = os.path.join(variables['host_dir'], request.user.username)
                     if not os.path.exists(user_path):
                         os.makedirs(user_path)
-                    variables['host_dir'] = user_path
-                    volumes[domain] = variables
+                    volumes[domain] = variables.copy()
+                    volumes[domain]['host_dir'] = user_path
                 gene.inject_hostpath_volumes(volumes)
 
             # Add name label.
