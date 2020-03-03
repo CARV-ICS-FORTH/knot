@@ -24,6 +24,17 @@ spec:
   selector:
     app: $NAME
 ---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ${NAME}-conf
+data:
+  evolve.conf: |
+    registry: { url: '${REGISTRY}', user: 'XXX', pass: 'YYY' }
+    paths: { workpath: '/tmp/argo_gen_flow.yaml', workfile: '/tmp/argo_gen_flow.yaml' }
+    host: '127.0.0.1'
+    workflow_engine: 'argoflow'
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -40,7 +51,7 @@ spec:
     spec:
       containers:
       - name: $NAME
-        image: apache/zeppelin:0.8.2
+        image: zeppelin-evolve:0.8.2.1
         ports:
         - containerPort: 8080
         env:
@@ -52,6 +63,16 @@ spec:
           value: ${REMOTE}/.zeppelin/notebook
         - name: ZEPPELIN_LOG_DIR
           value: ${REMOTE}/.zeppelin/logs
+        volumeMounts:
+          - name: ${NAME}-conf-volume
+            mountPath: /usr/local/zeppelin
+      volumes:
+      - name: ${NAME}-conf-volume
+        configMap:
+          name: ${NAME}-conf
+          items:
+          - key: evolve.conf
+            path: evolve.conf
 ---
 kind: Gene
 name: Zeppelin
@@ -61,5 +82,7 @@ variables:
   default: zeppelin
 - name: HOSTNAME
   default: zeppelin.example.com
+- name: REGISTRY
+  default: http://127.0.0.1:5000
 - name: REMOTE
   default: /remote
