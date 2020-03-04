@@ -148,7 +148,7 @@ subjects:
 apiVersion: v1
 data:
   config: |
-    namespace: genome-admin
+    namespace: $NAMESPACE
 kind: ConfigMap
 metadata:
   name: workflow-controller-configmap
@@ -227,6 +227,8 @@ description: Workflow engine
 singleton: yes
 mount: no
 variables:
+- name: NAMESPACE
+  default: default
 - name: NAME
   default: argo
 - name: HOSTNAME

@@ -145,7 +145,7 @@ def service_create(request, file_name=''):
         if form.is_valid():
             for variable in gene.variables:
                 name = variable['name']
-                if name.upper() in ('HOSTNAME', 'REGISTRY', 'LOCAL', 'REMOTE', 'SHARED'): # Set here later on.
+                if name.upper() in ('NAMESPACE', 'HOSTNAME', 'REGISTRY', 'LOCAL', 'REMOTE', 'SHARED'): # Set here later on.
                     continue
                 setattr(gene, name, form.cleaned_data[name])
 
@@ -165,9 +165,10 @@ def service_create(request, file_name=''):
             while name in names:
                 name = form.cleaned_data['NAME'] + '-' + ''.join([random.choice(string.ascii_lowercase) for i in range(4)])
 
+            gene.NAMESPACE = namespace_for_user(request.user)
             gene.NAME = name
             gene.HOSTNAME = '%s-%s.%s' % (name, request.user.username, urlparse(request.build_absolute_uri()).hostname)
-            gene.REGISTRY = '%s/' % settings.DOCKER_REGISTRY.rstrip('/')
+            gene.REGISTRY = DockerClient(settings.DOCKER_REGISTRY).registry_host
             gene.LOCAL = settings.DATA_DOMAINS['local']['dir'].rstrip('/')
             gene.REMOTE = settings.DATA_DOMAINS['remote']['dir'].rstrip('/')
             gene.SHARED = settings.DATA_DOMAINS['shared']['dir'].rstrip('/')
