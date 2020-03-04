@@ -40,32 +40,28 @@ class KubernetesClient(object):
     def list_namespaces(self):
         return self.client.list_namespace().items
 
-    def create_namespace(self, namespace):
-        if os.system('kubectl create namespace %s' % namespace) < 0:
-            raise SystemError('Can not create namespace "%s"' % namespace)
-
-    def destroy_namespace(self, namespace):
-        if os.system('kubectl delete namespace %s' % namespace) < 0:
-            raise SystemError('Can not delete namespace "%s"' % namespace)
-
     def list_services(self, namespace, label_selector):
         return self.client.list_namespaced_service(namespace=namespace, label_selector=label_selector).items
 
-    def create_service(self, yaml_file, namespace):
-        if namespace not in [n.metadata.name for n in self.list_namespaces()]:
-            self.create_namespace(namespace)
-        if os.system('kubectl apply -n %s -f %s' % (namespace, yaml_file)) < 0:
+    def apply_yaml(self, yaml_file, namespace=None):
+        command = 'kubectl apply -f %s' % yaml_file
+        if namespace:
+            command += ' -n %s' % namespace
+        if os.system(command) < 0:
             raise SystemError('Can not apply service file')
 
-    def remove_service(self, yaml_file, namespace):
-        if os.system('kubectl delete -n %s -f %s' % (namespace, yaml_file)) < 0:
+    def delete_yaml(self, yaml_file, namespace=None):
+        command = 'kubectl delete -f %s' % yaml_file
+        if namespace:
+            command += ' -n %s' % namespace
+        if os.system(command) < 0:
             raise SystemError('Can not delete service file')
 
-    def remove_secret(self, namespace, name):
+    def delete_secret(self, namespace, name):
         os.system('kubectl delete -n %s secret %s' % (namespace, name))
 
     def update_secret(self, namespace, name, literal):
-        self.remove_secret(namespace, name)
+        self.delete_secret(namespace, name)
         if os.system('kubectl create -n %s secret generic %s --from-literal=\'%s\'' % (namespace, name, literal)) < 0:
             raise SystemError('Can not create secret')
 

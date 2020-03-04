@@ -37,6 +37,48 @@ from .utils.kubernetes import KubernetesClient
 from .utils.docker import DockerClient
 
 
+NAMESPACE_GENE = '''
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: $NAME
+---
+kind: Role
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: ${NAME}-role
+  namespace: $NAME
+rules:
+- apiGroups: ["", "extensions", "apps"]
+  resources: ["*"]
+  verbs: ["*"]
+- apiGroups: ["batch"]
+  resources:
+  - jobs
+  - cronjobs
+  verbs: ["*"]
+---
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: ${NAME}-binding
+  namespace: $NAME
+subjects:
+- kind: ServiceAccount
+  name: default
+  namespace: $NAME
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: ${NAME}-role
+---
+kind: Gene
+name: Namespace
+variables:
+- name: NAME
+  default: user
+'''
+
 def namespace_for_user(user):
     return 'genome-%s' % user.username
 
@@ -70,17 +112,17 @@ def services(request):
         elif request.POST['action'] == 'Remove':
             name = request.POST.get('service', None)
             if name:
-                real_name = os.path.join(service_database_path, '%s.yaml' % name)
-                if not os.path.exists(real_name):
+                service_yaml = os.path.join(service_database_path, '%s.yaml' % name)
+                if not os.path.exists(service_yaml):
                     messages.error(request, 'Service description for "%s" not found.' % name)
                 else:
                     try:
-                        kubernetes_client.remove_service(real_name, namespace_for_user(request.user))
+                        kubernetes_client.delete_yaml(service_yaml, namespace=namespace_for_user(request.user))
                     except Exception as e:
                         messages.error(request, 'Can not remove service "%s": %s' % (name, str(e)))
                     else:
                         messages.success(request, 'Service "%s" removed.' % name)
-                        os.unlink(real_name)
+                        os.unlink(service_yaml)
         else:
             messages.error(request, 'Invalid action.')
 
@@ -131,9 +173,9 @@ def services(request):
 @login_required
 def service_create(request, file_name=''):
     # Validate given file name.
-    real_name = os.path.join(settings.SERVICE_TEMPLATE_DIR, file_name)
+    service_yaml = os.path.join(settings.SERVICE_TEMPLATE_DIR, file_name)
     try:
-        with open(real_name, 'rb') as f:
+        with open(service_yaml, 'rb') as f:
             gene = Gene(f.read())
     except:
         messages.error(request, 'Invalid service.')
@@ -196,14 +238,23 @@ def service_create(request, file_name=''):
             service_database_path = os.path.join(settings.SERVICE_DATABASE_DIR, request.user.username)
             if not os.path.exists(service_database_path):
                 os.makedirs(service_database_path)
-            real_name = os.path.join(service_database_path, '%s.yaml' % name)
-            with open(real_name, 'wb') as f:
+            service_yaml = os.path.join(service_database_path, '%s.yaml' % name)
+            with open(service_yaml, 'wb') as f:
                 f.write(gene.yaml.encode())
 
             # Apply.
             try:
+                if namespace_for_user(request.user) not in [n.metadata.name for n in kubernetes_client.list_namespaces()]:
+                    gene = Gene(NAMESPACE_GENE)
+                    gene.NAME = namespace_for_user(request.user)
+
+                    namespace_yaml = os.path.join(settings.SERVICE_DATABASE_DIR, '%s.yaml' % request.user.username)
+                    with open(namespace_yaml, 'wb') as f:
+                        f.write(gene.yaml.encode())
+
+                    kubernetes_client.apply_yaml(namespace_yaml)
                 kubernetes_client.update_secret(namespace_for_user(request.user), 'genome-auth', literal_auth_for_user(request.user))
-                kubernetes_client.create_service(real_name, namespace_for_user(request.user))
+                kubernetes_client.apply_yaml(service_yaml, namespace=namespace_for_user(request.user))
             except Exception as e:
                 messages.error(request, 'Can not create service "%s": %s' % (name, str(e)))
             else:
@@ -501,7 +552,7 @@ def users(request):
                         KubernetesClient().update_secret(namespace_for_user(user), 'genome-auth', literal_auth_for_user(user))
                     elif action == 'Deactivate':
                         user.is_active = False
-                        KubernetesClient().remove_secret(namespace_for_user(user), 'genome-auth')
+                        KubernetesClient().delete_secret(namespace_for_user(user), 'genome-auth')
                     elif action in ('Promote', 'Demote'):
                         user.is_staff = True if action == 'Promote' else False
                     user.save()
@@ -514,7 +565,10 @@ def users(request):
                 user = User.objects.get(username=username)
                 if user:
                     try:
-                        KubernetesClient().destroy_namespace(namespace_for_user(user))
+                        namespace_yaml = os.path.join(settings.SERVICE_DATABASE_DIR, '%s.yaml' % user.username)
+                        if os.path.exists(namespace_yaml):
+                            KubernetesClient().delete_yaml(namespace_yaml)
+                            os.unlink(namespace_yaml)
 
                         service_database_path = os.path.join(settings.SERVICE_DATABASE_DIR, user.username)
                         if os.path.exists(service_database_path):
@@ -526,7 +580,7 @@ def users(request):
                             user_path = os.path.join(variables['host_dir'], user.username)
                             if os.path.exists(user_path):
                                 shutil.rmtree(user_path)
-                    except:
+                    except Exception as e:
                         messages.error(request, 'Failed to delete user "%s": %s.' % (username, str(e)))
                     else:
                         user.delete()
