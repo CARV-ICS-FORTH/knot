@@ -1,6 +1,6 @@
 # Local deployment in Docker Desktop
 
-To deploy Genome in Kubernetes, you need a working ingress controller and a working Docker registry. Then you can start the Genome service and reach it at `localtest.me`. Each resource and service is defined in a separate YAML, so you can create and destroy them individually.
+To deploy Genome in Kubernetes as included with Docker Desktop, you need a working ingress controller and a working Docker registry. Then you can start the Genome service and reach it at `localtest.me`. Each resource and service is defined in a separate YAML, so you can create and destroy them individually.
 
 The following have been tested with *Docker Desktop for macOS*.
 
