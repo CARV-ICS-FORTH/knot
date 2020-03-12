@@ -209,7 +209,7 @@ DOCKER_REGISTRY = os.getenv('GENOME_DOCKER_REGISTRY', 'http://127.0.0.1:5000')
 
 SERVICE_TEMPLATE_DIR = os.getenv('GENOME_SERVICE_TEMPLATE_DIR', os.path.join(BASE_DIR, 'services'))
 SERVICE_DATABASE_DIR = os.getenv('GENOME_SERVICE_DATABASE_DIR', os.path.join(BASE_DIR, 'servicedb'))
-SERVICE_REDIRECT_SSL = os.getenv('GENOME_SERVICE_REDIRECT_SSL', '')
+SERVICE_REDIRECT_SSL = True if os.getenv('GENOME_SERVICE_REDIRECT_SSL', '') else False
 
 
 # Theme

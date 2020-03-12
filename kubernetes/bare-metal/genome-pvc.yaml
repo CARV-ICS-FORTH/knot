@@ -5,6 +5,7 @@ metadata:
   labels:
     app: genome
 spec:
+  storageClassName: manual
   accessModes:
     - ReadWriteOnce
   resources:

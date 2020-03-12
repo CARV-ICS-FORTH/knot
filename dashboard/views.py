@@ -232,7 +232,7 @@ def service_create(request, file_name=''):
             gene.inject_service_label()
 
             # Add authentication.
-            gene.inject_ingress_auth('genome-auth', 'Authentication Required - %s' % settings.DASHBOARD_TITLE)
+            gene.inject_ingress_auth('genome-auth', 'Authentication Required - %s' % settings.DASHBOARD_TITLE, redirect_ssl=settings.SERVICE_REDIRECT_SSL)
 
             # Save yaml.
             service_database_path = os.path.join(settings.SERVICE_DATABASE_DIR, request.user.username)

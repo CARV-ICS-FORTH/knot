@@ -46,10 +46,22 @@ docker run -d --rm --name genome \
     genome:latest
 ```
 
-You can also override the `DJANGO_SECRET` with an environment variable.
+The following variables can be set:
+
+| Variable                      | Description                                                                           |
+|-------------------------------|---------------------------------------------------------------------------------------|
+| `DJANGO_SECRET`               | Secret for Django. Use a random string of 50 characters.                              |
+| `DJANGO_DEBUG`                | Set to anything to enable, empty to disable (default is enabled).                     |
+| `GENOME_ADMIN_PASSWORD`       | The default admin password (default is "admin").                                      |
+| `GENOME_DASHBOARD_TITLE`      | The title of the dashboard (default is "Dashboard").                                  |
+| `GENOME_DASHBOARD_THEME`      | The theme of the dashboard. Choose between "evolve" and "CARV" (default is "evolve"). |
+| `GENOME_INGRESS_DOMAIN`       | The domain used by the service (default is "localtest.me").                           |
+| `GENOME_SERVICE_REDIRECT_SSL` | Set to anything to redirect all services to SSL (default is disabled).                |
+| `GENOME_DOCKER_REGISTRY`      | The URL of the Docker registry (default is "http://127.0.0.1").                       |
+| `GENOME_LOCAL_HOST_DIR`       | The host path for the local data domain.                                              |
+| `GENOME_REMOTE_HOST_DIR`      | The host path for the remote data domain.                                             |
+| `GENOME_SHARED_HOST_DIR`      | The host path for the shared data domain.                                             |
 
 ## Run in Kubernetes
 
-Deployment instructions are in the `kubernetes` folder.
-
-Genome should run in the `default` namespace.
+Deployment instructions are in the `kubernetes` folder, both for Docker Desktop and bare metal clusters.
