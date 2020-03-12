@@ -53,3 +53,8 @@ You also need to apply some custom resource definitions for service templates (G
 ```
 kubectl apply -f argo.yaml
 ```
+
+To enforce namespace isolation for service accounts, you may have to delete the `docker-for-desktop-binding` cluste role binding, with (details [here](https://github.com/docker/for-mac/issues/3694)):
+```
+delete clusterrolebinding docker-for-desktop-binding
+```
