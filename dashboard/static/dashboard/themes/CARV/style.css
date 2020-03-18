@@ -7,6 +7,9 @@ body {
 nav {
   background-color: #e9ecef!important;
 }
+nav > div > img {
+  width: 90%;
+}
 table tbody tr td .btn {
   display: none;
 }
