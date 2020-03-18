@@ -38,7 +38,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = os.getenv('DJANGO_SECRET', '%ad&%4*!xpf*$wd3^t56+#ode4=@y^ju_t+j9f+20ajsta^gog')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True if os.getenv('DJANGO_DEBUG', '') else False
+DEBUG = True if os.getenv('DJANGO_DEBUG', '1') else False
 
 INGRESS_DOMAIN = os.getenv('GENOME_INGRESS_DOMAIN', 'localtest.me')
 ALLOWED_HOSTS = [INGRESS_DOMAIN]

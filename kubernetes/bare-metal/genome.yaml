@@ -60,6 +60,8 @@ spec:
             secretKeyRef:
               name: genome-secret
               key: django-secret
+        - name: DJANGO_DEBUG
+          value: ""
         - name: GENOME_ADMIN_PASSWORD
           valueFrom:
             secretKeyRef:
