@@ -333,19 +333,22 @@ def images(request):
     contents = []
     for repository in docker_client.registry().list_repos():
         registry = docker_client.registry(repository)
-        for alias in registry.list_aliases():
-            digest = registry.get_digest(alias)
-            existing_content = next((c for c in contents if c['digest'] == digest), None)
-            if existing_content:
-                existing_content['aliases'].append(alias)
-                continue
-            hashes = registry.get_alias(alias, sizes=True)
-            contents.append({'name': repository,
-                             'tag': str(alias),
-                             'digest': digest,
-                             'aliases': [str(alias)],
-                             'size': sum([h[1] for h in hashes]),
-                             'actions': request.user.is_staff})
+        try:
+            for alias in registry.list_aliases():
+                digest = registry.get_digest(alias)
+                existing_content = next((c for c in contents if c['digest'] == digest), None)
+                if existing_content:
+                    existing_content['aliases'].append(alias)
+                    continue
+                hashes = registry.get_alias(alias, sizes=True)
+                contents.append({'name': repository,
+                                 'tag': str(alias),
+                                 'digest': digest,
+                                 'aliases': [str(alias)],
+                                 'size': sum([h[1] for h in hashes]),
+                                 'actions': request.user.is_staff})
+        except:
+            continue
     for content in contents:
         content['aliases'].sort()
         content['tag'] = content['aliases'][0]
