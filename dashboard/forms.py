@@ -23,7 +23,7 @@ from django.contrib.auth.models import User
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Submit
 
-from .utils.gene import Gene
+from .utils.template import Template
 
 
 validate_docker_name = RegexValidator(r'^[0-9a-z\-\.]*$', 'Only alphanumeric characters, dash, and period are allowed.')
@@ -58,16 +58,16 @@ class SignUpForm(UserCreationForm):
 def service_template_choices():
     choices = []
     for file_name in os.listdir(settings.SERVICE_TEMPLATE_DIR):
-        if not file_name.endswith('.gene.yaml'):
+        if not file_name.endswith('.template.yaml'):
             continue
 
         file_path = os.path.join(settings.SERVICE_TEMPLATE_DIR, file_name)
         try:
             with open(file_path, 'rb') as f:
-                gene = Gene(f.read())
+                template = Template(f.read())
         except:
             continue
-        choices.append((file_name, str(gene)))
+        choices.append((file_name, str(template)))
 
     return choices
 

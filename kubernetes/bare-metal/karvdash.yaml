@@ -1,0 +1,115 @@
+apiVersion: networking.k8s.io/v1beta1
+kind: Ingress
+metadata:
+  annotations:
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+  name: karvdash
+spec:
+  rules:
+  - host: 139.91.92.156.xip.io
+    http:
+      paths:
+      - backend:
+          serviceName: karvdash
+          servicePort: 8000
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: karvdash
+spec:
+  type: ClusterIP
+  ports:
+  - port: 8000
+  selector:
+    app: karvdash
+---
+apiVersion: v1
+kind: Secret
+data:
+  admin-password: YWRtaW4=
+  django-secret: JWFkJiU0KiF4cGYqJHdkM150NTYrI29kZTQ9QHleanVfdCtqOWYrMjBhanN0YV5nb2c=
+metadata:
+  name: karvdash-secret
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: karvdash
+  labels:
+    app: karvdash
+spec:
+  selector:
+    matchLabels:
+      app: karvdash
+      tier: frontend
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: karvdash
+        tier: frontend
+    spec:
+      containers:
+      - image: docker-registry:5000/karvdash:latest
+        name: karvdash
+        env:
+        - name: DJANGO_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: karvdash-secret
+              key: django-secret
+        - name: DJANGO_DEBUG
+          value: ""
+        - name: KARVDASH_ADMIN_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: karvdash-secret
+              key: admin-password
+        - name: KARVDASH_DASHBOARD_TITLE
+          value: CARV Kubernetes
+        - name: KARVDASH_DASHBOARD_THEME
+          value: CARV
+        - name: KARVDASH_INGRESS_DOMAIN
+          value: 139.91.92.156.xip.io
+        - name: KARVDASH_SERVICE_REDIRECT_SSL
+          value: "1"
+        - name: KARVDASH_DOCKER_REGISTRY
+          value: https://docker-registry:5000
+        - name: KARVDASH_LOCAL_HOST_DIR
+          value: /mnt/nfs/local
+        - name: KARVDASH_REMOTE_HOST_DIR
+          value: /mnt/nfs/remote
+        - name: KARVDASH_SHARED_HOST_DIR
+          value: /mnt/nfs/shared
+        ports:
+        - containerPort: 8000
+          name: karvdash
+        volumeMounts:
+        - name: karvdash-persistent-storage
+          mountPath: /db
+        - name: docker-socket
+          mountPath: /var/run/docker.sock
+        - name: local-volume
+          mountPath: /local
+        - name: remote-volume
+          mountPath: /remote
+        - name: shared-volume
+          mountPath: /shared
+      volumes:
+      - name: karvdash-persistent-storage
+        persistentVolumeClaim:
+          claimName: karvdash-pvc
+      - name: docker-socket
+        hostPath:
+          path: /var/run/docker.sock
+      - name: local-volume
+        hostPath:
+          path: /mnt/nfs/local
+      - name: remote-volume
+        hostPath:
+          path: /mnt/nfs/remote
+      - name: shared-volume
+        hostPath:
+          path: /mnt/nfs/shared

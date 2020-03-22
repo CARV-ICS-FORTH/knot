@@ -1,8 +1,8 @@
 # Local deployment in Docker Desktop
 
-To deploy Genome in Kubernetes as included with Docker Desktop, you need a working ingress controller and a working Docker registry. Then you can start the Genome service and reach it at `localtest.me`. Each resource and service is defined in a separate YAML, so you can create and destroy them individually.
+To deploy Karvdash in Kubernetes as included with Docker Desktop, you need a working ingress controller and a working Docker registry. Then you can start the Karvdash service and reach it at `localtest.me`. Each resource and service is defined in a separate YAML, so you can create and destroy them individually.
 
-Genome should run in the `default` namespace.
+Karvdash should run in the `default` namespace.
 
 The following have been tested with *Docker Desktop for macOS*.
 
@@ -33,25 +33,25 @@ kubectl apply -f docker-registry-pvc.yaml
 kubectl apply -f docker-registry.yaml
 ```
 
-## Genome
+## Karvdash
 
-Create a 1 GB persistent volume claim for Genome:
+Create a 1 GB persistent volume claim for Karvdash:
 ```
-kubectl apply -f genome-pvc.yaml
+kubectl apply -f karvdash-pvc.yaml
 ```
 
-Adjust the storage paths in `genome.yaml` and use your external IP in `GENOME_DOCKER_REGISTRY`. You must also add this registry as an insecure Docker registry in the "Daemon" tab of the Docker Desktop application preferences.
+Adjust the storage paths in `karvdash.yaml` and use your external IP in `KARVDASH_DOCKER_REGISTRY`. You must also add this registry as an insecure Docker registry in the "Daemon" tab of the Docker Desktop application preferences.
 
 Then:
 ```
-kubectl apply -f genome.yaml
+kubectl apply -f karvdash.yaml
 ```
 
-Genome should run in the `default` namespace (or at least a namespace with permissions to create other namespaces and service accounts).
+Karvdash should run in the `default` namespace (or at least a namespace with permissions to create other namespaces and service accounts).
 
 ## Other
 
-You also need to apply some custom resource definitions for service templates (Genes) used in Genome:
+You also need to apply some custom resource definitions for service templates used in Karvdash:
 ```
 kubectl apply -f argo.yaml
 ```
