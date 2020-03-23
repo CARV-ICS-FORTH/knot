@@ -12,12 +12,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from django.urls import path
+from django.urls import path, include
 from django.conf import settings
 from django.contrib.auth import views as auth_views
+from tastypie.api import Api
 
 from . import views
+from .api import ServiceResource
 
+
+v1_api = Api(api_name='v1')
+v1_api.register(ServiceResource())
 
 urlpatterns = [
     path('', views.dashboard, name='dashboard'),
@@ -34,4 +39,5 @@ urlpatterns = [
     path('login', auth_views.LoginView.as_view(template_name='dashboard/login.html'), name='login'),
     path('change_password', views.change_password, name='change_password'),
     path('logout', views.logout, {'next': settings.LOGOUT_REDIRECT_URL}, name='logout'),
+    path('api/', include(v1_api.urls)),
 ]
