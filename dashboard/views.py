@@ -32,6 +32,7 @@ from datetime import datetime
 from base64 import b64encode
 
 from .forms import SignUpForm, EditUserForm, AddServiceForm, CreateServiceForm, AddImageForm, AddFolderForm, AddFilesForm, AddImageFromFileForm
+from .api import ServiceResource
 from .utils.template import Template
 from .utils.kubernetes import KubernetesClient
 from .utils.docker import DockerClient
@@ -131,21 +132,25 @@ def services(request):
     # There is no hierarchy here.
     trail = [{'name': '<i class="fa fa-university" aria-hidden="true"></i> %s' % kubernetes_client.host}]
 
-    # Get service names from our database.
-    service_database = []
-    for file_name in os.listdir(service_database_path):
-        if file_name.endswith('.yaml'):
-            service_database.append(file_name[:-5])
+    service_resource = ServiceResource()
+    service_resource.request = request
+    contents = service_resource.list()
 
-    # Fill in the contents.
-    contents = []
-    for service in kubernetes_client.list_services(namespace=namespace_for_user(request.user), label_selector=''):
-        name = service.metadata.name
-        # ports = [str(p.port) for p in service.spec.ports if p.protocol == 'TCP']
-        contents.append({'name': name,
-                         'url': 'http://%s-%s.%s' % (name, request.user.username, urlparse(request.build_absolute_uri()).hostname),
-                         'created': service.metadata.creation_timestamp,
-                         'actions': True if name in service_database else False})
+    # # Get service names from our database.
+    # service_database = []
+    # for file_name in os.listdir(service_database_path):
+    #     if file_name.endswith('.yaml'):
+    #         service_database.append(file_name[:-5])
+
+    # # Fill in the contents.
+    # contents = []
+    # for service in kubernetes_client.list_services(namespace=namespace_for_user(request.user), label_selector=''):
+    #     name = service.metadata.name
+    #     # ports = [str(p.port) for p in service.spec.ports if p.protocol == 'TCP']
+    #     contents.append({'name': name,
+    #                      'url': 'http://%s-%s.%s' % (name, request.user.username, settings.INGRESS_DOMAIN),
+    #                      'created': service.metadata.creation_timestamp,
+    #                      'actions': True if name in service_database else False})
 
     # Sort them up.
     sort_by = request.GET.get('sort_by')
@@ -209,7 +214,7 @@ def service_create(request, file_name=''):
 
             template.NAMESPACE = namespace_for_user(request.user)
             template.NAME = name
-            template.HOSTNAME = '%s-%s.%s' % (name, request.user.username, urlparse(request.build_absolute_uri()).hostname)
+            template.HOSTNAME = '%s-%s.%s' % (name, request.user.username, settings.INGRESS_DOMAIN)
             template.REGISTRY = DockerClient(settings.DOCKER_REGISTRY).registry_host
             template.LOCAL = settings.DATA_DOMAINS['local']['dir'].rstrip('/')
             template.REMOTE = settings.DATA_DOMAINS['remote']['dir'].rstrip('/')

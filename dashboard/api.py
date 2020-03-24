@@ -12,56 +12,45 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from tastypie.resources import Resource
-from tastypie import fields
+import os
+
+from django.conf import settings
+from restless.dj import DjangoResource
+
+from .utils.kubernetes import KubernetesClient
 
 
-class dict2obj(object):
-    """
-    Convert dictionary to object
-    @source http://stackoverflow.com/a/1305561/383912
-    """
-    def __init__(self, d):
-        self.__dict__['d'] = d
+def namespace_for_user(user):
+    return 'karvdash-%s' % user.username
 
-    def __getattr__(self, key):
-        value = self.__dict__['d'][key]
-        if type(value) == type({}):
-            return dict2obj(value)
+class ServiceResource(DjangoResource):
+    http_methods = {'list': {'GET': 'list'},
+                    'detail': {'DELETE': 'delete'}}
 
-        return value
+    def list(self):
+        kubernetes_client = KubernetesClient()
 
-class ServiceResource(Resource):
-    title = fields.CharField(attribute='title')
-    content = fields.CharField(attribute='content')
-    author = fields.CharField(attribute='author_name')
+        service_database_path = os.path.join(settings.SERVICE_DATABASE_DIR, self.request.user.username)
+        if not os.path.exists(service_database_path):
+            os.makedirs(service_database_path)
 
-    class Meta:
-        resource_name = 'blogs'
+        # Get service names from our database.
+        service_database = []
+        for file_name in os.listdir(service_database_path):
+            if file_name.endswith('.yaml'):
+                service_database.append(file_name[:-5])
 
-    def obj_get_list(self, request=None, **kwargs):
-        print('***', request)
-        print('***', kwargs)
-        posts = []
-        #your actual logic to retrieve contents from external source.
+        # Fill in the contents.
+        contents = []
+        for service in kubernetes_client.list_services(namespace=namespace_for_user(self.request.user), label_selector=''):
+            name = service.metadata.name
+            # ports = [str(p.port) for p in service.spec.ports if p.protocol == 'TCP']
+            contents.append({'name': name,
+                             'url': 'http://%s-%s.%s' % (name, self.request.user.username, settings.INGRESS_DOMAIN),
+                             'created': service.metadata.creation_timestamp,
+                             'actions': True if name in service_database else False})
 
-        #example
-        posts.append(dict2obj(
-            {
-                'pk': 1,
-                'title': 'Test Blog Title 1',
-                'content': 'Blog Content',
-                'author_name': 'User 1'
-            }
-        ))
-        posts.append(dict2obj(
-            {
-                'pk': 2,
-                'title': 'Test Blog Title 2',
-                'content': 'Blog Content 2',
-                'author_name': 'User 2'
-            }
-        ))
+        return contents
 
-        return posts
-
+    def delete(self, pk):
+        print('*** Deleting %s' % pk)
