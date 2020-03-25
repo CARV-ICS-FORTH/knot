@@ -153,6 +153,7 @@ STATIC_URL = '/static/'
 
 # Authentication
 
+AUTHENTICATION_BACKENDS = ['dashboard.auth_backends.ProxiedModelBackend']
 LOGIN_URL = '/login'
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'

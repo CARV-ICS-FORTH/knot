@@ -23,9 +23,6 @@ from .utils.kubernetes import KubernetesClient
 from .utils.template import Template
 
 
-def namespace_for_user(user):
-    return 'karvdash-%s' % user.username
-
 class ServiceResource(DjangoResource):
     http_methods = {'list': {'GET': 'list'},
                     'detail': {'DELETE': 'delete'}}
@@ -68,7 +65,7 @@ class ServiceResource(DjangoResource):
                 service_database.append(file_name[:-5])
 
         contents = []
-        for service in kubernetes_client.list_services(namespace=namespace_for_user(self.request.user), label_selector=''):
+        for service in kubernetes_client.list_services(namespace=self.request.user.namespace, label_selector=''):
             name = service.metadata.name
             # ports = [str(p.port) for p in service.spec.ports if p.protocol == 'TCP']
             contents.append({'name': name,
@@ -91,7 +88,7 @@ class ServiceResource(DjangoResource):
             raise NotFound()
         else:
             try:
-                kubernetes_client.delete_yaml(service_yaml, namespace=namespace_for_user(self.request.user))
+                kubernetes_client.delete_yaml(service_yaml, namespace=self.request.user.namespace)
             except Exception as e:
                 raise
             else:

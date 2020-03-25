@@ -24,7 +24,6 @@ from django.http import FileResponse
 from django.conf import settings
 from django.contrib.auth import logout as auth_logout, update_session_auth_hash
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.models import User
 from django.contrib.auth.forms import SetPasswordForm, PasswordChangeForm
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib import messages
@@ -32,6 +31,7 @@ from urllib.parse import urlparse
 from datetime import datetime
 from base64 import b64encode
 
+from .models import User
 from .forms import SignUpForm, EditUserForm, AddServiceForm, CreateServiceForm, AddImageForm, AddFolderForm, AddFilesForm, AddImageFromFileForm
 from .api import ServiceResource
 from .utils.template import Template

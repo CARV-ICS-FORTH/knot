@@ -15,10 +15,18 @@
 import random
 
 from django.db import models
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User as AuthUser
 from django.contrib.auth.signals import user_logged_in
 from django.dispatch import receiver
 
+
+class User(AuthUser):
+    class Meta:
+        proxy = True
+
+    @property
+    def namespace(self):
+        return 'karvdash-%s' % self.username
 
 def generate_token():
     return ''.join(random.choice('0123456789abcdef') for n in range(40))
