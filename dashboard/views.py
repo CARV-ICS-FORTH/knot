@@ -17,6 +17,7 @@ import random
 import string
 import yaml
 import shutil
+import restless
 
 from django.shortcuts import render, redirect, reverse
 from django.http import FileResponse
@@ -95,10 +96,6 @@ def dashboard(request):
 def services(request):
     kubernetes_client = KubernetesClient()
 
-    service_database_path = os.path.join(settings.SERVICE_DATABASE_DIR, request.user.username)
-    if not os.path.exists(service_database_path):
-        os.makedirs(service_database_path)
-
     # Handle changes.
     if request.method == 'POST':
         if 'action' not in request.POST:
@@ -113,17 +110,16 @@ def services(request):
         elif request.POST['action'] == 'Remove':
             name = request.POST.get('service', None)
             if name:
-                service_yaml = os.path.join(service_database_path, '%s.yaml' % name)
-                if not os.path.exists(service_yaml):
+                try:
+                    service_resource = ServiceResource()
+                    service_resource.request = request
+                    service_resource.delete(name)
+                except restless.exceptions.NotFound:
                     messages.error(request, 'Service description for "%s" not found.' % name)
+                except Exception as e:
+                    messages.error(request, 'Can not remove service "%s": %s' % (name, str(e)))
                 else:
-                    try:
-                        kubernetes_client.delete_yaml(service_yaml, namespace=namespace_for_user(request.user))
-                    except Exception as e:
-                        messages.error(request, 'Can not remove service "%s": %s' % (name, str(e)))
-                    else:
-                        messages.success(request, 'Service "%s" removed.' % name)
-                        os.unlink(service_yaml)
+                    messages.success(request, 'Service "%s" removed.' % name)
         else:
             messages.error(request, 'Invalid action.')
 
@@ -132,25 +128,10 @@ def services(request):
     # There is no hierarchy here.
     trail = [{'name': '<i class="fa fa-university" aria-hidden="true"></i> %s' % kubernetes_client.host}]
 
+    # Fill in the contents.
     service_resource = ServiceResource()
     service_resource.request = request
     contents = service_resource.list()
-
-    # # Get service names from our database.
-    # service_database = []
-    # for file_name in os.listdir(service_database_path):
-    #     if file_name.endswith('.yaml'):
-    #         service_database.append(file_name[:-5])
-
-    # # Fill in the contents.
-    # contents = []
-    # for service in kubernetes_client.list_services(namespace=namespace_for_user(request.user), label_selector=''):
-    #     name = service.metadata.name
-    #     # ports = [str(p.port) for p in service.spec.ports if p.protocol == 'TCP']
-    #     contents.append({'name': name,
-    #                      'url': 'http://%s-%s.%s' % (name, request.user.username, settings.INGRESS_DOMAIN),
-    #                      'created': service.metadata.creation_timestamp,
-    #                      'actions': True if name in service_database else False})
 
     # Sort them up.
     sort_by = request.GET.get('sort_by')

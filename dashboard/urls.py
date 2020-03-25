@@ -17,7 +17,7 @@ from django.conf import settings
 from django.contrib.auth import views as auth_views
 
 from . import views
-from .api import ServiceResource
+from .api import ServiceResource, TemplateResource
 
 
 urlpatterns = [
@@ -37,4 +37,5 @@ urlpatterns = [
     path('logout', views.logout, {'next': settings.LOGOUT_REDIRECT_URL}, name='logout'),
 
     path('api/services/', include(ServiceResource.urls())),
+    path('api/templates/', include(TemplateResource.urls())),
 ]
