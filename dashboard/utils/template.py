@@ -40,7 +40,7 @@ class Template(object):
             raise ValueError('Can not find variables in template file')
 
         for variable in self._variables:
-            if not 'name' in variable or not 'default' in variable:
+            if 'name' not in variable or 'default' not in variable:
                 raise ValueError('Missing necessary variable attributes in template file')
             self._values[variable['name']] = variable['default']
 
@@ -62,7 +62,7 @@ class Template(object):
     def inject_hostpath_volumes(self, volumes):
         def add_volumes_to_spec(spec):
             # Add volumes.
-            if not 'volumes' in spec:
+            if 'volumes' not in spec:
                 spec['volumes'] = []
             for name, variables in volumes.items():
                 if not variables['dir'] or not variables['host_dir']:
@@ -90,25 +90,25 @@ class Template(object):
                     continue
             except:
                 continue
-            if not spec or not 'containers' in spec:
+            if not spec or 'containers' not in spec:
                 continue
             add_volumes_to_spec(spec)
 
     def inject_service_label(self):
         for part in self._template:
             if part.get('kind') == 'Service':
-                if not 'metadata' in part:
+                if 'metadata' not in part:
                     part['metadata'] = {}
-                if not 'labels' in part['metadata']:
+                if 'labels' not in part['metadata']:
                     part['metadata']['labels'] = {}
                 part['metadata']['labels']['karvdash-template'] = self.label
 
     def inject_ingress_auth(self, secret, realm, redirect_ssl=False):
         for part in self._template:
             if part.get('kind') == 'Ingress':
-                if not 'metadata' in part:
+                if 'metadata' not in part:
                     part['metadata'] = {}
-                if not 'annotations' in part['metadata']:
+                if 'annotations' not in part['metadata']:
                     part['metadata']['annotations'] = {}
                 part['metadata']['annotations']['nginx.ingress.kubernetes.io/auth-type'] = 'basic'
                 part['metadata']['annotations']['nginx.ingress.kubernetes.io/auth-secret'] = secret

@@ -18,7 +18,7 @@ import string
 
 from django.conf import settings
 from restless.dj import DjangoResource
-from restless.exceptions import Unauthorized, NotFound, BadRequest, Conflict
+from restless.exceptions import NotFound, BadRequest, Conflict
 
 from .models import APIToken
 from .forms import CreateServiceForm
@@ -69,11 +69,7 @@ variables:
   default: user
 '''
 
-class ServiceResource(DjangoResource):
-    http_methods = {'list': {'GET': 'list',
-                             'POST': 'create'},
-                    'detail': {'DELETE': 'delete'}}
-
+class APIResource(DjangoResource):
     def is_authenticated(self):
         if self.request.user and self.request.user.is_authenticated:
             return True
@@ -98,10 +94,12 @@ class ServiceResource(DjangoResource):
         self.request.user = api_token.user
         return True
 
-    def list(self):
-        if not self.is_authenticated():
-            raise Unauthorized()
+class ServiceResource(APIResource):
+    http_methods = {'list': {'GET': 'list',
+                             'POST': 'create'},
+                    'detail': {'DELETE': 'delete'}}
 
+    def list(self):
         kubernetes_client = KubernetesClient()
 
         service_database_path = os.path.join(settings.SERVICE_DATABASE_DIR, self.request.user.username)
@@ -125,7 +123,6 @@ class ServiceResource(DjangoResource):
         return contents
 
     def create(self):
-        print('***', self.data)
         file_name = self.data.pop('filename')
         if not file_name:
             raise BadRequest()
@@ -138,8 +135,7 @@ class ServiceResource(DjangoResource):
 
         form = CreateServiceForm(self.data, variables=template.variables)
         if not form.is_valid():
-            print('***', form.errors)
-            raise BadRequest('asdf')
+            raise BadRequest()
 
         for variable in template.variables:
             name = variable['name']
@@ -234,7 +230,7 @@ class ServiceResource(DjangoResource):
             else:
                 os.unlink(service_yaml)
 
-class TemplateResource(DjangoResource):
+class TemplateResource(APIResource):
     http_methods = {'list': {'GET': 'list'}}
 
     def list(self):

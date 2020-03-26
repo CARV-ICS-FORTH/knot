@@ -14,6 +14,7 @@
 
 from django.contrib.auth.hashers import BasePasswordHasher, mask_hash
 from django.utils.crypto import get_random_string, constant_time_compare
+from django.utils.translation import gettext_noop as _
 from passlib.hash import apr_md5_crypt
 
 
@@ -22,7 +23,7 @@ class APR1PasswordHasher(BasePasswordHasher):
     Password hashing using the Apache-defined APR1 hashing format
     '''
 
-    algorithm = "apr1"
+    algorithm = 'apr1'
 
     def salt(self):
         return get_random_string(8)
@@ -40,11 +41,11 @@ class APR1PasswordHasher(BasePasswordHasher):
     def safe_summary(self, encoded):
         algorithm, salt, data = encoded.split('$', 2)
         assert algorithm == self.algorithm
-        return OrderedDict([
-            (_('algorithm'), algorithm),
-            (_('salt'), salt),
-            (_('hash'), mask_hash(data, show=3)),
-        ])
+        return {
+            _('algorithm'): algorithm,
+            _('salt'): salt,
+            _('hash'): mask_hash(data, show=3),
+        }
 
     def harden_runtime(self, password, encoded):
         pass

@@ -13,9 +13,6 @@
 # limitations under the License.
 
 import os
-import random
-import string
-import yaml
 import shutil
 import restless
 
@@ -27,9 +24,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import SetPasswordForm, PasswordChangeForm
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib import messages
-from urllib.parse import urlparse
 from datetime import datetime
-from base64 import b64encode
 
 from .models import User
 from .forms import SignUpForm, EditUserForm, AddServiceForm, CreateServiceForm, AddImageForm, AddFolderForm, AddFilesForm, AddImageFromFileForm
@@ -193,9 +188,9 @@ def images(request):
             else:
                 try:
                     command = '/bin/registry garbage-collect --delete-untagged=true /etc/docker/registry/config.yml'.split(' ')
-                    result = KubernetesClient().run_command_in_pod(namespace='default',
-                                                                   label_selector='app=docker-registry',
-                                                                   command=command)
+                    KubernetesClient().run_command_in_pod(namespace='default',
+                                                          label_selector='app=docker-registry',
+                                                          command=command)
                 except Exception as e:
                     messages.error(request, 'Failed to garbage collect: %s.' % str(e))
                 else:
