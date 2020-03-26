@@ -13,18 +13,65 @@
 # limitations under the License.
 
 import os
+import random
+import string
 
 from django.conf import settings
 from restless.dj import DjangoResource
-from restless.exceptions import Unauthorized, NotFound
+from restless.exceptions import Unauthorized, NotFound, BadRequest, Conflict
 
 from .models import APIToken
-from .utils.kubernetes import KubernetesClient
+from .forms import CreateServiceForm
 from .utils.template import Template
+from .utils.kubernetes import KubernetesClient
+from .utils.docker import DockerClient
 
+
+NAMESPACE_TEMPLATE = '''
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: $NAME
+---
+kind: Role
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: ${NAME}-role
+  namespace: $NAME
+rules:
+- apiGroups: ["", "extensions", "apps"]
+  resources: ["*"]
+  verbs: ["*"]
+- apiGroups: ["batch"]
+  resources:
+  - jobs
+  - cronjobs
+  verbs: ["*"]
+---
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: ${NAME}-binding
+  namespace: $NAME
+subjects:
+- kind: ServiceAccount
+  name: default
+  namespace: $NAME
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: ${NAME}-role
+---
+kind: Template
+name: Namespace
+variables:
+- name: NAME
+  default: user
+'''
 
 class ServiceResource(DjangoResource):
-    http_methods = {'list': {'GET': 'list'},
+    http_methods = {'list': {'GET': 'list',
+                             'POST': 'create'},
                     'detail': {'DELETE': 'delete'}}
 
     def is_authenticated(self):
@@ -46,6 +93,8 @@ class ServiceResource(DjangoResource):
         except APIToken.DoesNotExist:
             return False
 
+        if not api_token.user.is_active:
+            return False
         self.request.user = api_token.user
         return True
 
@@ -75,6 +124,97 @@ class ServiceResource(DjangoResource):
 
         return contents
 
+    def create(self):
+        print('***', self.data)
+        file_name = self.data.pop('filename')
+        if not file_name:
+            raise BadRequest()
+        service_yaml = os.path.join(settings.SERVICE_TEMPLATE_DIR, file_name)
+        try:
+            with open(service_yaml, 'rb') as f:
+                template = Template(f.read())
+        except:
+            raise NotFound()
+
+        form = CreateServiceForm(self.data, variables=template.variables)
+        if not form.is_valid():
+            print('***', form.errors)
+            raise BadRequest('asdf')
+
+        for variable in template.variables:
+            name = variable['name']
+            if name.upper() in ('NAMESPACE', 'HOSTNAME', 'REGISTRY', 'LOCAL', 'REMOTE', 'SHARED'): # Set here later on.
+                continue
+            setattr(template, name, form.cleaned_data[name])
+
+        kubernetes_client = KubernetesClient()
+        if template.singleton and len(kubernetes_client.list_services(namespace=self.request.user.namespace,
+                                                                      label_selector='karvdash-template=%s' % template.label)):
+            raise Conflict()
+
+        # Resolve naming conflicts.
+        name = template.NAME
+        names = [service.metadata.name for service in kubernetes_client.list_services(namespace=self.request.user.namespace, label_selector='')]
+        while name in names:
+            name = form.cleaned_data['NAME'] + '-' + ''.join([random.choice(string.ascii_lowercase) for i in range(4)])
+
+        # Set name, hostname, registry, and storage paths.
+        template.NAMESPACE = self.request.user.namespace
+        template.NAME = name
+        template.HOSTNAME = '%s-%s.%s' % (name, self.request.user.username, settings.INGRESS_DOMAIN)
+        template.REGISTRY = DockerClient(settings.DOCKER_REGISTRY).registry_host
+        template.LOCAL = settings.DATA_DOMAINS['local']['dir'].rstrip('/')
+        template.REMOTE = settings.DATA_DOMAINS['remote']['dir'].rstrip('/')
+        template.SHARED = settings.DATA_DOMAINS['shared']['dir'].rstrip('/')
+
+        # Inject data folders.
+        if template.mount:
+            volumes = {}
+            for domain, variables in settings.DATA_DOMAINS.items():
+                if not variables['dir'] or not variables['host_dir']:
+                    continue
+                user_path = os.path.join(variables['host_dir'], self.request.user.username)
+                if not os.path.exists(user_path):
+                    os.makedirs(user_path)
+                volumes[domain] = variables.copy()
+                volumes[domain]['host_dir'] = user_path
+            template.inject_hostpath_volumes(volumes)
+
+        # Add name label.
+        template.inject_service_label()
+
+        # Add authentication.
+        template.inject_ingress_auth('karvdash-auth', 'Authentication Required - %s' % settings.DASHBOARD_TITLE, redirect_ssl=settings.SERVICE_REDIRECT_SSL)
+
+        # Save yaml.
+        service_database_path = os.path.join(settings.SERVICE_DATABASE_DIR, self.request.user.username)
+        if not os.path.exists(service_database_path):
+            os.makedirs(service_database_path)
+        service_yaml = os.path.join(service_database_path, '%s.yaml' % name)
+        with open(service_yaml, 'wb') as f:
+            f.write(template.yaml.encode())
+
+        # Apply.
+        try:
+            if self.request.user.namespace not in [n.metadata.name for n in kubernetes_client.list_namespaces()]:
+                template = Template(NAMESPACE_TEMPLATE)
+                template.NAME = self.request.user.namespace
+
+                namespace_yaml = os.path.join(settings.SERVICE_DATABASE_DIR, '%s.yaml' % self.request.user.username)
+                with open(namespace_yaml, 'wb') as f:
+                    f.write(template.yaml.encode())
+
+                kubernetes_client.apply_yaml(namespace_yaml)
+            self.request.user.update_kubernetes_secret(kubernetes_client=kubernetes_client)
+            kubernetes_client.apply_yaml(service_yaml, namespace=self.request.user.namespace)
+        except:
+            raise
+
+        return {'name': name,
+                'url': 'http://%s-%s.%s' % (name, self.request.user.username, settings.INGRESS_DOMAIN),
+                # 'created': creation_timestamp,
+                'actions': True}
+
     def delete(self, pk):
         name = pk
         kubernetes_client = KubernetesClient()
@@ -89,7 +229,7 @@ class ServiceResource(DjangoResource):
         else:
             try:
                 kubernetes_client.delete_yaml(service_yaml, namespace=self.request.user.namespace)
-            except Exception as e:
+            except:
                 raise
             else:
                 os.unlink(service_yaml)

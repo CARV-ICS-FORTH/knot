@@ -28,6 +28,24 @@ class User(AuthUser):
     def namespace(self):
         return 'karvdash-%s' % self.username
 
+    @property
+    def literal_auth(self):
+        return 'auth=%s:$%s\n' % (self.username, self.password)
+
+    def update_kubernetes_secret(self, kubernetes_client=None):
+        from .utils.kubernetes import KubernetesClient
+
+        if not kubernetes_client:
+            kubernetes_client = KubernetesClient()
+        kubernetes_client.update_secret(self.namespace, 'karvdash-auth', self.literal_auth)
+
+    def delete_kubernetes_secret(self, kubernetes_client=None):
+        from .utils.kubernetes import KubernetesClient
+
+        if not kubernetes_client:
+            kubernetes_client = KubernetesClient()
+        kubernetes_client.delete_secret(self.namespace, 'karvdash-auth')
+
 def generate_token():
     return ''.join(random.choice('0123456789abcdef') for n in range(40))
 

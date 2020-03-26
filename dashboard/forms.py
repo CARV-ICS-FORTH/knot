@@ -23,7 +23,6 @@ from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Submit
 
 from .models import User
-from .api import TemplateResource
 
 
 validate_docker_name = RegexValidator(r'^[0-9a-z\-\.]*$', 'Only alphanumeric characters, dash, and period are allowed.')
@@ -56,6 +55,8 @@ class SignUpForm(UserCreationForm):
         return email
 
 def service_template_choices():
+    from .api import TemplateResource
+
     template_resource = TemplateResource()
     return [(t['filename'], '%s: %s' % (t['name'], t['description'])) for t in template_resource.list()]
 
