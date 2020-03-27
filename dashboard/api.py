@@ -169,7 +169,10 @@ class ServiceResource(APIResource):
             for domain, variables in settings.DATA_DOMAINS.items():
                 if not variables['dir'] or not variables['host_dir']:
                     continue
-                user_path = os.path.join(variables['host_dir'], self.request.user.username)
+                if variables.get('mode') == 'shared':
+                    user_path = variables['host_dir']
+                else:
+                    user_path = os.path.join(variables['host_dir'], self.request.user.username)
                 if not os.path.exists(user_path):
                     os.makedirs(user_path)
                 volumes[domain] = variables.copy()
