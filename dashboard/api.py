@@ -22,7 +22,7 @@ from restless.exceptions import NotFound, BadRequest, Conflict
 
 from .models import APIToken
 from .forms import CreateServiceForm
-from .utils.template import Template
+from .utils.template import Template, FileTemplate
 from .utils.kubernetes import KubernetesClient
 from .utils.docker import DockerClient
 
@@ -123,13 +123,8 @@ class ServiceResource(APIResource):
         return contents
 
     def create(self):
-        file_name = self.data.pop('filename')
-        if not file_name:
-            raise BadRequest()
-        service_yaml = os.path.join(settings.SERVICE_TEMPLATE_DIR, file_name)
         try:
-            with open(service_yaml, 'rb') as f:
-                template = Template(f.read())
+            template = FileTemplate(self.data.pop('filename'))
         except:
             raise NotFound()
 
@@ -145,7 +140,7 @@ class ServiceResource(APIResource):
 
         kubernetes_client = KubernetesClient()
         if template.singleton and len(kubernetes_client.list_services(namespace=self.request.user.namespace,
-                                                                      label_selector='karvdash-template=%s' % file_name)):
+                                                                      label_selector='karvdash-template=%s' % template.filename)):
             raise Conflict()
 
         # Resolve naming conflicts.
@@ -180,7 +175,7 @@ class ServiceResource(APIResource):
             template.inject_hostpath_volumes(volumes)
 
         # Add name label.
-        template.inject_service_label(template=file_name)
+        template.inject_service_label()
 
         # Add authentication.
         template.inject_ingress_auth('karvdash-auth', 'Authentication Required - %s' % settings.DASHBOARD_TITLE, redirect_ssl=settings.SERVICE_REDIRECT_SSL)
@@ -196,12 +191,12 @@ class ServiceResource(APIResource):
         # Apply.
         try:
             if self.request.user.namespace not in [n.metadata.name for n in kubernetes_client.list_namespaces()]:
-                template = Template(NAMESPACE_TEMPLATE)
-                template.NAME = self.request.user.namespace
+                namespace_template = Template(NAMESPACE_TEMPLATE)
+                namespace_template.NAME = self.request.user.namespace
 
                 namespace_yaml = os.path.join(settings.SERVICE_DATABASE_DIR, '%s.yaml' % self.request.user.username)
                 with open(namespace_yaml, 'wb') as f:
-                    f.write(template.yaml.encode())
+                    f.write(namespace_template.yaml.encode())
 
                 kubernetes_client.apply_yaml(namespace_yaml)
             self.request.user.update_kubernetes_secret(kubernetes_client=kubernetes_client)
@@ -242,17 +237,11 @@ class TemplateResource(APIResource):
             if not file_name.endswith('.template.yaml'):
                 continue
 
-            file_path = os.path.join(settings.SERVICE_TEMPLATE_DIR, file_name)
             try:
-                with open(file_path, 'rb') as f:
-                    template = Template(f.read())
+                template = FileTemplate(file_name)
             except:
+                raise
                 continue
-            contents.append({'name': template.name,
-                             'description': template.description,
-                             'singleton': template.singleton,
-                             'mount': template.mount,
-                             'variables': template.variables,
-                             'filename': file_name})
+            contents.append(template.format())
 
         return contents

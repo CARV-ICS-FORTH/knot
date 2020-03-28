@@ -29,7 +29,7 @@ from datetime import datetime
 from .models import User
 from .forms import SignUpForm, EditUserForm, AddServiceForm, CreateServiceForm, AddImageForm, AddFolderForm, AddFilesForm, AddImageFromFileForm
 from .api import ServiceResource
-from .utils.template import Template
+from .utils.template import FileTemplate
 from .utils.kubernetes import KubernetesClient
 from .utils.docker import DockerClient
 
@@ -105,10 +105,8 @@ def services(request):
 @login_required
 def service_create(request, file_name=''):
     # Validate given file name.
-    service_yaml = os.path.join(settings.SERVICE_TEMPLATE_DIR, file_name)
     try:
-        with open(service_yaml, 'rb') as f:
-            template = Template(f.read())
+        template = FileTemplate(file_name)
     except:
         messages.error(request, 'Invalid service.')
         return redirect('services')

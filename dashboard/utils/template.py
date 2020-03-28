@@ -12,15 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import yaml
+import os
 import string
+import yaml
 import json
+
+from django.conf import settings
 
 
 class Template(object):
     def __init__(self, data):
-        self._parts = yaml.safe_load_all(data)
-        self._template = []
         self._name = ''
         self._description = ''
         self._singleton = False
@@ -28,7 +29,8 @@ class Template(object):
         self._variables = None
         self._values = {}
 
-        for part in self._parts:
+        self._template = []
+        for part in yaml.safe_load_all(data):
             if part['kind'] == 'Template' and 'name' in part and 'variables' in part:
                 self._name = part['name']
                 self._description = part.get('description', '')
@@ -106,7 +108,7 @@ class Template(object):
                     part['metadata']['labels']['karvdash-template'] = template
                 if 'annotations' not in part['metadata']:
                     part['metadata']['annotations'] = {}
-                part['metadata']['annotations']['karvdash-values'] = json.dumps(self.values)
+                part['metadata']['annotations']['karvdash-values'] = json.dumps(self._values)
 
     def inject_ingress_auth(self, secret, realm, redirect_ssl=False):
         for part in self._template:
@@ -150,13 +152,38 @@ class Template(object):
         return string.Template(yaml.safe_dump_all(self._template)).safe_substitute(self._values)
 
     def format(self):
-        return {'name': template.name,
-                'description': template.description,
-                'singleton': template.singleton,
-                'mount': template.mount,
-                'variables': template.variables}
+        return {'name': self._name,
+                'description': self._description,
+                'singleton': self._singleton,
+                'mount': self._mount,
+                'variables': self._variables}
 
     def __str__(self):
         if self._description:
             return '%s: %s' % (self._name, self._description)
         return self._name
+
+class FileTemplate(Template):
+    def __init__(self, filename):
+        self._filename = filename
+
+        service_yaml = os.path.join(settings.SERVICE_TEMPLATE_DIR, filename)
+        try:
+            with open(os.path.join(settings.SERVICE_TEMPLATE_DIR, filename), 'rb') as f:
+                data = f.read()
+        except:
+            raise ValueError('Can not read template "%s"' % filename)
+
+        super().__init__(data)
+
+    @property
+    def filename(self):
+        return self._filename
+
+    def inject_service_label(self):
+        super().inject_service_label(self._filename)
+
+    def format(self):
+        result = super().format()
+        result.update({'filename': self._filename})
+        return result
