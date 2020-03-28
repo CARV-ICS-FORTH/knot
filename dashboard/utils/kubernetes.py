@@ -65,7 +65,7 @@ class KubernetesClient(object):
         if os.system('kubectl create -n %s secret generic %s --from-literal=\'%s\'' % (namespace, name, literal)) < 0:
             raise SystemError('Can not create secret')
 
-    def run_command_in_pod(self, namespace, label_selector, command):
+    def exec_command_in_pod(self, namespace, label_selector, command):
         result = []
         for pod in self.client.list_namespaced_pod(namespace=namespace, label_selector=label_selector).items:
             result.append(kubernetes.stream.stream(self.client.connect_get_namespaced_pod_exec,

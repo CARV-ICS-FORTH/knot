@@ -27,6 +27,10 @@ def cmd_create_service(api, args):
     variables = dict(map(lambda s: s.split('='), args.variables))
     pprint(api.create_service(args.filename, variables))
 
+def cmd_exec_service(api, args):
+    response = api.exec_service(args.name, args.command)
+    print('\n'.join(response['result']))
+
 def cmd_delete_service(api, args):
     api.delete_service(args.name)
 
@@ -50,6 +54,11 @@ def main(cmd=None):
     create_service.add_argument('filename', help='Template filename')
     create_service.add_argument('variables', nargs='+', help='Template variables as key=value pairs (provide at least a "name")')
     create_service.set_defaults(func=cmd_create_service)
+
+    exec_service = subprasers.add_parser('exec_service', help='Execute a command at a running service')
+    exec_service.add_argument('name', help='Service name')
+    exec_service.add_argument('command', help='Command')
+    exec_service.set_defaults(func=cmd_exec_service)
 
     delete_service = subprasers.add_parser('delete_service', help='Delete a running service')
     delete_service.add_argument('name', help='Service name')

@@ -120,7 +120,8 @@ class APIResource(DjangoResource):
 class ServiceResource(APIResource):
     http_methods = {'list': {'GET': 'list',
                              'POST': 'create'},
-                    'detail': {'DELETE': 'delete'}}
+                    'detail': {'POST': 'execute',
+                               'DELETE': 'delete'}}
 
     def list(self):
         kubernetes_client = KubernetesClient()
@@ -235,6 +236,17 @@ class ServiceResource(APIResource):
                 # 'created': creation_timestamp,
                 'actions': True,
                 'template': service_template}
+
+    def execute(self, pk):
+        name = pk
+
+        if 'command' not in self.data:
+            raise BadRequest()
+
+        result = KubernetesClient().exec_command_in_pod(namespace=self.request.user.namespace,
+                                                        label_selector='app=%s' % name,
+                                                        command=self.data['command'])
+        return {'result': result}
 
     def delete(self, pk):
         name = pk

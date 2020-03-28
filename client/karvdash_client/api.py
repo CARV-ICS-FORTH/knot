@@ -61,6 +61,11 @@ class API:
         r = requests.post(self.base_url + '/services/', json=data, headers=self._headers)
         return r.json()
 
+    def exec_service(self, name, command):
+        data = {'command': command}
+        r = requests.post(self.base_url + '/services/%s/' % name, json=data, headers=self._headers)
+        return r.json()
+
     def delete_service(self, name):
         r = requests.delete(self.base_url + '/services/%s/' % name, headers=self._headers)
         return r.status_code == requests.codes.no_content

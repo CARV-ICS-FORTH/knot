@@ -186,9 +186,9 @@ def images(request):
             else:
                 try:
                     command = '/bin/registry garbage-collect --delete-untagged=true /etc/docker/registry/config.yml'.split(' ')
-                    KubernetesClient().run_command_in_pod(namespace='default',
-                                                          label_selector='app=docker-registry',
-                                                          command=command)
+                    KubernetesClient().exec_command_in_pod(namespace='default',
+                                                           label_selector='app=docker-registry',
+                                                           command=command)
                 except Exception as e:
                     messages.error(request, 'Failed to garbage collect: %s.' % str(e))
                 else:
