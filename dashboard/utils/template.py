@@ -14,6 +14,7 @@
 
 import yaml
 import string
+import json
 
 
 class Template(object):
@@ -94,14 +95,18 @@ class Template(object):
                 continue
             add_volumes_to_spec(spec)
 
-    def inject_service_label(self):
+    def inject_service_label(self, template=None):
         for part in self._template:
             if part.get('kind') == 'Service':
                 if 'metadata' not in part:
                     part['metadata'] = {}
-                if 'labels' not in part['metadata']:
-                    part['metadata']['labels'] = {}
-                part['metadata']['labels']['karvdash-template'] = self.label
+                if template:
+                    if 'labels' not in part['metadata']:
+                        part['metadata']['labels'] = {}
+                    part['metadata']['labels']['karvdash-template'] = template
+                if 'annotations' not in part['metadata']:
+                    part['metadata']['annotations'] = {}
+                part['metadata']['annotations']['karvdash-values'] = json.dumps(self.values)
 
     def inject_ingress_auth(self, secret, realm, redirect_ssl=False):
         for part in self._template:
@@ -141,12 +146,15 @@ class Template(object):
         return self._values
 
     @property
-    def label(self):
-        return self._name.replace(' ', '_')
-
-    @property
     def yaml(self):
         return string.Template(yaml.safe_dump_all(self._template)).safe_substitute(self._values)
+
+    def format(self):
+        return {'name': template.name,
+                'description': template.description,
+                'singleton': template.singleton,
+                'mount': template.mount,
+                'variables': template.variables}
 
     def __str__(self):
         if self._description:

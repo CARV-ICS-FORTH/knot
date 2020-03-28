@@ -145,7 +145,7 @@ class ServiceResource(APIResource):
 
         kubernetes_client = KubernetesClient()
         if template.singleton and len(kubernetes_client.list_services(namespace=self.request.user.namespace,
-                                                                      label_selector='karvdash-template=%s' % template.label)):
+                                                                      label_selector='karvdash-template=%s' % file_name)):
             raise Conflict()
 
         # Resolve naming conflicts.
@@ -180,7 +180,7 @@ class ServiceResource(APIResource):
             template.inject_hostpath_volumes(volumes)
 
         # Add name label.
-        template.inject_service_label()
+        template.inject_service_label(template=file_name)
 
         # Add authentication.
         template.inject_ingress_auth('karvdash-auth', 'Authentication Required - %s' % settings.DASHBOARD_TITLE, redirect_ssl=settings.SERVICE_REDIRECT_SSL)

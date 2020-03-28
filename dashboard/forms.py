@@ -68,7 +68,7 @@ class CreateServiceForm(forms.Form):
             name = variable['name']
             if name.upper() in ('NAMESPACE', 'HOSTNAME', 'REGISTRY', 'LOCAL', 'REMOTE', 'SHARED'):
                 continue
-            kwargs = {'validators': [validate_kubernetes_label]} if name == 'NAME' else {}
+            kwargs = {'validators': [validate_kubernetes_label]} if name == 'NAME' else {'required': False}
             self.fields[name] = forms.CharField(label=name.capitalize(),
                                                 initial=variable['default'],
                                                 help_text=variable.get('help'),
