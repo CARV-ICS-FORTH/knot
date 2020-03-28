@@ -63,12 +63,13 @@ class AddServiceForm(forms.Form):
 class CreateServiceForm(forms.Form):
     def __init__(self, *args, **kwargs):
         variables = kwargs.pop('variables')
+        all_required = kwargs.pop('all_required', False)
         super().__init__(*args, **kwargs)
         for variable in variables:
             name = variable['name']
             if name.upper() in ('NAMESPACE', 'HOSTNAME', 'REGISTRY', 'LOCAL', 'REMOTE', 'SHARED'):
                 continue
-            kwargs = {'validators': [validate_kubernetes_label]} if name == 'NAME' else {'required': False}
+            kwargs = {'validators': [validate_kubernetes_label]} if name == 'NAME' else {'required': all_required}
             self.fields[name] = forms.CharField(label=name.capitalize(),
                                                 initial=variable['default'],
                                                 help_text=variable.get('help'),

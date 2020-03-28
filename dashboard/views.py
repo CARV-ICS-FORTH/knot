@@ -113,7 +113,7 @@ def service_create(request, file_name=''):
 
     # Handle changes.
     if request.method == 'POST':
-        form = CreateServiceForm(request.POST, variables=template.variables)
+        form = CreateServiceForm(request.POST, variables=template.variables, all_required=True)
         if form.is_valid():
             data = request.POST.dict()
             data['filename'] = file_name

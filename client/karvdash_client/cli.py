@@ -44,7 +44,7 @@ def main(cmd=None):
 
     create_service = subprasers.add_parser('create_service', help='Create a service from a template')
     create_service.add_argument('filename', help='Template filename')
-    create_service.add_argument('variables', nargs='+', help='Template variables as key=value pairs')
+    create_service.add_argument('variables', nargs='+', help='Template variables as key=value pairs (provide at least a "name")')
     create_service.set_defaults(func=cmd_create_service)
 
     delete_service = subprasers.add_parser('delete_service', help='Delete a running service')

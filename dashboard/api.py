@@ -15,6 +15,7 @@
 import os
 import random
 import string
+import json
 
 from django.conf import settings
 from restless.dj import DjangoResource
@@ -115,10 +116,22 @@ class ServiceResource(APIResource):
         for service in kubernetes_client.list_services(namespace=self.request.user.namespace, label_selector=''):
             name = service.metadata.name
             # ports = [str(p.port) for p in service.spec.ports if p.protocol == 'TCP']
+            try:
+                filename = service.metadata.labels['karvdash-template']
+                service_template = FileTemplate(filename).format()
+            except:
+                service_template = None
+            if service_template:
+                try:
+                    values = service.metadata.annotations['karvdash-values']
+                    service_template['values'] = json.loads(values)
+                except:
+                    pass
             contents.append({'name': name,
                              'url': 'http://%s-%s.%s' % (name, self.request.user.username, settings.INGRESS_DOMAIN),
                              'created': service.metadata.creation_timestamp,
-                             'actions': True if name in service_database else False})
+                             'actions': True if name in service_database else False,
+                             'template': service_template})
 
         return contents
 
@@ -136,7 +149,8 @@ class ServiceResource(APIResource):
             name = variable['name']
             if name.upper() in ('NAMESPACE', 'HOSTNAME', 'REGISTRY', 'LOCAL', 'REMOTE', 'SHARED'): # Set here later on.
                 continue
-            setattr(template, name, form.cleaned_data[name])
+            if name in self.data:
+                setattr(template, name, form.cleaned_data[name])
 
         kubernetes_client = KubernetesClient()
         if template.singleton and len(kubernetes_client.list_services(namespace=self.request.user.namespace,
@@ -204,10 +218,13 @@ class ServiceResource(APIResource):
         except:
             raise
 
+        service_template = template.format()
+        service_template['values'] = template.values
         return {'name': name,
                 'url': 'http://%s-%s.%s' % (name, self.request.user.username, settings.INGRESS_DOMAIN),
                 # 'created': creation_timestamp,
-                'actions': True}
+                'actions': True,
+                'template': service_template}
 
     def delete(self, pk):
         name = pk
