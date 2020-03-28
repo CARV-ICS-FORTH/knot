@@ -16,9 +16,14 @@ import os
 import random
 import string
 import json
+import yaml
 
 from django.conf import settings
+from django.conf.urls import url
+from django.views.decorators.csrf import csrf_exempt
 from restless.dj import DjangoResource
+from restless.resources import skip_prepare
+from restless.serializers import Serializer
 from restless.exceptions import NotFound, BadRequest, Conflict
 
 from .models import APIToken
@@ -26,6 +31,7 @@ from .forms import CreateServiceForm
 from .utils.template import Template, FileTemplate
 from .utils.kubernetes import KubernetesClient
 from .utils.docker import DockerClient
+from .utils.inject import inject_hostpath_volumes
 
 
 NAMESPACE_TEMPLATE = '''
@@ -94,6 +100,22 @@ class APIResource(DjangoResource):
             return False
         self.request.user = api_token.user
         return True
+
+    @property
+    def _hostpath_volumes(self):
+        volumes = {}
+        for domain, variables in settings.DATA_DOMAINS.items():
+            if not variables['dir'] or not variables['host_dir']:
+                continue
+            if variables.get('mode') == 'shared':
+                user_path = variables['host_dir']
+            else:
+                user_path = os.path.join(variables['host_dir'], self.request.user.username)
+            if not os.path.exists(user_path):
+                os.makedirs(user_path)
+            volumes[domain] = variables.copy()
+            volumes[domain]['host_dir'] = user_path
+        return volumes
 
 class ServiceResource(APIResource):
     http_methods = {'list': {'GET': 'list',
@@ -174,19 +196,7 @@ class ServiceResource(APIResource):
 
         # Inject data folders.
         if template.mount:
-            volumes = {}
-            for domain, variables in settings.DATA_DOMAINS.items():
-                if not variables['dir'] or not variables['host_dir']:
-                    continue
-                if variables.get('mode') == 'shared':
-                    user_path = variables['host_dir']
-                else:
-                    user_path = os.path.join(variables['host_dir'], self.request.user.username)
-                if not os.path.exists(user_path):
-                    os.makedirs(user_path)
-                volumes[domain] = variables.copy()
-                volumes[domain]['host_dir'] = user_path
-            template.inject_hostpath_volumes(volumes)
+            template.inject_hostpath_volumes(self._hostpath_volumes)
 
         # Add name label.
         template.inject_service_label()
@@ -262,3 +272,31 @@ class TemplateResource(APIResource):
             contents.append(template.format())
 
         return contents
+
+class YAMLSerializer(Serializer):
+    def deserialize(self, body):
+        return yaml.safe_load_all(body)
+
+    def serialize(self, data):
+        return yaml.dump_all(data)
+
+class UtilsResource(APIResource):
+    http_methods = {'inject': {'POST': 'inject'}}
+    serializer = YAMLSerializer()
+
+    @skip_prepare
+    def inject(self):
+        template = [part for part in self.data]
+        inject_hostpath_volumes(template, self._hostpath_volumes)
+        return template
+
+    @classmethod
+    def as_view(self, *args, **kwargs):
+        return csrf_exempt(super().as_view(*args, **kwargs))
+
+    @classmethod
+    def urls(cls, name_prefix=None):
+        urlpatterns = super().urls(name_prefix=name_prefix)
+        return [
+            url(r'^inject/$', cls.as_view('inject'), name=cls.build_url_name('inject', name_prefix)),
+        ] + urlpatterns

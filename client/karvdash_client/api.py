@@ -29,7 +29,7 @@ class API:
         except KeyError:
             config_path = os.path.join(os.getcwd(), 'config.ini')
             if not os.access(config_path, os.F_OK):
-                config_path = os.path.join(os.environ['HOME'], '.karvdash','config.ini')
+                config_path = os.path.join(os.environ['HOME'], '.karvdash', 'config.ini')
 
             return config_path
 
@@ -68,3 +68,7 @@ class API:
     def list_templates(self):
         r = requests.get(self.base_url + '/templates/', headers=self._headers)
         return r.json()
+
+    def inject(self, data):
+        r = requests.post(self.base_url + '/utils/inject/', data=data, headers=self._headers)
+        return r.text

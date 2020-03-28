@@ -15,9 +15,10 @@
 import os
 import string
 import yaml
-import json
 
 from django.conf import settings
+
+from .inject import inject_hostpath_volumes, inject_service_label, inject_ingress_auth
 
 
 class Template(object):
@@ -63,65 +64,13 @@ class Template(object):
         super().__setattr__(name, value)
 
     def inject_hostpath_volumes(self, volumes):
-        def add_volumes_to_spec(spec):
-            # Add volumes.
-            if 'volumes' not in spec:
-                spec['volumes'] = []
-            for name, variables in volumes.items():
-                if not variables['dir'] or not variables['host_dir']:
-                    continue
-                volume_name = 'karvdash-volume-%s' % name
-                spec['volumes'].append({'name': volume_name, 'hostPath': {'path': variables['host_dir']}})
-
-            # Mount volumes in containers.
-            for container in spec['containers']:
-                if 'volumeMounts' not in container:
-                    container['volumeMounts'] = []
-                for name, variables in volumes.items():
-                    if not variables['dir'] or not variables['host_dir']:
-                        continue
-                    volume_name = 'karvdash-volume-%s' % name
-                    container['volumeMounts'].append({'name': volume_name, 'mountPath': variables['dir']})
-
-        for part in self._template:
-            try:
-                if part['kind'] == 'Deployment':
-                    spec = part['spec']['template']['spec']
-                elif part['kind'] == 'Pod':
-                    spec = part['spec']
-                else:
-                    continue
-            except:
-                continue
-            if not spec or 'containers' not in spec:
-                continue
-            add_volumes_to_spec(spec)
+        inject_hostpath_volumes(self._template, volumes)
 
     def inject_service_label(self, template=None):
-        for part in self._template:
-            if part.get('kind') == 'Service':
-                if 'metadata' not in part:
-                    part['metadata'] = {}
-                if template:
-                    if 'labels' not in part['metadata']:
-                        part['metadata']['labels'] = {}
-                    part['metadata']['labels']['karvdash-template'] = template
-                if 'annotations' not in part['metadata']:
-                    part['metadata']['annotations'] = {}
-                part['metadata']['annotations']['karvdash-values'] = json.dumps(self._values)
+        inject_service_label(self._template, template=template, values=self._values)
 
     def inject_ingress_auth(self, secret, realm, redirect_ssl=False):
-        for part in self._template:
-            if part.get('kind') == 'Ingress':
-                if 'metadata' not in part:
-                    part['metadata'] = {}
-                if 'annotations' not in part['metadata']:
-                    part['metadata']['annotations'] = {}
-                part['metadata']['annotations']['nginx.ingress.kubernetes.io/auth-type'] = 'basic'
-                part['metadata']['annotations']['nginx.ingress.kubernetes.io/auth-secret'] = secret
-                part['metadata']['annotations']['nginx.ingress.kubernetes.io/auth-realm'] = realm
-                if redirect_ssl:
-                    part['metadata']['annotations']['nginx.ingress.kubernetes.io/force-ssl-redirect'] = '"true"'
+        inject_ingress_auth(self._template, secret, realm, redirect_ssl=redirect_ssl)
 
     @property
     def name(self):
@@ -167,7 +116,6 @@ class FileTemplate(Template):
     def __init__(self, filename):
         self._filename = filename
 
-        service_yaml = os.path.join(settings.SERVICE_TEMPLATE_DIR, filename)
         try:
             with open(os.path.join(settings.SERVICE_TEMPLATE_DIR, filename), 'rb') as f:
                 data = f.read()
@@ -181,7 +129,7 @@ class FileTemplate(Template):
         return self._filename
 
     def inject_service_label(self):
-        super().inject_service_label(self._filename)
+        super().inject_service_label(template=self._filename)
 
     def format(self):
         result = super().format()
