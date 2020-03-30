@@ -424,10 +424,10 @@ def users(request):
                 if user:
                     if action == 'Activate':
                         user.is_active = True
-                        user.update_kubernetes_secret()
+                        user.update_kubernetes_credentials()
                     elif action == 'Deactivate':
                         user.is_active = False
-                        user.delete_kubernetes_secret()
+                        user.delete_kubernetes_credentials()
                     elif action in ('Promote', 'Demote'):
                         user.is_staff = True if action == 'Promote' else False
                     user.save()
@@ -440,7 +440,12 @@ def users(request):
                 user = User.objects.get(username=username)
                 if user:
                     try:
-                        namespace_yaml = os.path.join(settings.SERVICE_DATABASE_DIR, '%s.yaml' % user.username)
+                        api_yaml = os.path.join(settings.SERVICE_DATABASE_DIR, '%s-api.yaml' % user.username)
+                        if os.path.exists(api_yaml):
+                            KubernetesClient().delete_yaml(api_yaml)
+                            os.unlink(api_yaml)
+
+                        namespace_yaml = os.path.join(settings.SERVICE_DATABASE_DIR, '%s-namespace.yaml' % user.username)
                         if os.path.exists(namespace_yaml):
                             KubernetesClient().delete_yaml(namespace_yaml)
                             os.unlink(namespace_yaml)
@@ -541,7 +546,7 @@ def user_change_password(request, username):
         form = SetPasswordForm(user, request.POST)
         if form.is_valid():
             form.save()
-            user.update_kubernetes_secret()
+            user.update_kubernetes_credentials()
             messages.success(request, 'Password changed for user "%s".' % username)
             return redirect('users')
     else:
@@ -577,7 +582,7 @@ def change_password(request):
         if form.is_valid():
             user = form.save()
             update_session_auth_hash(request, user)
-            user.update_kubernetes_secret()
+            user.update_kubernetes_credentials()
             messages.success(request, 'Password successfully changed.')
             return redirect(next)
     else:

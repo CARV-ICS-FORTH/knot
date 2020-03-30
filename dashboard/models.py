@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import os
 import random
 
 from django.db import models
@@ -32,14 +33,23 @@ class User(AuthUser):
     def literal_auth(self):
         return 'auth=%s:$%s\n' % (self.username, self.password)
 
-    def update_kubernetes_secret(self, kubernetes_client=None):
+    @property
+    def api_token(self):
+        try:
+            api_token = APIToken.objects.get(user=self)
+        except APIToken.DoesNotExist:
+            api_token = APIToken(user=self)
+            api_token.save()
+        return api_token
+
+    def update_kubernetes_credentials(self, kubernetes_client=None):
         from .utils.kubernetes import KubernetesClient
 
         if not kubernetes_client:
             kubernetes_client = KubernetesClient()
         kubernetes_client.update_secret(self.namespace, 'karvdash-auth', self.literal_auth)
 
-    def delete_kubernetes_secret(self, kubernetes_client=None):
+    def delete_kubernetes_credentials(self, kubernetes_client=None):
         from .utils.kubernetes import KubernetesClient
 
         if not kubernetes_client:
@@ -55,8 +65,4 @@ class APIToken(models.Model):
 
 @receiver(user_logged_in)
 def create_api_token(sender, user, request, **kwargs):
-    try:
-        api_token = APIToken.objects.get(user=user)
-    except APIToken.DoesNotExist:
-        api_token = APIToken(user=user)
-        api_token.save()
+    _ = user.api_token # Get or create

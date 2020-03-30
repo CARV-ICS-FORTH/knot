@@ -76,6 +76,28 @@ variables:
   default: user
 '''
 
+TOKEN_CONFIGMAP_TEMPLATE = '''
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ${NAME}
+data:
+  settings.ini: |
+    [Karvdash]
+    base_url = $BASE_URL
+    token = $TOKEN
+---
+kind: Template
+name: TokenConfigMapTemplate
+variables:
+- name: NAME
+  default: user
+- name: BASE_URL
+  default: http://127.0.0.1:8000
+- name: TOKEN
+  default: ""
+'''
+
 class APIResource(DjangoResource):
     def is_authenticated(self):
         if self.request.user and self.request.user.is_authenticated:
@@ -219,12 +241,24 @@ class ServiceResource(APIResource):
                 namespace_template = Template(NAMESPACE_TEMPLATE)
                 namespace_template.NAME = self.request.user.namespace
 
-                namespace_yaml = os.path.join(settings.SERVICE_DATABASE_DIR, '%s.yaml' % self.request.user.username)
+                namespace_yaml = os.path.join(settings.SERVICE_DATABASE_DIR, '%s-namespace.yaml' % self.request.user.username)
                 with open(namespace_yaml, 'wb') as f:
                     f.write(namespace_template.yaml.encode())
 
                 kubernetes_client.apply_yaml(namespace_yaml)
-            self.request.user.update_kubernetes_secret(kubernetes_client=kubernetes_client)
+
+                if os.getenv('KARVDASH_HOST') and os.getenv('KARVDASH_PORT'):
+                    api_template = Template(TOKEN_CONFIGMAP_TEMPLATE)
+                    api_template.NAME = self.request.user.namespace + '-api'
+                    api_template.BASE_URL = 'http://%s:%s' % (os.getenv('KARVDASH_HOST'), os.getenv('KARVDASH_PORT'))
+                    api_template.TOKEN = self.request.user.api_token.token # Get or create
+
+                    api_yaml = os.path.join(settings.SERVICE_DATABASE_DIR, '%s-api.yaml' % self.request.user.username)
+                    with open(api_yaml, 'wb') as f:
+                        f.write(api_template.yaml.encode())
+
+                    kubernetes_client.apply_yaml(api_yaml, namespace=self.request.user.namespace)
+            self.request.user.update_kubernetes_credentials(kubernetes_client=kubernetes_client)
             kubernetes_client.apply_yaml(service_yaml, namespace=self.request.user.namespace)
         except:
             raise
