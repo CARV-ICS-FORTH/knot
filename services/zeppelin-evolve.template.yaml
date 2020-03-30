@@ -54,7 +54,7 @@ spec:
     spec:
       containers:
       - name: $NAME
-        image: ${REGISTRY}/zeppelin-evolve:0.8.2.1
+        image: ${REGISTRY}/zeppelin-evolve:0.8.2.2
         ports:
         - containerPort: 8080
         env:

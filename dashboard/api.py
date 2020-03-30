@@ -17,6 +17,7 @@ import random
 import string
 import json
 import yaml
+import socket
 
 from django.conf import settings
 from django.conf.urls import url
@@ -82,7 +83,7 @@ kind: ConfigMap
 metadata:
   name: ${NAME}
 data:
-  settings.ini: |
+  config.ini: |
     [Karvdash]
     base_url = $BASE_URL
     token = $TOKEN
@@ -219,10 +220,10 @@ class ServiceResource(APIResource):
 
         # Inject data folders.
         if template.mount:
-            template.inject_hostpath_volumes(self._hostpath_volumes)
+            template.inject_hostpath_volumes(self._hostpath_volumes, add_api_settings=True)
 
-        # Add name label.
-        template.inject_service_label()
+        # Add template label and values.
+        template.inject_service_details()
 
         # Add authentication.
         template.inject_ingress_auth('karvdash-auth', 'Authentication Required - %s' % settings.DASHBOARD_TITLE, redirect_ssl=settings.SERVICE_REDIRECT_SSL)
@@ -247,17 +248,22 @@ class ServiceResource(APIResource):
 
                 kubernetes_client.apply_yaml(namespace_yaml)
 
-                if os.getenv('KARVDASH_HOST') and os.getenv('KARVDASH_PORT'):
-                    api_template = Template(TOKEN_CONFIGMAP_TEMPLATE)
-                    api_template.NAME = self.request.user.namespace + '-api'
-                    api_template.BASE_URL = 'http://%s:%s' % (os.getenv('KARVDASH_HOST'), os.getenv('KARVDASH_PORT'))
-                    api_template.TOKEN = self.request.user.api_token.token # Get or create
+            service_host = os.getenv('KARVDASH_HOST')
+            service_port = os.getenv('KARVDASH_PORT')
+            if not service_host or not service_port:
+                service_host = socket.gethostbyname(socket.gethostname())
+                service_port = self.request.META['SERVER_PORT']
+            api_template = Template(TOKEN_CONFIGMAP_TEMPLATE)
+            api_template.NAME = 'karvdash-api'
+            api_template.BASE_URL = 'http://%s:%s/api' % (service_host, service_port)
+            api_template.TOKEN = self.request.user.api_token.token # Get or create
 
-                    api_yaml = os.path.join(settings.SERVICE_DATABASE_DIR, '%s-api.yaml' % self.request.user.username)
-                    with open(api_yaml, 'wb') as f:
-                        f.write(api_template.yaml.encode())
+            api_yaml = os.path.join(settings.SERVICE_DATABASE_DIR, '%s-api.yaml' % self.request.user.username)
+            with open(api_yaml, 'wb') as f:
+                f.write(api_template.yaml.encode())
 
-                    kubernetes_client.apply_yaml(api_yaml, namespace=self.request.user.namespace)
+            kubernetes_client.apply_yaml(api_yaml, namespace=self.request.user.namespace)
+
             self.request.user.update_kubernetes_credentials(kubernetes_client=kubernetes_client)
             kubernetes_client.apply_yaml(service_yaml, namespace=self.request.user.namespace)
         except:

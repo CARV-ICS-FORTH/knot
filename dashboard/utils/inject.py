@@ -15,7 +15,7 @@
 import json
 
 
-def inject_hostpath_volumes(yaml_data, volumes):
+def inject_hostpath_volumes(yaml_data, volumes, add_api_settings=False):
     def add_volumes_to_spec(spec):
         # Add volumes.
         if 'volumes' not in spec:
@@ -24,7 +24,13 @@ def inject_hostpath_volumes(yaml_data, volumes):
             if not variables['dir'] or not variables['host_dir']:
                 continue
             volume_name = 'karvdash-volume-%s' % name
-            spec['volumes'].append({'name': volume_name, 'hostPath': {'path': variables['host_dir']}})
+            spec['volumes'].append({'name': volume_name,
+                                    'hostPath': {'path': variables['host_dir']}})
+        if add_api_settings:
+            spec['volumes'].append({'name': 'karvdash-api-volume',
+                                    'configMap': {'name': 'karvdash-api',
+                                                  'items': [{'key': 'config.ini',
+                                                             'path': 'config.ini'}]}})
 
         # Mount volumes in containers.
         for container in spec['containers']:
@@ -34,7 +40,11 @@ def inject_hostpath_volumes(yaml_data, volumes):
                 if not variables['dir'] or not variables['host_dir']:
                     continue
                 volume_name = 'karvdash-volume-%s' % name
-                container['volumeMounts'].append({'name': volume_name, 'mountPath': variables['dir']})
+                container['volumeMounts'].append({'name': volume_name,
+                                                  'mountPath': variables['dir']})
+            if add_api_settings:
+                container['volumeMounts'].append({'name': 'karvdash-api-volume',
+                                                  'mountPath': '/var/lib/karvdash'})
 
     for part in yaml_data:
         try:
@@ -50,7 +60,7 @@ def inject_hostpath_volumes(yaml_data, volumes):
             continue
         add_volumes_to_spec(spec)
 
-def inject_service_label(yaml_data, template=None, values=None):
+def inject_service_details(yaml_data, template=None, values=None):
     for part in yaml_data:
         if part.get('kind') == 'Service':
             if 'metadata' not in part:

@@ -15,7 +15,10 @@
 import os
 import requests
 
-from configparser import ConfigParser
+try:
+    from configparser import ConfigParser
+except ImportError:
+    from ConfigParser import SafeConfigParser as ConfigParser
 
 
 class API:
@@ -27,24 +30,21 @@ class API:
         try:
             return os.environ['KARVDASH_CONFIG']
         except KeyError:
-            config_path = os.path.join(os.getcwd(), 'config.ini')
-            if not os.access(config_path, os.F_OK):
-                config_path = os.path.join(os.environ['HOME'], '.karvdash', 'config.ini')
+            pass
 
-            return config_path
+        config_paths = [os.path.join(os.environ['HOME'], '.karvdash', 'config.ini'),
+                        '/var/lib/karvdash/config.ini']
+        for config_path in config_paths:
+            if os.access(config_path, os.F_OK):
+                return config_path
+
+        return config_paths[0]
 
     def _get_configuration(self, config_path):
         config = ConfigParser()
         config.read(config_path)
-        if 'Karvdash' not in config:
-            raise ValueError('Missing "Karvdash" section in API client configuration file')
-        karvdash_config = config['Karvdash']
-        if 'base_url' not in karvdash_config:
-            raise ValueError('Missing "base_url" value in Karvdash API client configuration file')
-        base_url = config['Karvdash']['base_url'].rstrip('/')
-        if 'token' not in karvdash_config:
-            raise ValueError('Missing "token" value in Karvdash API client configuration file')
-        token = config['Karvdash']['token'].strip()
+        base_url = config.get('Karvdash', 'base_url').rstrip('/')
+        token = config.get('Karvdash', 'token').strip()
         return base_url, token
 
     @property

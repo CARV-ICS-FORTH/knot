@@ -44,7 +44,7 @@ def cmd_inject(api, args):
 def main(cmd=None):
     parser = argparse.ArgumentParser(description='Karvdash API client command line tool')
     # parser.add_argument('-d', '--debug', action='store_true', help='Print debug info')
-    parser.add_argument('--config', help=f'Karvdash API client configuration file')
+    parser.add_argument('--config', help='Karvdash API client configuration file')
     subprasers = parser.add_subparsers(dest='command', title='API command')
 
     list_services = subprasers.add_parser('list_services', help='List running services')
