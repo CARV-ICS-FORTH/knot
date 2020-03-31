@@ -64,4 +64,4 @@ class APIToken(models.Model):
 
 @receiver(user_logged_in)
 def create_api_token(sender, user, request, **kwargs):
-    _ = user.api_token # Get or create
+    _ = User.objects.get(pk=user.pk).api_token # Get or create
