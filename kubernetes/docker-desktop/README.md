@@ -33,6 +33,8 @@ kubectl apply -f docker-registry-pvc.yaml
 kubectl apply -f docker-registry.yaml
 ```
 
+Optionally, apply `docker-registry-htpasswd.yaml` instead of `docker-registry.yaml` to use credentials (username: `admin`, password: `admin`).
+
 ## Karvdash
 
 Create a 1 GB persistent volume claim for Karvdash:

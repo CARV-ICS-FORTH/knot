@@ -16,6 +16,7 @@ import docker
 
 from urllib.parse import urlparse
 from dxf import DXF
+from base64 import b64encode
 
 
 class DockerClient(object):
@@ -23,6 +24,10 @@ class DockerClient(object):
         self._registry_url = urlparse(registry_url)
         self._registry_host = '%s:%s' % (self._registry_url.hostname, self._registry_url.port)
         self._client = None
+
+    @property
+    def safe_registry_url(self):
+        return '%s://%s' % (self._registry_url.scheme, self._registry_host)
 
     @property
     def client(self):
@@ -34,8 +39,16 @@ class DockerClient(object):
     def registry_host(self):
         return self._registry_host
 
+    def _auth(self, dxf, response):
+        if self._registry_url.username and self._registry_url.password:
+            if self._registry_url.scheme == 'http':
+                # DXF will not authenticate over HTTP
+                dxf._headers = {'Authorization': 'Basic ' + b64encode(('%s:%s' % (self._registry_url.username, self._registry_url.password)).encode('utf-8')).decode('utf-8')}
+                return
+            dxf.authenticate(self._registry_url.username, self._registry_url.password, response=response)
+
     def registry(self, repository=''):
-        return DXF(self._registry_host, repository, insecure=self._registry_url.scheme == 'http')
+        return DXF(self._registry_host, repository, auth=self._auth, insecure=self._registry_url.scheme == 'http')
 
     def add_image(self, data, name, tag):
         # Check for image with same name and tag.
@@ -54,4 +67,10 @@ class DockerClient(object):
         repository = '%s/%s' % (self._registry_host, name)
         if not image.tag(repository, tag=tag):
             raise ValueError('Can not tag image')
-        self.client.images.push(repository, tag=tag, stream=False)
+
+        kwargs = {'tag': tag,
+                  'stream': False}
+        if self._registry_url.username and self._registry_url.password:
+            kwargs['auth_config'] = {'username': self._registry_url.username,
+                                     'password': self._registry_url.password}
+        response = self.client.images.push(repository, **kwargs)

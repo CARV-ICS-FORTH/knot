@@ -75,9 +75,13 @@ def services(request):
     trail = [{'name': '<i class="fa fa-university" aria-hidden="true"></i> %s' % kubernetes_client.host}]
 
     # Fill in the contents.
-    service_resource = ServiceResource()
-    service_resource.request = request
-    contents = service_resource.list()
+    contents = []
+    try:
+        service_resource = ServiceResource()
+        service_resource.request = request
+        contents = service_resource.list()
+    except:
+        messages.error(request, 'Can not connect to Kubernetes.')
 
     # Sort them up.
     sort_by = request.GET.get('sort_by')
@@ -199,28 +203,31 @@ def images(request):
         return redirect('images')
 
     # There is no hierarchy here.
-    trail = [{'name': '<i class="fa fa-archive" aria-hidden="true"></i> %s' % settings.DOCKER_REGISTRY}]
+    trail = [{'name': '<i class="fa fa-archive" aria-hidden="true"></i> %s' % docker_client.safe_registry_url}]
 
     # Fill in the contents.
     contents = []
-    for repository in docker_client.registry().list_repos():
-        registry = docker_client.registry(repository)
-        try:
-            for alias in registry.list_aliases():
-                digest = registry.get_digest(alias)
-                existing_content = next((c for c in contents if c['digest'] == digest), None)
-                if existing_content:
-                    existing_content['aliases'].append(alias)
-                    continue
-                hashes = registry.get_alias(alias, sizes=True)
-                contents.append({'name': repository,
-                                 'tag': str(alias),
-                                 'digest': digest,
-                                 'aliases': [str(alias)],
-                                 'size': sum([h[1] for h in hashes]),
-                                 'actions': request.user.is_staff})
-        except:
-            continue
+    try:
+        for repository in docker_client.registry().list_repos():
+            registry = docker_client.registry(repository)
+            try:
+                for alias in registry.list_aliases():
+                    digest = registry.get_digest(alias)
+                    existing_content = next((c for c in contents if c['digest'] == digest), None)
+                    if existing_content:
+                        existing_content['aliases'].append(alias)
+                        continue
+                    hashes = registry.get_alias(alias, sizes=True)
+                    contents.append({'name': repository,
+                                     'tag': str(alias),
+                                     'digest': digest,
+                                     'aliases': [str(alias)],
+                                     'size': sum([h[1] for h in hashes]),
+                                     'actions': request.user.is_staff})
+            except:
+                continue
+    except:
+        messages.error(request, 'Can not connect to Docker registry.')
     for content in contents:
         content['aliases'].sort()
         content['tag'] = content['aliases'][0]
