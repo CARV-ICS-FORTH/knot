@@ -27,13 +27,13 @@ class API:
     :param config_path: file containing configuration options for the API endpoint
     :type config_path: string
 
-    The provided config file should have the following structure (example values provided)::
+    The provided config file should have the following structure (example values shown)::
 
         [Karvdash]
         base_url = http://127.0.0.1:8000/api
         token = 8e41faf30b7bee20725a49bd73bba680055b95c1
 
-    If no config file is provided, the following paths are tried in order: ``~/.karvdash/config.ini``, ``/var/lib/karvdash/config.ini``.
+    If no config file is set, the following paths are tried in order: ``~/.karvdash/config.ini``, ``/var/lib/karvdash/config.ini``.
     """
 
     def __init__(self, config_path=None):
