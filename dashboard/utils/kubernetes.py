@@ -18,6 +18,8 @@ import kubernetes.client
 import kubernetes.config
 import kubernetes.stream
 
+from urllib.parse import urlparse
+
 
 class KubernetesClient(object):
     def __init__(self):
@@ -64,6 +66,15 @@ class KubernetesClient(object):
         self.delete_secret(namespace, name)
         if os.system('kubectl create -n %s secret generic %s --from-literal=\'%s\'' % (namespace, name, literal)) < 0:
             raise SystemError('Can not create secret')
+
+    def create_docker_registry_secret(self, namespace, registry_url, email):
+        url = urlparse(registry_url)
+        if not url.username or not url.password:
+            return
+
+        server = '%s://%s:%s' % (url.scheme, url.hostname, url.port)
+        os.system('kubectl create secret docker-registry docker-registry-secret -n %s --docker-server="%s" --docker-username="%s" --docker-password="%s" --docker-email="%s"' % (namespace, server, url.username, url.password, email))
+        os.system('kubectl patch serviceaccount default -n %s -p \'{"imagePullSecrets": [{"name": "docker-registry-secret"}]}\'' % namespace)
 
     def exec_command_in_pod(self, namespace, label_selector, command):
         result = []

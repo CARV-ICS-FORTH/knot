@@ -247,6 +247,7 @@ class ServiceResource(APIResource):
                     f.write(namespace_template.yaml.encode())
 
                 kubernetes_client.apply_yaml(namespace_yaml)
+                kubernetes_client.create_docker_registry_secret(self.request.user.namespace, settings.DOCKER_REGISTRY, 'admin@%s' % settings.INGRESS_DOMAIN)
 
             service_host = os.getenv('KARVDASH_HOST')
             service_port = os.getenv('KARVDASH_PORT')
