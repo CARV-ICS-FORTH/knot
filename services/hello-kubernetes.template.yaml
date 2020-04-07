@@ -40,7 +40,7 @@ spec:
     spec:
       containers:
       - name: $NAME
-        image: ${REGISTRY}/test:1
+        image: paulbouwer/hello-kubernetes:1.5
         ports:
         - containerPort: 8080
         env:
@@ -49,7 +49,7 @@ spec:
 ---
 kind: Template
 name: Hello Kubernetes
-description: Start a pod that shows a message in a web page
+description: Show a message in a web page
 variables:
 - name: NAME
   default: hello-kubernetes
@@ -58,6 +58,3 @@ variables:
 - name: MESSAGE
   default: I just deployed this on Kubernetes!
   help: Message to display
-- name: REGISTRY
-  default: 127.0.0.1:5000
-
