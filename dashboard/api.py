@@ -159,9 +159,11 @@ class ServiceResource(APIResource):
                 service_database.append(file_name[:-5])
 
         contents = []
+        ingresses = [i.metadata.name for i in kubernetes_client.list_ingresses(namespace=self.request.user.namespace)]
         for service in kubernetes_client.list_services(namespace=self.request.user.namespace, label_selector=''):
             name = service.metadata.name
             # ports = [str(p.port) for p in service.spec.ports if p.protocol == 'TCP']
+            url = 'http://%s-%s.%s' % (name, self.request.user.username, settings.INGRESS_DOMAIN) if name in ingresses else None
             try:
                 filename = service.metadata.labels['karvdash-template']
                 service_template = FileTemplate(filename).format()
@@ -174,7 +176,7 @@ class ServiceResource(APIResource):
                 except:
                     pass
             contents.append({'name': name,
-                             'url': 'http://%s-%s.%s' % (name, self.request.user.username, settings.INGRESS_DOMAIN),
+                             'url': url,
                              'created': service.metadata.creation_timestamp,
                              'actions': True if name in service_database else False,
                              'template': service_template})

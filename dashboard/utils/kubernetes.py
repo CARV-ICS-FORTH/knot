@@ -23,27 +23,45 @@ from urllib.parse import urlparse
 
 class KubernetesClient(object):
     def __init__(self):
-        self._client = None
+        self._config_loaded = False
+        self._core_client = None
+        self._extensions_client = None
+
+    def _load_config(self):
+        if self._config_loaded:
+            return
+        try:
+            kubernetes.config.load_kube_config()
+        except:
+            kubernetes.config.load_incluster_config()
+        self._config_loaded = True
 
     @property
-    def client(self):
-        if not self._client:
-            try:
-                kubernetes.config.load_kube_config()
-            except:
-                kubernetes.config.load_incluster_config()
-            self._client = kubernetes.client.CoreV1Api()
-        return self._client
+    def core_client(self):
+        if not self._core_client:
+            self._load_config()
+            self._core_client = kubernetes.client.CoreV1Api()
+        return self._core_client
+
+    @property
+    def extensions_client(self):
+        if not self._extensions_client:
+            self._load_config()
+            self._extensions_client = kubernetes.client.ExtensionsV1beta1Api()
+        return self._extensions_client
 
     @property
     def host(self):
-        return self.client.api_client.configuration.host
+        return self.core_client.api_client.configuration.host
 
     def list_namespaces(self):
-        return self.client.list_namespace().items
+        return self.core_client.list_namespace().items
 
     def list_services(self, namespace, label_selector):
-        return self.client.list_namespaced_service(namespace=namespace, label_selector=label_selector).items
+        return self.core_client.list_namespaced_service(namespace=namespace, label_selector=label_selector).items
+
+    def list_ingresses(self, namespace):
+        return self.extensions_client.list_namespaced_ingress(namespace=namespace).items
 
     def apply_yaml(self, yaml_file, namespace=None):
         command = 'kubectl apply -f %s' % yaml_file
@@ -78,8 +96,8 @@ class KubernetesClient(object):
 
     def exec_command_in_pod(self, namespace, label_selector, command):
         result = []
-        for pod in self.client.list_namespaced_pod(namespace=namespace, label_selector=label_selector).items:
-            result.append(kubernetes.stream.stream(self.client.connect_get_namespaced_pod_exec,
+        for pod in self.core_client.list_namespaced_pod(namespace=namespace, label_selector=label_selector).items:
+            result.append(kubernetes.stream.stream(self.core_client.connect_get_namespaced_pod_exec,
                                                    pod.metadata.name,
                                                    namespace,
                                                    command=command,
