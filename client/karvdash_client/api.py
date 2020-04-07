@@ -106,7 +106,7 @@ class API:
         r = requests.post(self.base_url + '/services/', json=data, headers=self._headers)
         return r.json()
 
-    def exec_service(self, name, command):
+    def exec_service(self, name, command, all_pods=False):
         """Execute a command at service pods.
 
         :param command: the command to execute
@@ -114,7 +114,8 @@ class API:
         :returns: A list of results
         """
 
-        data = {'command': command}
+        data = {'command': command,
+                'all_pods': 1 if all_pods else 0}
         r = requests.post(self.base_url + '/services/%s/' % name, json=data, headers=self._headers)
         return r.json()
 

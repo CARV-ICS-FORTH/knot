@@ -285,10 +285,12 @@ class ServiceResource(APIResource):
 
         if 'command' not in self.data:
             raise BadRequest()
+        all_pods = True if self.data.get('all_pods') in (1, '1', 'True', 'true') else False
 
         result = KubernetesClient().exec_command_in_pod(namespace=self.request.user.namespace,
                                                         label_selector='app=%s' % name,
-                                                        command=self.data['command'])
+                                                        command=self.data['command'],
+                                                        all_pods=all_pods)
         return {'result': result}
 
     def delete(self, pk):

@@ -94,7 +94,7 @@ class KubernetesClient(object):
         os.system('kubectl create secret docker-registry docker-registry-secret -n %s --docker-server="%s" --docker-username="%s" --docker-password="%s" --docker-email="%s"' % (namespace, server, url.username, url.password, email))
         os.system('kubectl patch serviceaccount default -n %s -p \'{"imagePullSecrets": [{"name": "docker-registry-secret"}]}\'' % namespace)
 
-    def exec_command_in_pod(self, namespace, label_selector, command):
+    def exec_command_in_pod(self, namespace, label_selector, command, all_pods=False):
         result = []
         for pod in self.core_client.list_namespaced_pod(namespace=namespace, label_selector=label_selector).items:
             result.append(kubernetes.stream.stream(self.core_client.connect_get_namespaced_pod_exec,
@@ -105,4 +105,6 @@ class KubernetesClient(object):
                                                    stdin=False,
                                                    stdout=True,
                                                    tty=False))
+            if not all_pods:
+                break
         return result
