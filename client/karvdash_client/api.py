@@ -110,7 +110,9 @@ class API:
         """Execute a command at service pods.
 
         :param command: the command to execute
+        :param all_pods: execute command in all pods
         :type command: string
+        :type all_pods: boolean
         :returns: A list of results
         """
 
