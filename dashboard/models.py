@@ -60,7 +60,7 @@ def generate_token():
 
 class APIToken(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
-    token = models.CharField(max_length=64, blank=False, null=False, default=generate_token())
+    token = models.CharField(max_length=64, blank=False, null=False, default=generate_token)
 
 @receiver(user_logged_in)
 def create_api_token(sender, user, request, **kwargs):
