@@ -31,7 +31,7 @@ Edit `Dockerfile` and set the version of `kubectl` to match your Kubernetes clus
 
 Build the image:
 ```
-docker build -t karvdash:1.1 .
+docker build -t karvdash:1.2 .
 ```
 
 Run it:
@@ -43,7 +43,7 @@ docker run -d --rm --name karvdash \
     --mount type=bind,source=$PWD/remote,destination=/remote \
     --mount type=bind,source=$PWD/shared,destination=/shared \
     -p 8000:8000/tcp \
-    karvdash:latest
+    karvdash:1.2
 ```
 
 The following variables can be set:
