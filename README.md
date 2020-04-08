@@ -31,7 +31,7 @@ Edit `Dockerfile` and set the version of `kubectl` to match your Kubernetes clus
 
 Build the image:
 ```
-docker build -t karvdash .
+docker build -t karvdash:1.0 .
 ```
 
 Run it:

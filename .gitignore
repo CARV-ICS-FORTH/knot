@@ -1,0 +1,10 @@
+.DS_Store
+venv/
+db.sqlite3
+*.pyc
+local/
+remote/
+shared/
+servicedb/
+*.egg-info/
+config.ini
