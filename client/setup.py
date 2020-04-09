@@ -3,13 +3,13 @@
 from setuptools import setup
 
 setup(name='karvdash-client',
-      version='1.0',
+      version='1.1',
       description='Client to the karvdash (Kubernetes CARV Dashboard) API',
       url='https://www.ics.forth.gr/carv/',
       author='FORTH-ICS',
       license='Apache-2.0',
       packages=['karvdash_client'],
-      entry_points={'console_scripts': ['karvdash-client = karvdash_client.cli:main']},
+      entry_points={'console_scripts': ['karvdashctl = karvdash_client.cli:main']},
       install_requires=['requests>=2.23'],
       classifiers=['Development Status :: 4 - Beta',
                    'Environment :: Console',
