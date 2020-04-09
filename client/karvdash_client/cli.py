@@ -28,7 +28,9 @@ def cmd_create_service(api, args):
     pprint(api.create_service(args.filename, variables))
 
 def cmd_exec_service(api, args):
-    response = api.exec_service(args.name, args.command, args.all_pods)
+    if not args.args:
+        return
+    response = api.exec_service(args.name, args.args, args.all_pods)
     sys.stdout.write(''.join(response['result'])) # No newline at the end
 
 def cmd_delete_service(api, args):
@@ -58,7 +60,7 @@ def main(cmd=None):
     exec_service = subprasers.add_parser('exec_service', help='Execute a command at a running service')
     exec_service.add_argument('-a', '--all-pods', action='store_true', help='Execute in all pods')
     exec_service.add_argument('name', help='Service name')
-    exec_service.add_argument('command', help='Command')
+    exec_service.add_argument('args', nargs=argparse.REMAINDER, help='Command and arguments to execute')
     exec_service.set_defaults(func=cmd_exec_service)
 
     delete_service = subprasers.add_parser('delete_service', help='Delete a running service')

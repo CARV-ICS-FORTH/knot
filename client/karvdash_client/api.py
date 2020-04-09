@@ -113,7 +113,7 @@ class API:
 
         :param command: the command to execute
         :param all_pods: execute command in all pods
-        :type command: string
+        :type command: list
         :type all_pods: boolean
         :returns: A list of results
         """
