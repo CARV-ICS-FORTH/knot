@@ -89,6 +89,7 @@ class API:
         """
 
         r = requests.get(self.base_url + '/services/', headers=self._headers)
+        r.raise_for_status()
         return r.json()
 
     def create_service(self, filename, variables):
@@ -104,6 +105,7 @@ class API:
         data = {k.upper(): v for k, v in variables.items()}
         data['filename'] = filename
         r = requests.post(self.base_url + '/services/', json=data, headers=self._headers)
+        r.raise_for_status()
         return r.json()
 
     def exec_service(self, name, command, all_pods=False):
@@ -119,6 +121,7 @@ class API:
         data = {'command': command,
                 'all_pods': 1 if all_pods else 0}
         r = requests.post(self.base_url + '/services/%s/' % name, json=data, headers=self._headers)
+        r.raise_for_status()
         return r.json()
 
     def delete_service(self, name):
@@ -126,22 +129,15 @@ class API:
 
         :param name: the service to delete
         :type name: string
-        :returns: ``True`` if the call was successful
         """
 
         r = requests.delete(self.base_url + '/services/%s/' % name, headers=self._headers)
-        return r.status_code == requests.codes.no_content
+        r.raise_for_status()
 
     def list_templates(self):
         """List available templates.
 
         :returns: A list of templates
-
-        return {'name': self._name,
-                'description': self._description,
-                'singleton': self._singleton,
-                'mount': self._mount,
-                'variables': self._variables}
 
         Each template is represented with a dictionary containing the following keys:
 
@@ -161,6 +157,7 @@ class API:
         """
 
         r = requests.get(self.base_url + '/templates/', headers=self._headers)
+        r.raise_for_status()
         return r.json()
 
     def inject(self, data):
@@ -172,4 +169,5 @@ class API:
         """
 
         r = requests.post(self.base_url + '/utils/inject/', data=data, headers=self._headers)
+        r.raise_for_status()
         return r.text
