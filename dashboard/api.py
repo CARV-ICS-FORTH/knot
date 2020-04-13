@@ -88,7 +88,7 @@ variables:
 - name: NAME
   default: user
 - name: BASE_URL
-  default: http://127.0.0.1:8000
+  default: http://karvdash.default.svc/api
 - name: TOKEN
   default: ""
 '''
@@ -241,14 +241,12 @@ class ServiceResource(APIResource):
                 kubernetes_client.apply_yaml(namespace_yaml)
                 kubernetes_client.create_docker_registry_secret(self.request.user.namespace, settings.DOCKER_REGISTRY, 'admin@%s' % settings.INGRESS_DOMAIN)
 
-            service_host = os.getenv('KARVDASH_HOST')
-            service_port = os.getenv('KARVDASH_PORT')
             if not service_host or not service_port:
                 service_host = socket.gethostbyname(socket.gethostname())
                 service_port = self.request.META['SERVER_PORT']
             api_template = Template(TOKEN_CONFIGMAP_TEMPLATE)
             api_template.NAME = 'karvdash-api'
-            api_template.BASE_URL = 'http://%s:%s/api' % (service_host, service_port)
+            api_template.BASE_URL = settings.API_BASE_URL
             api_template.TOKEN = self.request.user.api_token.token # Get or create
 
             api_yaml = os.path.join(settings.SERVICE_DATABASE_DIR, '%s-api.yaml' % self.request.user.username)

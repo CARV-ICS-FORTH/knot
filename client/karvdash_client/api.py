@@ -30,7 +30,7 @@ class API:
     The provided config file should have the following structure (example values shown)::
 
         [Karvdash]
-        base_url = http://127.0.0.1:8000/api
+        base_url = http://karvdash.default.svc/api
         token = 8e41faf30b7bee20725a49bd73bba680055b95c1
 
     If no config file is set, the following paths are tried in order: ``~/.karvdash/config.ini``, ``/var/lib/karvdash/config.ini``.

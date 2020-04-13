@@ -208,6 +208,11 @@ if shared_name:
 DOCKER_REGISTRY = os.getenv('KARVDASH_DOCKER_REGISTRY', 'http://127.0.0.1:5000')
 
 
+# API URL
+
+API_BASE_URL = os.getenv('KARVDASH_API_BASE_URL', 'http://karvdash.default.svc/api')
+
+
 # Service templates
 
 SERVICE_TEMPLATE_DIR = os.getenv('KARVDASH_SERVICE_TEMPLATE_DIR', os.path.join(BASE_DIR, 'services'))

@@ -2,7 +2,7 @@
 
 To deploy Karvdash in Kubernetes as included with Docker Desktop, you need a working ingress controller and a working Docker registry. Then you can start the Karvdash service and reach it at `localtest.me`. Each resource and service is defined in a separate YAML, so you can create and destroy them individually.
 
-Karvdash should run in the `default` namespace.
+Karvdash should run in the `default` namespace (or you need to adjust the permissions and the internal API base URL variable).
 
 The following have been tested with *Docker Desktop for macOS*.
 

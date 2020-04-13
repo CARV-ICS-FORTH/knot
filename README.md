@@ -42,7 +42,7 @@ docker run -d --rm --name karvdash \
     --mount type=bind,source=$PWD/local,destination=/local \
     --mount type=bind,source=$PWD/remote,destination=/remote \
     --mount type=bind,source=$PWD/shared,destination=/shared \
-    -p 8000:8000/tcp \
+    -p 80:80/tcp \
     karvdash:1.4
 ```
 
@@ -57,7 +57,8 @@ The following variables can be set:
 | `KARVDASH_DASHBOARD_THEME`      | The theme of the dashboard. Choose between "evolve" and "CARV" (default is "evolve"). |
 | `KARVDASH_INGRESS_DOMAIN`       | The domain used by the service (default is "localtest.me").                           |
 | `KARVDASH_SERVICE_REDIRECT_SSL` | Set to anything to redirect all services to SSL (default is disabled).                |
-| `KARVDASH_DOCKER_REGISTRY`      | The URL of the Docker registry (default is "http://127.0.0.1").                       |
+| `KARVDASH_DOCKER_REGISTRY`      | The URL of the Docker registry (default is "http://127.0.0.1:5000").                  |
+| `KARVDASH_API_BASE_URL`         | The URL used for internal API calls (default is "http://karvdash.default.svc/api").   |
 | `KARVDASH_LOCAL_HOST_DIR`       | The host path for the local data domain.                                              |
 | `KARVDASH_REMOTE_HOST_DIR`      | The host path for the remote data domain.                                             |
 | `KARVDASH_SHARED_HOST_DIR`      | The host path for the shared data domain.                                             |

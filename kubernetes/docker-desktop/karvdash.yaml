@@ -12,7 +12,7 @@ spec:
       paths:
       - backend:
           serviceName: karvdash
-          servicePort: 8000
+          servicePort: 80
 ---
 apiVersion: v1
 kind: Service
@@ -21,7 +21,7 @@ metadata:
 spec:
   type: ClusterIP
   ports:
-  - port: 8000
+  - port: 80
   selector:
     app: karvdash
 ---
@@ -84,7 +84,7 @@ spec:
         - name: KARVDASH_SHARED_HOST_DIR
           value: /Users/chazapis/Source/FORTH/integration/karvdash/shared
         ports:
-        - containerPort: 8000
+        - containerPort: 80
           name: karvdash
         volumeMounts:
         - name: karvdash-persistent-storage

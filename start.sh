@@ -10,4 +10,4 @@ export KARVDASH_SERVICE_DATABASE_DIR=/db/services
 
 python manage.py migrate
 python manage.py createadmin  --noinput --username admin --password $ADMIN_PASSWORD --email admin@example.com --preserve
-python manage.py runserver --insecure 0.0.0.0:8000
+python manage.py runserver --insecure 0.0.0.0:80
