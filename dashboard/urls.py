@@ -17,7 +17,7 @@ from django.conf import settings
 from django.contrib.auth import views as auth_views
 
 from . import views
-from .api import ServiceResource, TemplateResource, UtilsResource
+from .api import ServiceResource, TemplateResource
 
 
 urlpatterns = [
@@ -38,5 +38,4 @@ urlpatterns = [
 
     path('api/services/', include(ServiceResource.urls())),
     path('api/templates/', include(TemplateResource.urls())),
-    path('api/utils/', include(UtilsResource.urls())),
 ]

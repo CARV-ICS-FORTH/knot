@@ -16,15 +16,10 @@ import os
 import random
 import string
 import json
-import yaml
 import socket
 
 from django.conf import settings
-from django.conf.urls import url
-from django.views.decorators.csrf import csrf_exempt
 from restless.dj import DjangoResource
-from restless.resources import skip_prepare
-from restless.serializers import Serializer
 from restless.exceptions import NotFound, BadRequest, Conflict
 
 from .models import APIToken
@@ -32,7 +27,6 @@ from .forms import CreateServiceForm
 from .utils.template import Template, FileTemplate
 from .utils.kubernetes import KubernetesClient
 from .utils.docker import DockerClient
-from .utils.inject import inject_hostpath_volumes
 
 
 NAMESPACE_TEMPLATE = '''
@@ -220,10 +214,6 @@ class ServiceResource(APIResource):
         template.REMOTE = settings.DATA_DOMAINS['remote']['dir'].rstrip('/')
         template.SHARED = settings.DATA_DOMAINS['shared']['dir'].rstrip('/')
 
-        # Inject data folders.
-        if template.mount:
-            template.inject_hostpath_volumes(self._hostpath_volumes, add_api_settings=True)
-
         # Add template label and values.
         template.inject_service_details()
 
@@ -329,31 +319,3 @@ class TemplateResource(APIResource):
             contents.append(template.format())
 
         return contents
-
-class YAMLSerializer(Serializer):
-    def deserialize(self, body):
-        return yaml.safe_load_all(body)
-
-    def serialize(self, data):
-        return yaml.dump_all(data)
-
-class UtilsResource(APIResource):
-    http_methods = {'inject': {'POST': 'inject'}}
-    serializer = YAMLSerializer()
-
-    @skip_prepare
-    def inject(self):
-        template = [part for part in self.data]
-        inject_hostpath_volumes(template, self._hostpath_volumes)
-        return template
-
-    @classmethod
-    def as_view(self, *args, **kwargs):
-        return csrf_exempt(super().as_view(*args, **kwargs))
-
-    @classmethod
-    def urls(cls, name_prefix=None):
-        urlpatterns = super().urls(name_prefix=name_prefix)
-        return [
-            url(r'^inject/$', cls.as_view('inject'), name=cls.build_url_name('inject', name_prefix)),
-        ] + urlpatterns

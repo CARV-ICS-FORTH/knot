@@ -18,7 +18,7 @@ import yaml
 
 from django.conf import settings
 
-from .inject import inject_hostpath_volumes, inject_service_details, inject_ingress_auth
+from .inject import inject_service_details, inject_ingress_auth
 
 
 class Template(object):
@@ -62,9 +62,6 @@ class Template(object):
             self._values[name] = value
             return
         super().__setattr__(name, value)
-
-    def inject_hostpath_volumes(self, volumes, add_api_settings=False):
-        inject_hostpath_volumes(self._template, volumes, add_api_settings=add_api_settings)
 
     def inject_service_details(self, template=None):
         inject_service_details(self._template, template=template, values=self._values)

@@ -159,15 +159,3 @@ class API:
         r = requests.get(self.base_url + '/templates/', headers=self._headers)
         r.raise_for_status()
         return r.json()
-
-    def inject(self, data):
-        """Inject storage paths to a service description.
-
-        :param data: the service description (in YAML format)
-        :type data: string
-        :returns: The updated service description (in YAML format)
-        """
-
-        r = requests.post(self.base_url + '/utils/inject/', data=data, headers=self._headers)
-        r.raise_for_status()
-        return r.text

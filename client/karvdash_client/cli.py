@@ -39,10 +39,6 @@ def cmd_delete_service(api, args):
 def cmd_list_templates(api, args):
     pprint(api.list_templates())
 
-def cmd_inject(api, args):
-    with open(args.filename, 'rb') as fp:
-        print(api.inject(fp.read()))
-
 def main(cmd=None):
     parser = argparse.ArgumentParser(description='Karvdash API client command line tool')
     # parser.add_argument('-d', '--debug', action='store_true', help='Print debug info')
@@ -69,10 +65,6 @@ def main(cmd=None):
 
     list_templates = subprasers.add_parser('list_templates', help='List available templates')
     list_templates.set_defaults(func=cmd_list_templates)
-
-    inject = subprasers.add_parser('inject', help='Inject storage directives to YAML file')
-    inject.add_argument('filename', help='YAML file')
-    inject.set_defaults(func=cmd_inject)
 
     args = parser.parse_args(cmd)
     if args.command:

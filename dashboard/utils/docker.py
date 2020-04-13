@@ -73,4 +73,4 @@ class DockerClient(object):
         if self._registry_url.username and self._registry_url.password:
             kwargs['auth_config'] = {'username': self._registry_url.username,
                                      'password': self._registry_url.password}
-        response = self.client.images.push(repository, **kwargs)
+        response = self.client.images.push(repository, **kwargs) # noqa: F841
