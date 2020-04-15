@@ -148,7 +148,6 @@ class API:
         ``name``         <string>          The template name as shown in the dashboard
         ``description``  <string>          The template description as shown in the dashboard
         ``singleton``    <boolean>         ``True`` if only one instance can be running
-        ``mount``        <boolean>         ``True`` if instances have all mountpoints attached
         ``variables``    <dictionary>      Template variables
         ``values``       <dictionary>      Instance values for template variables (included
 
