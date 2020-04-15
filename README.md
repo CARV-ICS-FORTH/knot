@@ -4,7 +4,9 @@ Karvdash (Kubernetes CARV dashboard) is a dashboard service for Kubernetes. It s
 
 ## Running locally
 
-To start working on Karvdash, first create the Python environment:
+To start working on Karvdash, you need a local Kubernetes environment, like Docker Desktop for macOS, with a running ingress controller and a local Docker registry. Check in the `kubernetes/docker-desktop` folder for help on how to deploy these.
+
+Then, create the Python environment:
 ```
 python3 -m venv venv
 source venv/bin/activate
@@ -18,16 +20,22 @@ mkdir remote
 mkdir shared
 ```
 
-Create necessary Kubernetes resources:
+Prepare the application:
 ```
-kubectl apply -f kubernetes/argo.yaml
+./manage.py migrate
+./manage.py createadmin --noinput --username admin --password admin --email admin@example.com --preserve
 ```
 
-Then run `start.sh`.
+And start it:
+```
+./manage.py runserver
+```
+
+Point your browser to http://localtest.me:8000 and login as "admin".
 
 ## Running in Docker
 
-Edit `Dockerfile` and set the version of `kubectl` to match your Kubernetes cluster.
+Edit the `Dockerfile` and set the version of `kubectl` to match your Kubernetes cluster.
 
 Build the image:
 ```

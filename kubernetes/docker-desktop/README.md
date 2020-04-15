@@ -1,6 +1,6 @@
 # Local deployment in Docker Desktop
 
-To deploy Karvdash in Kubernetes as included with Docker Desktop, you need a working ingress controller and a working Docker registry. Then you can start the Karvdash service and reach it at `localtest.me`. Each resource and service is defined in a separate YAML, so you can create and destroy them individually.
+To deploy Karvdash in Kubernetes as included with Docker Desktop, you need a working ingress controller and a working Docker registry. Then you can start the Karvdash service and reach it at http://localtest.me. Each resource and service is defined in a separate YAML, so you can create and destroy them individually.
 
 Karvdash should run in the `default` namespace (or you need to adjust the permissions and the internal API base URL variable).
 
@@ -13,7 +13,7 @@ Deploy an [NGINX Ingress Controller](https://kubernetes.github.io/ingress-nginx/
 kubectl apply -f ingress-nginx.yaml
 ```
 
-The YAML file contains a self-signed SSL certificate for the domain `localtest.me` (and the wildcard `*.localtest.me`).
+The YAML file contains a self-signed SSL certificate for the domain `localtest.me` and the wildcard `*.localtest.me`.
 
 To update the included certificate:
 ```
