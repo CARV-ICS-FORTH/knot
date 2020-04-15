@@ -9,3 +9,7 @@ servicedb/
 *.egg-info/
 dist/
 config.ini
+csr.conf
+karvdash-maw.csr
+karvdash-maw.key
+karvdash-maw.pem

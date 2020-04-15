@@ -1,0 +1,22 @@
+apiVersion: admissionregistration.k8s.io/v1beta1
+kind: MutatingWebhookConfiguration
+metadata:
+  name: karvdash-maw
+  labels:
+    app: karvdash
+webhooks:
+  - name: 139.91.92.156.xip.io
+    clientConfig:
+      url: "https://139.91.92.156.xip.io/webhooks/mutate"
+      service:
+        name: karvdash
+        namespace: default
+    rules:
+      - operations: ["CREATE"]
+        apiGroups: ["*"]
+        apiVersions: ["*"]
+        resources: ["pods", "deployments"]
+    namespaceSelector:
+      matchLabels:
+        karvdash: enabled
+    failurePolicy: Fail

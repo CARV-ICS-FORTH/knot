@@ -40,10 +40,7 @@ SECRET_KEY = os.getenv('DJANGO_SECRET', '%ad&%4*!xpf*$wd3^t56+#ode4=@y^ju_t+j9f+
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True if os.getenv('DJANGO_DEBUG', '1') else False
 
-import socket # noqa: E402
-
-INGRESS_DOMAIN = os.getenv('KARVDASH_INGRESS_DOMAIN', 'localtest.me')
-ALLOWED_HOSTS = [INGRESS_DOMAIN] + socket.gethostbyname_ex(socket.gethostname())[2]
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -203,14 +200,10 @@ if shared_name:
                                  'host_dir': os.getenv('KARVDASH_SHARED_HOST_DIR', shared_default_dir),
                                  'mode': 'shared'}
 
+
 # Docker registry endpoint
 
 DOCKER_REGISTRY = os.getenv('KARVDASH_DOCKER_REGISTRY', 'http://127.0.0.1:5000')
-
-
-# API URL
-
-API_BASE_URL = os.getenv('KARVDASH_API_BASE_URL')
 
 
 # Service templates
@@ -218,6 +211,16 @@ API_BASE_URL = os.getenv('KARVDASH_API_BASE_URL')
 SERVICE_TEMPLATE_DIR = os.getenv('KARVDASH_SERVICE_TEMPLATE_DIR', os.path.join(BASE_DIR, 'services'))
 SERVICE_DATABASE_DIR = os.getenv('KARVDASH_SERVICE_DATABASE_DIR', os.path.join(BASE_DIR, 'servicedb'))
 SERVICE_REDIRECT_SSL = True if os.getenv('KARVDASH_SERVICE_REDIRECT_SSL', '') else False
+
+
+# API URL
+
+API_BASE_URL = os.getenv('KARVDASH_API_BASE_URL')
+
+
+# Ingress domain
+
+INGRESS_DOMAIN = os.getenv('KARVDASH_INGRESS_DOMAIN', 'localtest.me')
 
 
 # Theme

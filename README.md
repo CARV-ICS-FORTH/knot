@@ -40,6 +40,7 @@ Edit the `Dockerfile` and set the version of `kubectl` to match your Kubernetes 
 Build the image:
 ```
 docker build -t karvdash:1.4 .
+docker tag karvdash:1.4 karvdash:latest
 ```
 
 Run it:
@@ -51,7 +52,7 @@ docker run -d --rm --name karvdash \
     --mount type=bind,source=$PWD/remote,destination=/remote \
     --mount type=bind,source=$PWD/shared,destination=/shared \
     -p 80:80/tcp \
-    karvdash:1.4
+    karvdash:latest
 ```
 
 The following variables can be set:
