@@ -20,13 +20,16 @@ def inject_hostpath_volumes(yaml_data, volumes, add_api_settings=False):
         # Add volumes.
         if 'volumes' not in spec:
             spec['volumes'] = []
+        existing_names = [v['name'] for v in spec['volumes']]
         for name, variables in volumes.items():
             if not variables['dir'] or not variables['host_dir']:
                 continue
             volume_name = 'karvdash-volume-%s' % name
+            if volume_name in existing_names:
+                continue
             spec['volumes'].append({'name': volume_name,
                                     'hostPath': {'path': variables['host_dir']}})
-        if add_api_settings:
+        if add_api_settings and 'karvdash-api-volume' not in existing_names:
             spec['volumes'].append({'name': 'karvdash-api-volume',
                                     'configMap': {'name': 'karvdash-api',
                                                   'items': [{'key': 'config.ini',
@@ -36,13 +39,16 @@ def inject_hostpath_volumes(yaml_data, volumes, add_api_settings=False):
         for container in spec['containers']:
             if 'volumeMounts' not in container:
                 container['volumeMounts'] = []
+            existing_names = [v['name'] for v in container['volumeMounts']]
             for name, variables in volumes.items():
                 if not variables['dir'] or not variables['host_dir']:
                     continue
                 volume_name = 'karvdash-volume-%s' % name
+                if volume_name in existing_names:
+                    continue
                 container['volumeMounts'].append({'name': volume_name,
                                                   'mountPath': variables['dir']})
-            if add_api_settings:
+            if add_api_settings and 'karvdash-api-volume' not in existing_names:
                 container['volumeMounts'].append({'name': 'karvdash-api-volume',
                                                   'mountPath': '/var/lib/karvdash'})
 
