@@ -17,6 +17,7 @@ from django.conf import settings
 from django.contrib.auth import views as auth_views
 
 from . import views
+from . import webhooks
 from .api import ServiceResource, TemplateResource
 
 
@@ -35,6 +36,8 @@ urlpatterns = [
     path('login', auth_views.LoginView.as_view(template_name='dashboard/login.html'), name='login'),
     path('change_password', views.change_password, name='change_password'),
     path('logout', views.logout, {'next': settings.LOGOUT_REDIRECT_URL}, name='logout'),
+
+    path('webhooks/mutate', webhooks.mutate),
 
     path('api/services/', include(ServiceResource.urls())),
     path('api/templates/', include(TemplateResource.urls())),

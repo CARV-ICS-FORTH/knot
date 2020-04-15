@@ -225,7 +225,6 @@ kind: Template
 name: Argo
 description: Workflow engine
 singleton: yes
-mount: no
 variables:
 - name: NAMESPACE
   default: default

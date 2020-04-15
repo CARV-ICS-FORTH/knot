@@ -34,6 +34,8 @@ apiVersion: v1
 kind: Namespace
 metadata:
   name: $NAME
+  labels:
+    karvdash: enabled
 ---
 kind: Role
 apiVersion: rbac.authorization.k8s.io/v1
@@ -118,22 +120,6 @@ class APIResource(DjangoResource):
         self.request.user = api_token.user
         return True
 
-    @property
-    def _hostpath_volumes(self):
-        volumes = {}
-        for domain, variables in settings.DATA_DOMAINS.items():
-            if not variables['dir'] or not variables['host_dir']:
-                continue
-            if variables.get('mode') == 'shared':
-                user_path = variables['host_dir']
-            else:
-                user_path = os.path.join(variables['host_dir'], self.request.user.username)
-            if not os.path.exists(user_path):
-                os.makedirs(user_path)
-            volumes[domain] = variables.copy()
-            volumes[domain]['host_dir'] = user_path
-        return volumes
-
 class ServiceResource(APIResource):
     http_methods = {'list': {'GET': 'list',
                              'POST': 'create'},
@@ -213,6 +199,10 @@ class ServiceResource(APIResource):
         template.LOCAL = settings.DATA_DOMAINS['local']['dir'].rstrip('/')
         template.REMOTE = settings.DATA_DOMAINS['remote']['dir'].rstrip('/')
         template.SHARED = settings.DATA_DOMAINS['shared']['dir'].rstrip('/')
+
+        # Inject data folders.
+        if settings.DEBUG:
+            template.inject_hostpath_volumes(self.request.user.volumes, add_api_settings=True)
 
         # Add template label and values.
         template.inject_service_details()

@@ -26,7 +26,6 @@ class Template(object):
         self._name = ''
         self._description = ''
         self._singleton = False
-        self._mount = True
         self._variables = None
         self._values = {}
 
@@ -36,7 +35,6 @@ class Template(object):
                 self._name = part['name']
                 self._description = part.get('description', '')
                 self._singleton = part.get('singleton', False)
-                self._mount = part.get('mount', True)
                 self._variables = part['variables']
             else:
                 self._template.append(part)
@@ -82,10 +80,6 @@ class Template(object):
         return self._singleton
 
     @property
-    def mount(self):
-        return self._mount
-
-    @property
     def variables(self):
         return self._variables
 
@@ -101,7 +95,6 @@ class Template(object):
         return {'name': self._name,
                 'description': self._description,
                 'singleton': self._singleton,
-                'mount': self._mount,
                 'variables': self._variables}
 
     def __str__(self):

@@ -12,12 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import os
 import random
 
 from django.db import models
 from django.contrib.auth.models import User as AuthUser
 from django.contrib.auth.signals import user_logged_in
 from django.dispatch import receiver
+from django.conf import settings
 
 
 class User(AuthUser):
@@ -31,6 +33,22 @@ class User(AuthUser):
     @property
     def literal_auth(self):
         return 'auth=%s:$%s\n' % (self.username, self.password)
+
+    @property
+    def volumes(self):
+        volumes = {}
+        for domain, variables in settings.DATA_DOMAINS.items():
+            if not variables['dir'] or not variables['host_dir']:
+                continue
+            if variables.get('mode') == 'shared':
+                user_path = variables['host_dir']
+            else:
+                user_path = os.path.join(variables['host_dir'], self.username)
+            if not os.path.exists(user_path):
+                os.makedirs(user_path)
+            volumes[domain] = variables.copy()
+            volumes[domain]['host_dir'] = user_path
+        return volumes
 
     @property
     def api_token(self):
