@@ -241,12 +241,17 @@ class ServiceResource(APIResource):
                 kubernetes_client.apply_yaml(namespace_yaml)
                 kubernetes_client.create_docker_registry_secret(self.request.user.namespace, settings.DOCKER_REGISTRY, 'admin@%s' % settings.INGRESS_DOMAIN)
 
-            if not service_host or not service_port:
-                service_host = socket.gethostbyname(socket.gethostname())
-                service_port = self.request.META['SERVER_PORT']
+            api_base_url = settings.API_BASE_URL
+            if not api_base_url:
+                if os.getenv('KARVDASH_HOST') and os.getenv('KARVDASH_PORT'): # Probably running in Kubernetes
+                    api_base_url = 'http://karvdash.default.svc/api'
+                else:
+                    service_host = socket.gethostbyname(socket.gethostname())
+                    service_port = self.request.META['SERVER_PORT']
+                    api_base_url = 'http://%s:%s/api' % (service_host, service_port)
             api_template = Template(TOKEN_CONFIGMAP_TEMPLATE)
             api_template.NAME = 'karvdash-api'
-            api_template.BASE_URL = settings.API_BASE_URL
+            api_template.BASE_URL = api_base_url
             api_template.TOKEN = self.request.user.api_token.token # Get or create
 
             api_yaml = os.path.join(settings.SERVICE_DATABASE_DIR, '%s-api.yaml' % self.request.user.username)
