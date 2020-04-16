@@ -201,8 +201,8 @@ class ServiceResource(APIResource):
         template.SHARED = settings.DATA_DOMAINS['shared']['dir'].rstrip('/')
 
         # Inject data folders.
-        if settings.DEBUG:
-            template.inject_hostpath_volumes(self.request.user.volumes, add_api_settings=True)
+        # if settings.DEBUG:
+        #     template.inject_hostpath_volumes(self.request.user.volumes, add_api_settings=True)
 
         # Add template label and values.
         template.inject_service_details()
