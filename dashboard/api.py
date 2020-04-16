@@ -37,25 +37,10 @@ metadata:
   labels:
     karvdash: enabled
 ---
-kind: Role
-apiVersion: rbac.authorization.k8s.io/v1
-metadata:
-  name: ${NAME}-role
-  namespace: $NAME
-rules:
-- apiGroups: ["", "extensions", "apps"]
-  resources: ["*"]
-  verbs: ["*"]
-- apiGroups: ["batch"]
-  resources:
-  - jobs
-  - cronjobs
-  verbs: ["*"]
----
 kind: RoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  name: ${NAME}-binding
+  name: admin-binding
   namespace: $NAME
 subjects:
 - kind: ServiceAccount
@@ -63,8 +48,8 @@ subjects:
   namespace: $NAME
 roleRef:
   apiGroup: rbac.authorization.k8s.io
-  kind: Role
-  name: ${NAME}-role
+  kind: ClusterRole
+  name: cluster-admin
 ---
 kind: Template
 name: Namespace
