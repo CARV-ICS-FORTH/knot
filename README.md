@@ -2,6 +2,8 @@
 
 Karvdash (Kubernetes CARV dashboard) is a dashboard service for Kubernetes. It supplies the landing page for working on a Kubernetes cluster, manages users, launches notebooks, and wires up relevant storage to the appropriate paths inside running containers.
 
+Check out the user guide and API documentation in `docs`.
+
 ## Running locally
 
 To start working on Karvdash, you need a local Kubernetes environment, like Docker Desktop for macOS, with a running ingress controller and a local Docker registry. Check in the `kubernetes/docker-desktop` folder for help on how to deploy these.

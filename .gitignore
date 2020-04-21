@@ -1,5 +1,6 @@
 .DS_Store
 venv/
+_build/
 db.sqlite3
 *.pyc
 local/
