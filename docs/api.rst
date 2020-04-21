@@ -3,7 +3,7 @@ API documentation
 
 Karvdash (Kubernetes CARV dashboard) provides a REST API for performing service management from external systems.
 
-The API includes the following methods under the API's base URL (i.e. ``http://127.0.0.1:8000/api``):
+The API includes the following methods under the API's base URL (i.e. ``http://karvdash.default.svc/api``):
 
 ======  =====================  =============================================
 Method  Path                   Description
