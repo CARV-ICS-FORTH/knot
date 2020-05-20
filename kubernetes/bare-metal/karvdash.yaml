@@ -78,6 +78,8 @@ spec:
           value: "1"
         - name: KARVDASH_DOCKER_REGISTRY
           value: https://docker-registry:5000
+        - name: KARVDASH_DOCKER_REGISTRY_NO_VERIFY
+          value: "1"
         - name: KARVDASH_LOCAL_HOST_DIR
           value: /mnt/nfs/local
         - name: KARVDASH_REMOTE_HOST_DIR

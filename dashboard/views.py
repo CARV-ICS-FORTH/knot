@@ -147,7 +147,7 @@ def service_create(request, file_name=''):
 
 @login_required
 def images(request):
-    docker_client = DockerClient(settings.DOCKER_REGISTRY)
+    docker_client = DockerClient(settings.DOCKER_REGISTRY, settings.DOCKER_REGISTRY_NO_VERIFY)
 
     # Handle changes.
     if request.method == 'POST':
@@ -344,7 +344,7 @@ def data(request, path='/'):
                 name = form.cleaned_data['name']
                 tag = form.cleaned_data['tag']
                 try:
-                    docker_client = DockerClient(settings.DOCKER_REGISTRY)
+                    docker_client = DockerClient(settings.DOCKER_REGISTRY, settings.DOCKER_REGISTRY_NO_VERIFY)
                     with open(real_name, 'rb') as f:
                         docker_client.add_image(f, name, tag)
                 except Exception as e:

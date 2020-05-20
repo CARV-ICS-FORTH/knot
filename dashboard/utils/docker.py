@@ -20,9 +20,10 @@ from base64 import b64encode
 
 
 class DockerClient(object):
-    def __init__(self, registry_url):
+    def __init__(self, registry_url, registry_no_verify):
         self._registry_url = urlparse(registry_url)
         self._registry_host = '%s:%s' % (self._registry_url.hostname, self._registry_url.port)
+        self._registry_no_verify = registry_no_verify
         self._client = None
 
     @property
@@ -48,7 +49,7 @@ class DockerClient(object):
             dxf.authenticate(self._registry_url.username, self._registry_url.password, response=response)
 
     def registry(self, repository=''):
-        return DXF(self._registry_host, repository, auth=self._auth, insecure=self._registry_url.scheme == 'http')
+        return DXF(self._registry_host, repository, auth=self._auth, insecure=self._registry_url.scheme == 'http', tlsverify=not self._registry_no_verify)
 
     def add_image(self, data, name, tag):
         # Check for image with same name and tag.

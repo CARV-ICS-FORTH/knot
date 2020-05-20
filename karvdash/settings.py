@@ -204,6 +204,7 @@ if shared_name:
 # Docker registry endpoint
 
 DOCKER_REGISTRY = os.getenv('KARVDASH_DOCKER_REGISTRY', 'http://127.0.0.1:5000')
+DOCKER_REGISTRY_NO_VERIFY = True if os.getenv('KARVDASH_DOCKER_REGISTRY_NO_VERIFY', '') else False
 
 
 # Service templates
