@@ -224,7 +224,7 @@ class ServiceResource(APIResource):
 
             api_base_url = settings.API_BASE_URL
             if not api_base_url:
-                if os.getenv('KARVDASH_HOST') and os.getenv('KARVDASH_PORT'): # Probably running in Kubernetes
+                if os.getenv('KARVDASH_PORT'): # Probably running in Kubernetes
                     api_base_url = 'http://karvdash.default.svc/api'
                 else:
                     service_host = socket.gethostbyname(socket.gethostname())
