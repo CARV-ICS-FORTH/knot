@@ -22,7 +22,7 @@ from django.conf import settings
 from restless.dj import DjangoResource
 from restless.exceptions import NotFound, BadRequest, Conflict
 
-from .models import APIToken
+from .models import APIToken, User
 from .forms import CreateServiceForm
 from .utils.template import Template, FileTemplate
 from .utils.kubernetes import KubernetesClient
@@ -81,6 +81,12 @@ variables:
 '''
 
 class APIResource(DjangoResource):
+    @property
+    def user(self):
+        if getattr(self.request.user, 'is_impersonate', False):
+            return User.objects.get(pk=self.request.user.pk)
+        return self.request.user
+
     def is_authenticated(self):
         if self.request.user and self.request.user.is_authenticated:
             return True
@@ -114,7 +120,7 @@ class ServiceResource(APIResource):
     def list(self):
         kubernetes_client = KubernetesClient()
 
-        service_database_path = os.path.join(settings.SERVICE_DATABASE_DIR, self.request.user.username)
+        service_database_path = os.path.join(settings.SERVICE_DATABASE_DIR, self.user.username)
         if not os.path.exists(service_database_path):
             os.makedirs(service_database_path)
 
@@ -124,11 +130,11 @@ class ServiceResource(APIResource):
                 service_database.append(file_name[:-5])
 
         contents = []
-        ingresses = [i.metadata.name for i in kubernetes_client.list_ingresses(namespace=self.request.user.namespace)]
-        for service in kubernetes_client.list_services(namespace=self.request.user.namespace, label_selector=''):
+        ingresses = [i.metadata.name for i in kubernetes_client.list_ingresses(namespace=self.user.namespace)]
+        for service in kubernetes_client.list_services(namespace=self.user.namespace, label_selector=''):
             name = service.metadata.name
             # ports = [str(p.port) for p in service.spec.ports if p.protocol == 'TCP']
-            url = 'http://%s-%s.%s' % (name, self.request.user.username, settings.INGRESS_DOMAIN) if name in ingresses else None
+            url = 'http://%s-%s.%s' % (name, self.user.username, settings.INGRESS_DOMAIN) if name in ingresses else None
             try:
                 filename = service.metadata.labels['karvdash-template']
                 service_template = FileTemplate(filename).format()
@@ -166,20 +172,20 @@ class ServiceResource(APIResource):
                 setattr(template, name, form.cleaned_data[name])
 
         kubernetes_client = KubernetesClient()
-        if template.singleton and len(kubernetes_client.list_services(namespace=self.request.user.namespace,
+        if template.singleton and len(kubernetes_client.list_services(namespace=self.user.namespace,
                                                                       label_selector='karvdash-template=%s' % template.filename)):
             raise Conflict()
 
         # Resolve naming conflicts.
         name = template.NAME
-        names = [service.metadata.name for service in kubernetes_client.list_services(namespace=self.request.user.namespace, label_selector='')]
+        names = [service.metadata.name for service in kubernetes_client.list_services(namespace=self.user.namespace, label_selector='')]
         while name in names:
             name = form.cleaned_data['NAME'] + '-' + ''.join([random.choice(string.ascii_lowercase) for i in range(4)])
 
         # Set name, hostname, registry, and storage paths.
-        template.NAMESPACE = self.request.user.namespace
+        template.NAMESPACE = self.user.namespace
         template.NAME = name
-        template.HOSTNAME = '%s-%s.%s' % (name, self.request.user.username, settings.INGRESS_DOMAIN)
+        template.HOSTNAME = '%s-%s.%s' % (name, self.user.username, settings.INGRESS_DOMAIN)
         template.REGISTRY = DockerClient(settings.DOCKER_REGISTRY).registry_host
         template.LOCAL = settings.DATA_DOMAINS['local']['dir'].rstrip('/')
         template.REMOTE = settings.DATA_DOMAINS['remote']['dir'].rstrip('/')
@@ -187,7 +193,7 @@ class ServiceResource(APIResource):
 
         # Inject data folders.
         # if settings.DEBUG:
-        #     template.inject_hostpath_volumes(self.request.user.volumes, add_api_settings=True)
+        #     template.inject_hostpath_volumes(self.user.volumes, add_api_settings=True)
 
         # Add template label and values.
         template.inject_service_details()
@@ -196,7 +202,7 @@ class ServiceResource(APIResource):
         template.inject_ingress_auth('karvdash-auth', 'Authentication Required - %s' % settings.DASHBOARD_TITLE, redirect_ssl=settings.SERVICE_REDIRECT_SSL)
 
         # Save yaml.
-        service_database_path = os.path.join(settings.SERVICE_DATABASE_DIR, self.request.user.username)
+        service_database_path = os.path.join(settings.SERVICE_DATABASE_DIR, self.user.username)
         if not os.path.exists(service_database_path):
             os.makedirs(service_database_path)
         service_yaml = os.path.join(service_database_path, '%s.yaml' % name)
@@ -205,16 +211,16 @@ class ServiceResource(APIResource):
 
         # Apply.
         try:
-            if self.request.user.namespace not in [n.metadata.name for n in kubernetes_client.list_namespaces()]:
+            if self.user.namespace not in [n.metadata.name for n in kubernetes_client.list_namespaces()]:
                 namespace_template = Template(NAMESPACE_TEMPLATE)
-                namespace_template.NAME = self.request.user.namespace
+                namespace_template.NAME = self.user.namespace
 
-                namespace_yaml = os.path.join(settings.SERVICE_DATABASE_DIR, '%s-namespace.yaml' % self.request.user.username)
+                namespace_yaml = os.path.join(settings.SERVICE_DATABASE_DIR, '%s-namespace.yaml' % self.user.username)
                 with open(namespace_yaml, 'wb') as f:
                     f.write(namespace_template.yaml.encode())
 
                 kubernetes_client.apply_yaml(namespace_yaml)
-                kubernetes_client.create_docker_registry_secret(self.request.user.namespace, settings.DOCKER_REGISTRY, 'admin@%s' % settings.INGRESS_DOMAIN)
+                kubernetes_client.create_docker_registry_secret(self.user.namespace, settings.DOCKER_REGISTRY, 'admin@%s' % settings.INGRESS_DOMAIN)
 
             api_base_url = settings.API_BASE_URL
             if not api_base_url:
@@ -227,23 +233,23 @@ class ServiceResource(APIResource):
             api_template = Template(TOKEN_CONFIGMAP_TEMPLATE)
             api_template.NAME = 'karvdash-api'
             api_template.BASE_URL = api_base_url
-            api_template.TOKEN = self.request.user.api_token.token # Get or create
+            api_template.TOKEN = self.user.api_token.token # Get or create
 
-            api_yaml = os.path.join(settings.SERVICE_DATABASE_DIR, '%s-api.yaml' % self.request.user.username)
+            api_yaml = os.path.join(settings.SERVICE_DATABASE_DIR, '%s-api.yaml' % self.user.username)
             with open(api_yaml, 'wb') as f:
                 f.write(api_template.yaml.encode())
 
-            kubernetes_client.apply_yaml(api_yaml, namespace=self.request.user.namespace)
+            kubernetes_client.apply_yaml(api_yaml, namespace=self.user.namespace)
 
-            self.request.user.update_kubernetes_credentials(kubernetes_client=kubernetes_client)
-            kubernetes_client.apply_yaml(service_yaml, namespace=self.request.user.namespace)
+            self.user.update_kubernetes_credentials(kubernetes_client=kubernetes_client)
+            kubernetes_client.apply_yaml(service_yaml, namespace=self.user.namespace)
         except:
             raise
 
         service_template = template.format()
         service_template['values'] = template.values
         return {'name': name,
-                'url': 'http://%s-%s.%s' % (name, self.request.user.username, settings.INGRESS_DOMAIN),
+                'url': 'http://%s-%s.%s' % (name, self.user.username, settings.INGRESS_DOMAIN),
                 # 'created': creation_timestamp,
                 'actions': True,
                 'template': service_template}
@@ -255,7 +261,7 @@ class ServiceResource(APIResource):
             raise BadRequest()
         all_pods = True if self.data.get('all_pods') in (1, '1', 'True', 'true') else False
 
-        result = KubernetesClient().exec_command_in_pod(namespace=self.request.user.namespace,
+        result = KubernetesClient().exec_command_in_pod(namespace=self.user.namespace,
                                                         label_selector='app=%s' % name,
                                                         command=self.data['command'],
                                                         all_pods=all_pods)
@@ -265,7 +271,7 @@ class ServiceResource(APIResource):
         name = pk
         kubernetes_client = KubernetesClient()
 
-        service_database_path = os.path.join(settings.SERVICE_DATABASE_DIR, self.request.user.username)
+        service_database_path = os.path.join(settings.SERVICE_DATABASE_DIR, self.user.username)
         if not os.path.exists(service_database_path):
             os.makedirs(service_database_path)
 
@@ -274,7 +280,7 @@ class ServiceResource(APIResource):
             raise NotFound()
         else:
             try:
-                kubernetes_client.delete_yaml(service_yaml, namespace=self.request.user.namespace)
+                kubernetes_client.delete_yaml(service_yaml, namespace=self.user.namespace)
             except:
                 raise
             else:
