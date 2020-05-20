@@ -66,6 +66,7 @@ The following variables can be set:
 | `KARVDASH_ADMIN_PASSWORD`            | The default admin password (default is "admin").                                      |
 | `KARVDASH_DASHBOARD_TITLE`           | The title of the dashboard (default is "Dashboard").                                  |
 | `KARVDASH_DASHBOARD_THEME`           | The theme of the dashboard. Choose between "evolve" and "CARV" (default is "evolve"). |
+| `KARVDASH_ISSUES_URL`                | If set, an option to "Report an issue" is shown in the user menu.                     |
 | `KARVDASH_INGRESS_DOMAIN`            | The domain used by the service (default is "localtest.me").                           |
 | `KARVDASH_SERVICE_REDIRECT_SSL`      | Set to anything to redirect all services to SSL (default is disabled).                |
 | `KARVDASH_DOCKER_REGISTRY`           | The URL of the Docker registry (default is "http://127.0.0.1:5000").                  |

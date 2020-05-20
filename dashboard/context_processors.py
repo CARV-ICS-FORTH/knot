@@ -16,4 +16,5 @@ from django.conf import settings as django_settings
 
 def settings(request):
     return {'dashboard_title': django_settings.DASHBOARD_TITLE,
-            'dashboard_theme': django_settings.DASHBOARD_THEME}
+            'dashboard_theme': django_settings.DASHBOARD_THEME,
+            'issues_url': django_settings.ISSUES_URL}
