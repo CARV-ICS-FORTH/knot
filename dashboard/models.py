@@ -26,6 +26,14 @@ class User(AuthUser):
     class Meta:
         proxy = True
 
+    @classmethod
+    def export_to_htpasswd(cls, htpasswd_dir):
+        if not htpasswd_dir:
+            return
+        with open(os.path.join(htpasswd_dir, 'htpasswd'), 'w') as f:
+            for user in cls.objects.filter(is_active=True):
+                f.write('%s:%s\n' % (user.username, user.password))
+
     @property
     def namespace(self):
         return 'karvdash-%s' % self.username

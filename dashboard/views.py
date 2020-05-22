@@ -438,6 +438,7 @@ def users(request):
                     elif action in ('Promote', 'Demote'):
                         user.is_staff = True if action == 'Promote' else False
                     user.save()
+                    User.export_to_htpasswd(settings.HTPASSWD_EXPORT_DIR)
                     messages.success(request, 'User "%s" %s.' % (username, action.lower() + 'd'))
             else:
                 messages.error(request, 'Invalid username')
@@ -471,6 +472,7 @@ def users(request):
                         messages.error(request, 'Failed to delete user "%s": %s.' % (username, str(e)))
                     else:
                         user.delete()
+                        User.export_to_htpasswd(settings.HTPASSWD_EXPORT_DIR)
                         messages.success(request, 'User "%s" deleted.' % username)
             else:
                 messages.error(request, 'Invalid username')
@@ -554,6 +556,7 @@ def user_change_password(request, username):
         if form.is_valid():
             form.save()
             user.update_kubernetes_credentials()
+            User.export_to_htpasswd(settings.HTPASSWD_EXPORT_DIR)
             messages.success(request, 'Password changed for user "%s".' % username)
             return redirect('users')
     else:
@@ -590,6 +593,7 @@ def change_password(request):
             user = form.save()
             update_session_auth_hash(request, user)
             user.update_kubernetes_credentials()
+            User.export_to_htpasswd(settings.HTPASSWD_EXPORT_DIR)
             messages.success(request, 'Password successfully changed.')
             return redirect(next)
     else:

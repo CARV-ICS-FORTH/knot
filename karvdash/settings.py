@@ -214,6 +214,11 @@ SERVICE_DATABASE_DIR = os.getenv('KARVDASH_SERVICE_DATABASE_DIR', os.path.join(B
 SERVICE_REDIRECT_SSL = True if os.getenv('KARVDASH_SERVICE_REDIRECT_SSL', '') else False
 
 
+# Password file export
+
+HTPASSWD_EXPORT_DIR = os.getenv('KARVDASH_HTPASSWD_EXPORT_DIR')
+
+
 # API URL
 
 API_BASE_URL = os.getenv('KARVDASH_API_BASE_URL')
