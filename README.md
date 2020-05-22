@@ -64,7 +64,7 @@ The following variables can be set:
 | `DJANGO_SECRET`                      | Secret for Django. Use a random string of 50 characters.                              |
 | `DJANGO_DEBUG`                       | Set to anything to enable, empty to disable (default is enabled).                     |
 | `KARVDASH_ADMIN_PASSWORD`            | The default admin password (default is "admin").                                      |
-| `KARVDASH_SERVICE_TEMPLATE_DIR`      | The path to service templates (default is "/app/services")                            |
+| `KARVDASH_SERVICE_TEMPLATE_DIR`      | The path to service templates (default is "/app/templates")                           |
 | `KARVDASH_HTPASSWD_EXPORT_DIR`       | If set, the path to export the htpasswd file in.                                      |
 | `KARVDASH_DASHBOARD_TITLE`           | The title of the dashboard (default is "Dashboard").                                  |
 | `KARVDASH_DASHBOARD_THEME`           | The theme of the dashboard. Choose between "evolve" and "CARV" (default is "evolve"). |

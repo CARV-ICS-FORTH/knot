@@ -209,8 +209,8 @@ DOCKER_REGISTRY_NO_VERIFY = True if os.getenv('KARVDASH_DOCKER_REGISTRY_NO_VERIF
 
 # Service templates
 
-SERVICE_TEMPLATE_DIR = os.getenv('KARVDASH_SERVICE_TEMPLATE_DIR', os.path.join(BASE_DIR, 'services'))
-SERVICE_DATABASE_DIR = os.getenv('KARVDASH_SERVICE_DATABASE_DIR', os.path.join(BASE_DIR, 'servicedb'))
+SERVICE_TEMPLATE_DIR = os.getenv('KARVDASH_SERVICE_TEMPLATE_DIR', os.path.join(BASE_DIR, 'templates'))
+SERVICE_DATABASE_DIR = os.getenv('KARVDASH_SERVICE_DATABASE_DIR', os.path.join(BASE_DIR, 'services'))
 SERVICE_REDIRECT_SSL = True if os.getenv('KARVDASH_SERVICE_REDIRECT_SSL', '') else False
 
 
