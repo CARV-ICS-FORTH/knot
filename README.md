@@ -41,8 +41,8 @@ Edit the `Dockerfile` and set the version of `kubectl` to match your Kubernetes 
 
 Build the image:
 ```
-docker build -t karvdash:1.4 .
-docker tag karvdash:1.4 karvdash:latest
+docker build -t karvdash:1.5 .
+docker tag karvdash:1.5 karvdash:latest
 ```
 
 Run it:
