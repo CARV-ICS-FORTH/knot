@@ -360,6 +360,7 @@ def data(request, path='/'):
 
     # Respond appropriately if the path is not a directory.
     if os.path.isfile(real_path):
+        request.session['data_path'] = os.path.dirname(path) # Save path to folder.
         return FileResponse(open(real_path, 'rb'), as_attachment=True, filename=os.path.basename(real_path))
     if not os.path.isdir(real_path):
         request.session.pop('data_path', None)
