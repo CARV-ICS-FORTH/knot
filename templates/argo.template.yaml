@@ -221,9 +221,172 @@ spec:
         name: workflow-controller
       serviceAccountName: argo
 ---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: argo-events-sa
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: argo-events-role
+rules:
+- apiGroups:
+  - argoproj.io
+  resources:
+  - workflows
+  - workflows/finalizers
+  - workflowtemplates
+  - workflowtemplates/finalizers
+  - gateways
+  - gateways/finalizers
+  - sensors
+  - sensors/finalizers
+  - eventsources
+  - eventsources/finalizers
+  verbs:
+  - create
+  - delete
+  - deletecollection
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - ""
+  resources:
+  - pods
+  - pods/exec
+  - configmaps
+  - secrets
+  - services
+  - events
+  - persistentvolumeclaims
+  verbs:
+  - create
+  - get
+  - list
+  - watch
+  - update
+  - patch
+  - delete
+- apiGroups:
+  - batch
+  resources:
+  - jobs
+  verbs:
+  - create
+  - get
+  - list
+  - watch
+  - update
+  - patch
+  - delete
+- apiGroups:
+  - apps
+  resources:
+  - deployments
+  verbs:
+  - create
+  - get
+  - list
+  - watch
+  - update
+  - patch
+  - delete
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: argo-events-role-binding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: argo-events-role
+subjects:
+- kind: ServiceAccount
+  name: argo-events-sa
+---
+apiVersion: v1
+data:
+  config: |
+    namespace: $NAMESPACE
+kind: ConfigMap
+metadata:
+  name: gateway-controller-configmap
+---
+apiVersion: v1
+data:
+  config: |
+    namespace: $NAMESPACE
+kind: ConfigMap
+metadata:
+  name: sensor-controller-configmap
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gateway-controller
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: gateway-controller
+  template:
+    metadata:
+      labels:
+        app: gateway-controller
+    spec:
+      containers:
+      - env:
+        - name: NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: CONTROLLER_CONFIG_MAP
+          value: gateway-controller-configmap
+        - name: GATEWAY_CLIENT_IMAGE
+          value: argoproj/gateway-client:v0.15.0
+        - name: GATEWAY_IMAGE_REGISTRY
+          value: docker.io
+        - name: GATEWAY_IMAGE_VERSION
+          value: v0.15.0
+        image: argoproj/gateway-controller:v0.15.0
+        name: gateway-controller
+      serviceAccountName: argo-events-sa
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sensor-controller
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sensor-controller
+  template:
+    metadata:
+      labels:
+        app: sensor-controller
+    spec:
+      containers:
+      - env:
+        - name: NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: CONTROLLER_CONFIG_MAP
+          value: sensor-controller-configmap
+        - name: SENSOR_IMAGE
+          value: argoproj/sensor:v0.15.0
+        image: argoproj/sensor-controller:v0.15.0
+        name: sensor-controller
+      serviceAccountName: argo-events-sa
+---
 kind: Template
 name: Argo
-description: Workflow engine
+description: Workflow controller, including event-driven automation
 singleton: yes
 variables:
 - name: NAMESPACE
