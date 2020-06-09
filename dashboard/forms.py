@@ -25,7 +25,9 @@ from .models import User
 validate_docker_name = RegexValidator(r'^[0-9a-z\-\.]*$', 'Only alphanumeric characters, dash, and period are allowed.')
 validate_docker_tag = RegexValidator(r'^[0-9a-zA-Z_\-\.]*$', 'Only alphanumeric characters, dash, underscore, and period are allowed.')
 
-validate_kubernetes_label = RegexValidator(r'^(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])?$', 'Only alphanumeric characters, dash, underscore, and period are allowed.')
+validate_username = RegexValidator(r'^[a-z0-9]+$', 'Only lowercase alphanumeric characters are allowed.')
+
+validate_kubernetes_label = RegexValidator(r'^[a-z0-9]([-a-z0-9]*[a-z0-9])?$', 'Only lowercase alphanumeric characters and dash are allowed.')
 
 class SignUpForm(UserCreationForm):
     email = forms.EmailField(max_length=254, help_text='Required. Please use a valid email address.')
@@ -36,6 +38,8 @@ class SignUpForm(UserCreationForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.fields['username'].validators.append(validate_username)
+        self.fields['username'].help_text = 'Required. 150 characters or fewer. Letters and digits only.'
         self.helper = FormHelper()
         self.helper.layout = Layout(
             'username',
