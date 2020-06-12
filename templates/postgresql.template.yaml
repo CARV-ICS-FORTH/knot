@@ -34,6 +34,7 @@ spec:
 kind: Template
 name: PostgreSQL
 description: Database server
+singleton: yes
 variables:
 - name: NAME
   default: postgresql
