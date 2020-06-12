@@ -1,0 +1,46 @@
+# postgresql.template.yaml
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: $NAME
+spec:
+  type: ClusterIP
+  ports:
+  - port: 5432
+  selector:
+    app: $NAME
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: $NAME-db
+  labels:
+    app: $NAME
+spec:
+  hostname: db
+  subdomain: $NAME
+  containers:
+  - name: $NAME
+    image: postgres:12.3
+    ports:
+    - containerPort: 5432
+    env:
+    - name: POSTGRES_PASSWORD
+      value: $PASSWORD
+    - name: PGDATA
+      value: ${REMOTE}/.postgresql/data
+---
+kind: Template
+name: PostgreSQL
+description: Database server
+variables:
+- name: NAME
+  default: postgresql
+- name: HOSTNAME
+  default: postgresql.example.com
+- name: REMOTE
+  default: /remote
+- name: PASSWORD
+  default: postgres
+  help: Password for postgres user
