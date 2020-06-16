@@ -1,18 +1,5 @@
 # kafka.template.yaml
 
-apiVersion: networking.k8s.io/v1beta1
-kind: Ingress
-metadata:
-  name: $NAME
-spec:
-  rules:
-  - host: $HOSTNAME
-    http:
-      paths:
-      - backend:
-          serviceName: $NAME
-          servicePort: 9000
----
 apiVersion: v1
 kind: Service
 metadata:
@@ -20,68 +7,46 @@ metadata:
 spec:
   type: ClusterIP
   ports:
-  - port: 9000
+  - port: 9092
+    name: kafka
+  - port: 2181
+    name: zeppelin
   selector:
     app: $NAME
-  publishNotReadyAddresses: true
 ---
-apiVersion: v1
-kind: Pod
+apiVersion: apps/v1
+kind: Deployment
 metadata:
-  name: kafdrop
-  labels:
-    app: $NAME
+  name: $NAME
 spec:
-  hostname: kafdrop
-  subdomain: $NAME
-  containers:
-  - name: kafdrop
-    image: obsidiandynamics/kafdrop
-    ports:
-    - containerPort: 9000
-    env:
-    - name: KAFKA_BROKERCONNECT
-      value: kafka.${NAME}:9092
----
-apiVersion: v1
-kind: Pod
-metadata:
-  name: kafka
-  labels:
-    app: $NAME
-spec:
-  hostname: kafka
-  subdomain: $NAME
-  containers:
-  - name: kafka
-    image: bitnami/kafka:latest
-    ports:
-    - containerPort: 9092
-    env:
-    - name: KAFKA_CFG_ZOOKEEPER_CONNECT
-      value: zookeeper.${NAME}:2181
-    - name: KAFKA_CFG_ADVERTISED_LISTENERS
-      value: PLAINTEXT://localhost:9092
-    - name: ALLOW_PLAINTEXT_LISTENER
-      value: "yes"
----
-apiVersion: v1
-kind: Pod
-metadata:
-  name: zookeeper
-  labels:
-    app: $NAME
-spec:
-  hostname: zookeeper
-  subdomain: $NAME
-  containers:
-  - name: zookeeper
-    image: bitnami/zookeeper:latest
-    ports:
-    - containerPort: 2181
-    env:
-    - name: ALLOW_ANONYMOUS_LOGIN
-      value: "yes"
+  replicas: 1
+  selector:
+    matchLabels:
+      app: $NAME
+  template:
+    metadata:
+      labels:
+        app: $NAME
+    spec:
+      containers:
+      - name: kafka
+        image: bitnami/kafka:2.5.0
+        ports:
+        - containerPort: 9092
+        env:
+        - name: KAFKA_CFG_ZOOKEEPER_CONNECT
+          value: localhost:2181
+        - name: KAFKA_CFG_ADVERTISED_LISTENERS
+          value: PLAINTEXT://localhost:9092
+        - name: ALLOW_PLAINTEXT_LISTENER
+          value: "yes"
+      - name: zookeeper
+        image: bitnami/zookeeper:3.6.1
+        ports:
+        - containerPort: 2181
+        env:
+        - name: ALLOW_ANONYMOUS_LOGIN
+          value: "yes"
 ---
 kind: Template
 name: Kafka

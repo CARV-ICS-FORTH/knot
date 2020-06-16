@@ -11,25 +11,30 @@ spec:
   selector:
     app: $NAME
 ---
-apiVersion: v1
-kind: Pod
+apiVersion: apps/v1
+kind: Deployment
 metadata:
-  name: $NAME-db
-  labels:
-    app: $NAME
+  name: $NAME
 spec:
-  hostname: db
-  subdomain: $NAME
-  containers:
-  - name: $NAME
-    image: postgres:12.3
-    ports:
-    - containerPort: 5432
-    env:
-    - name: POSTGRES_PASSWORD
-      value: $PASSWORD
-    - name: PGDATA
-      value: ${REMOTE}/.postgresql/data
+  replicas: 1
+  selector:
+    matchLabels:
+      app: $NAME
+  template:
+    metadata:
+      labels:
+        app: $NAME
+    spec:
+      containers:
+      - name: $NAME
+        image: postgres:12.3
+        ports:
+        - containerPort: 5432
+        env:
+        - name: POSTGRES_PASSWORD
+          value: $PASSWORD
+        - name: PGDATA
+          value: ${REMOTE}/.postgresql/data
 ---
 kind: Template
 name: PostgreSQL
