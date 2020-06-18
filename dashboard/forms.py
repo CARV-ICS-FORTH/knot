@@ -79,6 +79,9 @@ class CreateServiceForm(forms.Form):
                                                 help_text=variable.get('help'),
                                                 **kwargs)
 
+class AddTemplateForm(forms.Form):
+    file_field = forms.FileField(label='Template file to add')
+
 class AddImageForm(forms.Form):
     name = forms.CharField(label='Image name', min_length=1, max_length=128, validators=[validate_docker_name])
     tag = forms.CharField(label='Tag', min_length=1, max_length=128, validators=[validate_docker_tag])

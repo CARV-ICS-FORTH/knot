@@ -13,8 +13,10 @@
 # limitations under the License.
 
 import os
+import random
 import string
 import yaml
+import re
 
 from django.conf import settings
 
@@ -94,18 +96,42 @@ class Template(object):
     def yaml(self):
         return string.Template(yaml.safe_dump_all(self._template)).safe_substitute(self._values)
 
-    def format(self):
-        return {'name': self._name,
-                'description': self._description,
-                'singleton': self._singleton,
-                'variables': self._variables}
+    def format(self, include_data=False):
+        result = {'name': self._name,
+                  'description': self._description,
+                  'singleton': self._singleton,
+                  'variables': self._variables}
+        if include_data:
+            result.update({'data': self.yaml})
+        return result
 
     def __str__(self):
         if self._description:
             return '%s: %s' % (self._name, self._description)
         return self._name
 
-class FileTemplate(Template):
+class ServiceTemplate(Template):
+    def __init__(self, data, identifier=None):
+        super().__init__(data)
+
+        if not identifier:
+            identifier = re.sub(r'[^A-Za-z0-9 ]+', '', self._name.lower())
+            identifier = identifier.replace(' ', '-') + '-' + ''.join([random.choice(string.ascii_lowercase) for i in range(4)])
+        self._identifier = identifier
+
+    @property
+    def identifier(self):
+        return self._identifier
+
+    def inject_service_details(self):
+        super().inject_service_details(template=self.identifier)
+
+    def format(self, include_data=False):
+        result = super().format(include_data=include_data)
+        result.update({'id': self.identifier})
+        return result
+
+class FileTemplate(ServiceTemplate):
     def __init__(self, filename):
         self._filename = filename
 
@@ -115,16 +141,13 @@ class FileTemplate(Template):
         except:
             raise ValueError('Can not read template "%s"' % filename)
 
-        super().__init__(data)
+        super().__init__(data, identifier=filename.split('.')[0])
 
     @property
     def filename(self):
         return self._filename
 
-    def inject_service_details(self):
-        super().inject_service_details(template=self._filename)
-
-    def format(self):
-        result = super().format()
+    def format(self, include_data=False):
+        result = super().format(include_data=include_data)
         result.update({'filename': self._filename})
         return result

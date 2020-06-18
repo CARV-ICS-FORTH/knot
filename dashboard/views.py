@@ -27,8 +27,8 @@ from django.contrib import messages
 from datetime import datetime
 
 from .models import User
-from .forms import SignUpForm, EditUserForm, AddServiceForm, CreateServiceForm, AddImageForm, AddFolderForm, AddFilesForm, AddImageFromFileForm
-from .api import ServiceResource
+from .forms import SignUpForm, EditUserForm, AddServiceForm, CreateServiceForm, AddTemplateForm, AddImageForm, AddFolderForm, AddFilesForm, AddImageFromFileForm
+from .api import ServiceResource, TemplateResource
 from .utils.template import FileTemplate
 from .utils.kubernetes import KubernetesClient
 from .utils.docker import DockerClient
@@ -144,6 +144,83 @@ def service_create(request, file_name=''):
                                                    'form': form,
                                                    'action': 'Create',
                                                    'next': reverse('services')})
+
+@login_required
+def templates(request):
+    # Handle changes.
+    if request.method == 'POST':
+        if 'action' not in request.POST:
+            messages.error(request, 'Invalid action.')
+        # elif request.POST['action'] == 'Add':
+        #     form = AddImageForm(request.POST, request.FILES)
+        #     files = request.FILES.getlist('file_field')
+        #     if form.is_valid():
+        #         try:
+        #             for f in files:
+        #                 docker_client.add_image(f, name, tag)
+        #         except Exception as e:
+        #             messages.error(request, 'Failed to add image: %s.' % str(e))
+        #         else:
+        #             messages.success(request, 'Image "%s:%s" added.' % (name, tag))
+        #     else:
+        #         messages.error(request, 'Failed to add image. Probably invalid characters in name or tag.')
+        # elif request.POST['action'] == 'Delete':
+        #     if not request.user.is_staff:
+        #         messages.error(request, 'Invalid action.')
+        #     else:
+        #         name = request.POST.get('name', None)
+        #         try:
+        #             repository, tag = name.split(':')
+        #         except ValueError:
+        #             messages.error(request, 'Invalid name.')
+        #         else:
+        #             try:
+        #                 docker_client.registry(repository).del_alias(tag)
+        #             except Exception as e:
+        #                 messages.error(request, 'Failed to delete image: %s.' % str(e))
+        #             else:
+        #                 messages.success(request, 'Image "%s" deleted. Run garbage collection in the registry to reclaim space.' % name)
+        else:
+            messages.error(request, 'Invalid action.')
+
+        return redirect('templates')
+
+    # There is no hierarchy here.
+    kubernetes_client = KubernetesClient()
+    trail = [{'name': '<i class="fa fa-university" aria-hidden="true"></i> %s' % kubernetes_client.host}]
+
+    # Fill in the contents.
+    contents = []
+    try:
+        template_resource = TemplateResource()
+        template_resource.request = request
+        contents = template_resource.list()
+    except:
+        raise
+        messages.error(request, 'Can not connect to Kubernetes.')
+
+    # Sort them up.
+    sort_by = request.GET.get('sort_by')
+    if sort_by and sort_by in ('name', 'description', 'singleton'):
+        request.session['services_sort_by'] = sort_by
+    else:
+        sort_by = request.session.get('services_sort_by', 'name')
+    order = request.GET.get('order')
+    if order and order in ('asc', 'desc'):
+        request.session['services_order'] = order
+    else:
+        order = request.session.get('services_order', 'asc')
+
+    contents = sorted(contents,
+                      key=lambda x: x[sort_by],
+                      reverse=True if order == 'desc' else False)
+
+    return render(request, 'dashboard/templates.html', {'title': 'Templates',
+                                                        'trail': trail,
+                                                        'contents': contents,
+                                                        'sort_by': sort_by,
+                                                        'order': order,
+                                                        'add_template_form': AddTemplateForm()})
 
 @login_required
 def images(request):

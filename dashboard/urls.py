@@ -25,6 +25,7 @@ urlpatterns = [
     path('', views.dashboard, name='dashboard'),
     path('services', views.services, name='services'),
     path('service/create/<str:file_name>', views.service_create, name='service_create'),
+    path('templates', views.templates, name='templates'),
     path('images', views.images, name='images'),
     path('data', views.data, name='data'),
     path('data/<path:path>', views.data, name='data'),

@@ -24,7 +24,7 @@ from restless.exceptions import NotFound, BadRequest, Conflict
 
 from .models import APIToken, User
 from .forms import CreateServiceForm
-from .utils.template import Template, FileTemplate
+from .utils.template import Template, ServiceTemplate, FileTemplate
 from .utils.kubernetes import KubernetesClient
 from .utils.docker import DockerClient
 
@@ -287,9 +287,19 @@ class ServiceResource(APIResource):
                 os.unlink(service_yaml)
 
 class TemplateResource(APIResource):
-    http_methods = {'list': {'GET': 'list'}}
+    http_methods = {'list': {'GET': 'list',
+                             'POST': 'add'},
+                    'detail': {'GET': 'get',
+                               'DELETE': 'remove'}}
 
-    def list(self):
+    # def is_debug(self):
+    #     return True
+
+    # def bubble_exceptions(self):
+    #     return True
+
+    @property
+    def templates(self):
         contents = []
         for file_name in os.listdir(settings.SERVICE_TEMPLATE_DIR):
             if not file_name.endswith('.template.yaml'):
@@ -298,8 +308,30 @@ class TemplateResource(APIResource):
             try:
                 template = FileTemplate(file_name)
             except:
-                raise
                 continue
-            contents.append(template.format())
+            contents.append(template)
 
         return contents
+
+    def list(self):
+        return [template.format() for template in self.templates]
+
+    def add(self):
+        try:
+            template = ServiceTemplate(self.data.pop('template'))
+        except:
+            raise BadRequest()
+
+        return template.format()
+
+    def get(self, pk):
+        identifier = pk
+
+        for template in self.templates:
+            if template.identifier == identifier:
+                return template.format(include_data=True)
+        else:
+            raise NotFound()
+
+    def remove(self, pk):
+        pass
