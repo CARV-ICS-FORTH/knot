@@ -23,12 +23,14 @@ data:
     #!/bin/bash -x
     /opt/bitnami/scripts/zookeeper/setup.sh
     mkdir -p ${REMOTE}/.zookeeper/data
+    chown zookeeper:zookeeper ${REMOTE}/.zookeeper/data
     sed -i 's|dataDir=.*|dataDir=${REMOTE}/.zookeeper/data|' /opt/bitnami/zookeeper/conf/zoo.cfg
     /opt/bitnami/scripts/zookeeper/run.sh
   start-kafka.sh: |
     #!/bin/bash -x
     /opt/bitnami/scripts/kafka/setup.sh
     mkdir -p ${REMOTE}/.kafka/data
+    chown kafka:kafka ${REMOTE}/.kafka/data
     sed -i 's|log.dirs=.*|log.dirs=${REMOTE}/.kafka/data|' /opt/bitnami/kafka/config/server.properties
     /opt/bitnami/scripts/kafka/run.sh
 ---
@@ -52,6 +54,8 @@ spec:
         args: ["/start.sh"]
         ports:
         - containerPort: 9092
+        securityContext:
+          runAsUser: 0
         env:
         - name: KAFKA_CFG_ZOOKEEPER_CONNECT
           value: localhost:2181
@@ -68,6 +72,8 @@ spec:
         args: ["/start.sh"]
         ports:
         - containerPort: 2181
+        securityContext:
+          runAsUser: 0
         env:
         - name: ALLOW_ANONYMOUS_LOGIN
           value: "yes"
