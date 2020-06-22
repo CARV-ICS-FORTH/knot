@@ -22,7 +22,7 @@ import re
 
 from django.conf import settings
 from restless.dj import DjangoResource
-from restless.exceptions import NotFound, BadRequest, Conflict
+from restless.exceptions import NotFound, BadRequest, Conflict, Forbidden
 
 from .models import APIToken, User
 from .forms import CreateServiceForm
@@ -143,14 +143,10 @@ class ServiceResource(APIResource):
                     'detail': {'POST': 'execute',
                                'DELETE': 'delete'}}
 
-    def _get_template(self, identifier):
+    def get_template(self, identifier):
         template_resource = TemplateResource()
         template_resource.request = self.request
-        for template in template_resource.templates:
-            if template.identifier == identifier:
-                return template
-
-        return None
+        return template_resource.get_template(identifier)
 
     def list(self):
         kubernetes_client = KubernetesClient()
@@ -171,7 +167,7 @@ class ServiceResource(APIResource):
             # ports = [str(p.port) for p in service.spec.ports if p.protocol == 'TCP']
             url = 'http://%s-%s.%s' % (name, self.user.username, settings.INGRESS_DOMAIN) if name in ingresses else None
             try:
-                service_template = self._get_template(service.metadata.labels['karvdash-template']).format()
+                service_template = self.get_template(service.metadata.labels['karvdash-template']).format()
             except:
                 service_template = None
             if service_template:
@@ -199,7 +195,7 @@ class ServiceResource(APIResource):
             except:
                 raise BadRequest()
 
-        template = self._get_template(identifier)
+        template = self.get_template(identifier)
         if not template:
             raise NotFound()
 
@@ -335,6 +331,12 @@ class TemplateResource(APIResource):
                     'detail': {'GET': 'get',
                                'DELETE': 'remove'}}
 
+    def get_template(self, identifier):
+        for template in self.templates:
+            if template.identifier == identifier:
+                return template
+        return None
+
     @property
     def templates(self):
         contents = []
@@ -392,19 +394,20 @@ class TemplateResource(APIResource):
     def get(self, pk):
         identifier = pk
 
-        for template in self.templates:
-            if template.identifier == identifier:
-                return template.format(include_data=True)
-        else:
+        template = self.get_template(identifier)
+        if not template:
             raise NotFound()
+
+        return template.format(include_data=True)
 
     def remove(self, pk):
         identifier = pk
 
-        for template in self.templates:
-            if template.identifier == identifier and type(template) == ServiceTemplate:
-                kubernetes_client = KubernetesClient()
-                kubernetes_client.delete_crd(group='karvdash.carv.ics.forth.gr', version='v1', namespace=self.user.namespace, plural='templates', name=template.identifier)
-                break
-        else:
+        template = self.get_template(identifier)
+        if not template:
             raise NotFound()
+
+        if type(template) == FileTemplate:
+            raise Forbidden()
+        kubernetes_client = KubernetesClient()
+        kubernetes_client.delete_crd(group='karvdash.carv.ics.forth.gr', version='v1', namespace=self.user.namespace, plural='templates', name=template.identifier)

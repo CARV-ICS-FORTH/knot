@@ -26,6 +26,7 @@ urlpatterns = [
     path('services', views.services, name='services'),
     path('service/create/<str:identifier>', views.service_create, name='service_create'),
     path('templates', views.templates, name='templates'),
+    path('template/<str:identifier>', views.template_download, name='template_download'),
     path('images', views.images, name='images'),
     path('data', views.data, name='data'),
     path('data/<path:path>', views.data, name='data'),
@@ -36,7 +37,7 @@ urlpatterns = [
     path('signup', views.signup, name='signup'),
     path('login', auth_views.LoginView.as_view(template_name='dashboard/login.html'), name='login'),
     path('change_password', views.change_password, name='change_password'),
-    path('logout', views.logout, {'next': settings.LOGOUT_REDIRECT_URL}, name='logout'),
+    path('logout', views.logout, {'next_url': settings.LOGOUT_REDIRECT_URL}, name='logout'),
 
     path('webhooks/mutate', webhooks.mutate),
 
