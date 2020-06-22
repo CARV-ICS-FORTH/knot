@@ -26,6 +26,7 @@ class KubernetesClient(object):
         self._config_loaded = False
         self._core_client = None
         self._extensions_client = None
+        self._custom_objects_client = None
 
     def _load_config(self):
         if self._config_loaded:
@@ -51,6 +52,13 @@ class KubernetesClient(object):
         return self._extensions_client
 
     @property
+    def custom_objects_client(self):
+        if not self._custom_objects_client:
+            self._load_config()
+            self._custom_objects_client = kubernetes.client.CustomObjectsApi()
+        return self._custom_objects_client
+
+    @property
     def host(self):
         return self.core_client.api_client.configuration.host
 
@@ -62,6 +70,9 @@ class KubernetesClient(object):
 
     def list_ingresses(self, namespace):
         return self.extensions_client.list_namespaced_ingress(namespace=namespace).items
+
+    def list_crds(self, group, version, namespace, plural):
+        return self.custom_objects_client.list_namespaced_custom_object(group=group, version=version, namespace=namespace, plural=plural)['items']
 
     def apply_yaml(self, yaml_file, namespace=None):
         command = 'kubectl apply -f %s' % yaml_file
@@ -76,6 +87,12 @@ class KubernetesClient(object):
             command += ' -n %s' % namespace
         if os.system(command) < 0:
             raise SystemError('Can not delete service file')
+
+    def apply_crd(self, group, version, namespace, plural, yaml):
+        return self.custom_objects_client.create_namespaced_custom_object(group=group, version=version, namespace=namespace, plural=plural, body=yaml)
+
+    def delete_crd(self, group, version, namespace, plural, name):
+        return self.custom_objects_client.delete_namespaced_custom_object(group=group, version=version, namespace=namespace, plural=plural, name=name, body={})
 
     def delete_secret(self, namespace, name):
         os.system('kubectl delete -n %s secret %s' % (namespace, name))

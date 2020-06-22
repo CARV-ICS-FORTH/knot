@@ -13,10 +13,8 @@
 # limitations under the License.
 
 import os
-import random
 import string
 import yaml
-import re
 
 from django.conf import settings
 
@@ -25,6 +23,7 @@ from .inject import inject_hostpath_volumes, inject_service_details, inject_ingr
 
 class Template(object):
     def __init__(self, data):
+        self._data = data
         self._name = ''
         self._description = ''
         self._singleton = False
@@ -73,6 +72,10 @@ class Template(object):
         inject_ingress_auth(self._template, secret, realm, redirect_ssl=redirect_ssl)
 
     @property
+    def data(self):
+        return self._data
+
+    @property
     def name(self):
         return self._name
 
@@ -102,7 +105,7 @@ class Template(object):
                   'singleton': self._singleton,
                   'variables': self._variables}
         if include_data:
-            result.update({'data': self.yaml})
+            result.update({'data': self.data if type(self.data) == str else self.data.decode()})
         return result
 
     def __str__(self):
@@ -114,14 +117,15 @@ class ServiceTemplate(Template):
     def __init__(self, data, identifier=None):
         super().__init__(data)
 
-        if not identifier:
-            identifier = re.sub(r'[^A-Za-z0-9 ]+', '', self._name.lower())
-            identifier = identifier.replace(' ', '-') + '-' + ''.join([random.choice(string.ascii_lowercase) for i in range(4)])
         self._identifier = identifier
 
     @property
     def identifier(self):
         return self._identifier
+
+    @identifier.setter
+    def identifier(self, value):
+        self._identifier = value
 
     def inject_service_details(self):
         super().inject_service_details(template=self.identifier)

@@ -14,6 +14,7 @@
 
 import os
 import requests
+import base64
 
 try:
     from configparser import ConfigParser
@@ -168,7 +169,7 @@ class API:
         :returns: The template created
         """
 
-        parameters = {'data': data if type(data) == str else data.decode('utf-8')}
+        parameters = {'data': base64.b64encode(data).decode()}
         r = requests.post(self.base_url + '/templates/', json=parameters, headers=self._headers)
         r.raise_for_status()
         return r.json()
@@ -185,7 +186,7 @@ class API:
         r.raise_for_status()
         return r.json()
 
-    def remove_service(self, identifier):
+    def remove_template(self, identifier):
         """Remove a template.
 
         :param identifier: the template identifier

@@ -16,7 +16,9 @@ import os
 import random
 import string
 import json
+import yaml
 import socket
+import re
 
 from django.conf import settings
 from restless.dj import DjangoResource
@@ -27,6 +29,7 @@ from .forms import CreateServiceForm
 from .utils.template import Template, ServiceTemplate, FileTemplate
 from .utils.kubernetes import KubernetesClient
 from .utils.docker import DockerClient
+from .utils.base64 import base64_encode, base64_decode
 
 
 NAMESPACE_TEMPLATE = '''
@@ -80,7 +83,30 @@ variables:
   default: ""
 '''
 
+SERVICE_TEMPLATE_TEMPLATE = '''
+apiVersion: karvdash.carv.ics.forth.gr/v1
+kind: Template
+metadata:
+  name: $NAME
+spec:
+  data: $DATA
+---
+kind: Template
+name: ServiceTemplateTemplate
+variables:
+- name: NAME
+  default: template
+- name: DATA
+  default: ""
+'''
+
 class APIResource(DjangoResource):
+    # def is_debug(self):
+    #     return True
+
+    # def bubble_exceptions(self):
+    #     return True
+
     @property
     def user(self):
         if getattr(self.request.user, 'is_impersonate', False):
@@ -292,12 +318,6 @@ class TemplateResource(APIResource):
                     'detail': {'GET': 'get',
                                'DELETE': 'remove'}}
 
-    # def is_debug(self):
-    #     return True
-
-    # def bubble_exceptions(self):
-    #     return True
-
     @property
     def templates(self):
         contents = []
@@ -311,6 +331,18 @@ class TemplateResource(APIResource):
                 continue
             contents.append(template)
 
+        kubernetes_client = KubernetesClient()
+        try:
+            service_templates = kubernetes_client.list_crds(group='karvdash.carv.ics.forth.gr', version='v1', namespace=self.user.namespace, plural='templates')
+            for service_template in service_templates:
+                try:
+                    template = ServiceTemplate(base64_decode(service_template['spec']['data']), identifier=service_template['metadata']['name'])
+                except:
+                    continue
+                contents.append(template)
+        except:
+            pass
+
         return contents
 
     def list(self):
@@ -318,9 +350,25 @@ class TemplateResource(APIResource):
 
     def add(self):
         try:
-            template = ServiceTemplate(self.data.pop('template'))
+            data = base64_decode(self.data.pop('data'))
+            template = ServiceTemplate(data)
         except:
             raise BadRequest()
+
+        identifier = re.sub(r'[^A-Za-z0-9 ]+', '', template.name.lower())
+        identifiers = [template.identifier for template in self.templates]
+        while True:
+            identifier = identifier.replace(' ', '-') + '-' + ''.join([random.choice(string.ascii_lowercase) for i in range(4)])
+            if identifier not in identifiers:
+                template.identifier = identifier
+                break
+
+        service_template = Template(SERVICE_TEMPLATE_TEMPLATE)
+        service_template.NAME = template.identifier
+        service_template.DATA = base64_encode(data)
+
+        kubernetes_client = KubernetesClient()
+        kubernetes_client.apply_crd(group='karvdash.carv.ics.forth.gr', version='v1', namespace=self.user.namespace, plural='templates', yaml=yaml.load(service_template.yaml, Loader=yaml.FullLoader))
 
         return template.format()
 
@@ -334,4 +382,12 @@ class TemplateResource(APIResource):
             raise NotFound()
 
     def remove(self, pk):
-        pass
+        identifier = pk
+
+        for template in self.templates:
+            if template.identifier == identifier and type(template) == ServiceTemplate:
+                kubernetes_client = KubernetesClient()
+                kubernetes_client.delete_crd(group='karvdash.carv.ics.forth.gr', version='v1', namespace=self.user.namespace, plural='templates', name=template.identifier)
+                break
+        else:
+            raise NotFound()
