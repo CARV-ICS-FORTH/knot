@@ -16,17 +16,20 @@ import os
 import random
 import string
 import json
+import yaml
 import socket
+import re
 
 from django.conf import settings
 from restless.dj import DjangoResource
-from restless.exceptions import NotFound, BadRequest, Conflict
+from restless.exceptions import NotFound, BadRequest, Conflict, Forbidden
 
 from .models import APIToken, User
 from .forms import CreateServiceForm
-from .utils.template import Template, FileTemplate
+from .utils.template import Template, ServiceTemplate, FileTemplate
 from .utils.kubernetes import KubernetesClient
 from .utils.docker import DockerClient
+from .utils.base64 import base64_encode, base64_decode
 
 
 NAMESPACE_TEMPLATE = '''
@@ -70,7 +73,7 @@ data:
     token = $TOKEN
 ---
 kind: Template
-name: TokenConfigMapTemplate
+name: TokenConfigMap
 variables:
 - name: NAME
   default: user
@@ -80,7 +83,30 @@ variables:
   default: ""
 '''
 
+SERVICE_TEMPLATE_TEMPLATE = '''
+apiVersion: karvdash.carv.ics.forth.gr/v1
+kind: Template
+metadata:
+  name: $NAME
+spec:
+  data: $DATA
+---
+kind: Template
+name: ServiceTemplate
+variables:
+- name: NAME
+  default: template
+- name: DATA
+  default: ""
+'''
+
 class APIResource(DjangoResource):
+    # def is_debug(self):
+    #     return True
+
+    # def bubble_exceptions(self):
+    #     return True
+
     @property
     def user(self):
         if getattr(self.request.user, 'is_impersonate', False):
@@ -117,6 +143,11 @@ class ServiceResource(APIResource):
                     'detail': {'POST': 'execute',
                                'DELETE': 'delete'}}
 
+    def get_template(self, identifier):
+        template_resource = TemplateResource()
+        template_resource.request = self.request
+        return template_resource.get_template(identifier)
+
     def list(self):
         kubernetes_client = KubernetesClient()
 
@@ -136,8 +167,7 @@ class ServiceResource(APIResource):
             # ports = [str(p.port) for p in service.spec.ports if p.protocol == 'TCP']
             url = 'http://%s-%s.%s' % (name, self.user.username, settings.INGRESS_DOMAIN) if name in ingresses else None
             try:
-                filename = service.metadata.labels['karvdash-template']
-                service_template = FileTemplate(filename).format()
+                service_template = self.get_template(service.metadata.labels['karvdash-template']).format()
             except:
                 service_template = None
             if service_template:
@@ -155,9 +185,18 @@ class ServiceResource(APIResource):
         return contents
 
     def create(self):
-        try:
-            template = FileTemplate(self.data.pop('filename'))
-        except:
+        # Backwards compatibility.
+        filename = self.data.pop('filename', None)
+        if filename:
+            identifier = filename + '.template.yaml'
+        else:
+            try:
+                identifier = self.data.pop('id')
+            except:
+                raise BadRequest()
+
+        template = self.get_template(identifier)
+        if not template:
             raise NotFound()
 
         form = CreateServiceForm(self.data, variables=template.variables)
@@ -173,7 +212,7 @@ class ServiceResource(APIResource):
 
         kubernetes_client = KubernetesClient()
         if template.singleton and len(kubernetes_client.list_services(namespace=self.user.namespace,
-                                                                      label_selector='karvdash-template=%s' % template.filename)):
+                                                                      label_selector='karvdash-template=%s' % template.identifier)):
             raise Conflict()
 
         # Resolve naming conflicts.
@@ -287,9 +326,19 @@ class ServiceResource(APIResource):
                 os.unlink(service_yaml)
 
 class TemplateResource(APIResource):
-    http_methods = {'list': {'GET': 'list'}}
+    http_methods = {'list': {'GET': 'list',
+                             'POST': 'add'},
+                    'detail': {'GET': 'get',
+                               'DELETE': 'remove'}}
 
-    def list(self):
+    def get_template(self, identifier):
+        for template in self.templates:
+            if template.identifier == identifier:
+                return template
+        return None
+
+    @property
+    def templates(self):
         contents = []
         for file_name in os.listdir(settings.SERVICE_TEMPLATE_DIR):
             if not file_name.endswith('.template.yaml'):
@@ -298,8 +347,67 @@ class TemplateResource(APIResource):
             try:
                 template = FileTemplate(file_name)
             except:
-                raise
                 continue
-            contents.append(template.format())
+            contents.append(template)
+
+        kubernetes_client = KubernetesClient()
+        try:
+            service_templates = kubernetes_client.list_crds(group='karvdash.carv.ics.forth.gr', version='v1', namespace=self.user.namespace, plural='templates')
+            for service_template in service_templates:
+                try:
+                    template = ServiceTemplate(base64_decode(service_template['spec']['data']), identifier=service_template['metadata']['name'])
+                except:
+                    continue
+                contents.append(template)
+        except:
+            pass
 
         return contents
+
+    def list(self):
+        return [template.format() for template in self.templates]
+
+    def add(self):
+        try:
+            data = base64_decode(self.data.pop('data'))
+            template = ServiceTemplate(data)
+        except:
+            raise BadRequest()
+
+        identifier = re.sub(r'[^A-Za-z0-9 ]+', '', template.name.lower())
+        identifiers = [template.identifier for template in self.templates]
+        while True:
+            identifier = identifier.replace(' ', '-') + '-' + ''.join([random.choice(string.ascii_lowercase) for i in range(4)])
+            if identifier not in identifiers:
+                template.identifier = identifier
+                break
+
+        service_template = Template(SERVICE_TEMPLATE_TEMPLATE)
+        service_template.NAME = template.identifier
+        service_template.DATA = base64_encode(data)
+
+        kubernetes_client = KubernetesClient()
+        kubernetes_client.apply_crd(group='karvdash.carv.ics.forth.gr', version='v1', namespace=self.user.namespace, plural='templates', yaml=yaml.load(service_template.yaml, Loader=yaml.FullLoader))
+
+        return template.format()
+
+    def get(self, pk):
+        identifier = pk
+
+        template = self.get_template(identifier)
+        if not template:
+            raise NotFound()
+
+        return template.format(include_data=True)
+
+    def remove(self, pk):
+        identifier = pk
+
+        template = self.get_template(identifier)
+        if not template:
+            raise NotFound()
+
+        if type(template) == FileTemplate:
+            raise Forbidden()
+        kubernetes_client = KubernetesClient()
+        kubernetes_client.delete_crd(group='karvdash.carv.ics.forth.gr', version='v1', namespace=self.user.namespace, plural='templates', name=template.identifier)

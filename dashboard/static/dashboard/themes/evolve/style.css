@@ -61,3 +61,8 @@ table tbody tr:hover td .btn {
 .asteriskField {
   display: none;
 }
+a.dropdown-item.btn-sm:hover,
+a.dropdown-item.btn-sm:active,
+a.dropdown-item.btn-sm:focus {
+  color: #6c757d!important;
+}

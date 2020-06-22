@@ -14,6 +14,7 @@
 
 import os
 import requests
+import base64
 
 try:
     from configparser import ConfigParser
@@ -92,19 +93,19 @@ class API:
         r.raise_for_status()
         return r.json()
 
-    def create_service(self, filename, variables):
+    def create_service(self, identifier, variables):
         """Create/start a service.
 
-        :param filename: the template filename
+        :param identifier: the template identifier
         :param variables: template variables as key-value pairs (provide at least a ``name`` key)
-        :type filename: string
+        :type identifier: string
         :type variables: dictionary
         :returns: The service created
         """
 
-        data = {k.upper(): v for k, v in variables.items()}
-        data['filename'] = filename
-        r = requests.post(self.base_url + '/services/', json=data, headers=self._headers)
+        parameters = {k.upper(): v for k, v in variables.items()}
+        parameters['id'] = identifier
+        r = requests.post(self.base_url + '/services/', json=parameters, headers=self._headers)
         r.raise_for_status()
         return r.json()
 
@@ -118,9 +119,9 @@ class API:
         :returns: A list of results
         """
 
-        data = {'command': command,
-                'all_pods': 1 if all_pods else 0}
-        r = requests.post(self.base_url + '/services/%s/' % name, json=data, headers=self._headers)
+        parameters = {'command': command,
+                      'all_pods': 1 if all_pods else 0}
+        r = requests.post(self.base_url + '/services/%s/' % name, json=parameters, headers=self._headers)
         r.raise_for_status()
         return r.json()
 
@@ -141,20 +142,56 @@ class API:
 
         Each template is represented with a dictionary containing the following keys:
 
-        ===============  ================  =========================================================
+        ===============  ================  ================================================================
         Key              Type              Description
-        ---------------  ----------------  ---------------------------------------------------------
-        ``filename``     <string>          The template filename
+        ---------------  ----------------  ----------------------------------------------------------------
+        ``id``           <string>          The template identifier
         ``name``         <string>          The template name as shown in the dashboard
         ``description``  <string>          The template description as shown in the dashboard
         ``singleton``    <boolean>         ``True`` if only one instance can be running
         ``variables``    <dictionary>      Template variables
         ``values``       <dictionary>      Instance values for template variables (included
-
                                            when template is returned as part of a service)
-        ===============  ================  =========================================================
+        ``filename``     <string>          The template filename (included for system templates)
+        ``data``         <string>          The actual template (included when requesting a single template)
+        ===============  ================  ================================================================
         """
 
         r = requests.get(self.base_url + '/templates/', headers=self._headers)
         r.raise_for_status()
         return r.json()
+
+    def add_template(self, data):
+        """Add a template.
+
+        :param data: the template in YAML format
+        :type data: string
+        :returns: The template created
+        """
+
+        parameters = {'data': base64.b64encode(data).decode()}
+        r = requests.post(self.base_url + '/templates/', json=parameters, headers=self._headers)
+        r.raise_for_status()
+        return r.json()
+
+    def get_template(self, identifier):
+        """Get template data.
+
+        :param identifier: the template identifier
+        :type identifier: string
+        :returns: The template including data
+        """
+
+        r = requests.get(self.base_url + '/templates/%s/' % identifier, headers=self._headers)
+        r.raise_for_status()
+        return r.json()
+
+    def remove_template(self, identifier):
+        """Remove a template.
+
+        :param identifier: the template identifier
+        :type identifier: string
+        """
+
+        r = requests.delete(self.base_url + '/templates/%s/' % identifier, headers=self._headers)
+        r.raise_for_status()

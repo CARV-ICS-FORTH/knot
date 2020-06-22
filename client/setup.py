@@ -3,7 +3,7 @@
 from setuptools import setup
 
 setup(name='karvdash-client',
-      version='1.2',
+      version='1.3',
       description='Client to the karvdash (Kubernetes CARV Dashboard) API',
       url='https://www.ics.forth.gr/carv/',
       author='FORTH-ICS',

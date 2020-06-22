@@ -37,6 +37,11 @@ Optionally, apply `docker-registry-htpasswd.yaml` instead of `docker-registry.ya
 
 ## Karvdash
 
+Create the Karvdash CRDs:
+```
+kubectl apply -f karvdash-crd.yaml
+```
+
 Create a 1 GB persistent volume claim for Karvdash:
 ```
 kubectl apply -f karvdash-pvc.yaml
@@ -74,7 +79,7 @@ kubectl apply -f karvdash-maw.yaml
 
 You also need to apply some custom resource definitions for service templates used in Karvdash:
 ```
-kubectl apply -f argo.yaml
+kubectl apply -f argo-crd.yaml
 ```
 
 To enforce namespace isolation for service accounts, you may have to delete the `docker-for-desktop-binding` cluste role binding, with (details [here](https://github.com/docker/for-mac/issues/3694)):

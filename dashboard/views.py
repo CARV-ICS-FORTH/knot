@@ -15,9 +15,10 @@
 import os
 import shutil
 import restless
+import base64
 
 from django.shortcuts import render, redirect, reverse
-from django.http import FileResponse
+from django.http import HttpResponse, FileResponse
 from django.conf import settings
 from django.contrib.auth import logout as auth_logout, update_session_auth_hash
 from django.contrib.auth.decorators import login_required
@@ -27,8 +28,8 @@ from django.contrib import messages
 from datetime import datetime
 
 from .models import User
-from .forms import SignUpForm, EditUserForm, AddServiceForm, CreateServiceForm, AddImageForm, AddFolderForm, AddFilesForm, AddImageFromFileForm
-from .api import ServiceResource
+from .forms import SignUpForm, EditUserForm, AddServiceForm, CreateServiceForm, AddTemplateForm, AddImageForm, AddFolderForm, AddFilesForm, AddImageFromFileForm
+from .api import ServiceResource, TemplateResource
 from .utils.template import FileTemplate
 from .utils.kubernetes import KubernetesClient
 from .utils.docker import DockerClient
@@ -46,10 +47,10 @@ def services(request):
         if 'action' not in request.POST:
             messages.error(request, 'Invalid action.')
         elif request.POST['action'] == 'Create':
-            form = AddServiceForm(request.POST)
+            form = AddServiceForm(request.POST, request=request)
             if form.is_valid():
-                file_name = form.cleaned_data['file_name']
-                return redirect('service_create', file_name)
+                identifier = form.cleaned_data['id']
+                return redirect('service_create', identifier)
             else:
                 messages.error(request, 'Failed to create service. Probably invalid service name.')
         elif request.POST['action'] == 'Remove':
@@ -104,14 +105,17 @@ def services(request):
                                                        'contents': contents,
                                                        'sort_by': sort_by,
                                                        'order': order,
-                                                       'add_service_form': AddServiceForm()})
+                                                       'add_service_form': AddServiceForm(request=request)})
 
 @login_required
-def service_create(request, file_name=''):
-    # Validate given file name.
-    try:
-        template = FileTemplate(file_name)
-    except:
+def service_create(request, identifier=''):
+    next_view = request.GET.get('next', 'services')
+
+    # Validate given identifier.
+    template_resource = TemplateResource()
+    template_resource.request = request
+    template = template_resource.get_template(identifier)
+    if not template:
         messages.error(request, 'Invalid service.')
         return redirect('services')
 
@@ -120,7 +124,7 @@ def service_create(request, file_name=''):
         form = CreateServiceForm(request.POST, variables=template.variables, all_required=True)
         if form.is_valid():
             data = request.POST.dict()
-            data['filename'] = file_name
+            data['id'] = identifier
 
             service_resource = ServiceResource()
             service_resource.request = request
@@ -131,7 +135,6 @@ def service_create(request, file_name=''):
                 messages.warning(request, 'There can be only one "%s" service running.' % template.name)
                 return redirect('services')
             except Exception as e:
-                raise
                 messages.error(request, 'Can not create service: %s' % str(e))
             else:
                 messages.success(request, 'Service "%s" created.' % service['name'])
@@ -143,7 +146,107 @@ def service_create(request, file_name=''):
     return render(request, 'dashboard/form.html', {'title': 'Create Service',
                                                    'form': form,
                                                    'action': 'Create',
-                                                   'next': reverse('services')})
+                                                   'next': reverse(next_view)})
+
+@login_required
+def templates(request):
+    # Handle changes.
+    if request.method == 'POST':
+        if 'action' not in request.POST:
+            messages.error(request, 'Invalid action.')
+        elif request.POST['action'] == 'Add':
+            form = AddTemplateForm(request.POST, request.FILES)
+            files = request.FILES.getlist('file_field')
+            if form.is_valid():
+                data = request.POST.dict()
+                for f in files:
+                    data['data'] = base64.b64encode(f.read())
+
+                template_resource = TemplateResource()
+                template_resource.request = request
+                template_resource.data = data
+                try:
+                    template = template_resource.add()
+                except restless.exceptions.BadRequest:
+                    messages.error(request, 'Can not add template. Probably invalid file format.')
+                    return redirect('templates')
+                except Exception as e:
+                    messages.error(request, 'Can not add template: %s' % str(e))
+                else:
+                    messages.success(request, 'Template "%s" added.' % template['name'])
+            else:
+                messages.error(request, 'Failed to add template.')
+        elif request.POST['action'] == 'Delete':
+            identifier = request.POST.get('id', None)
+            if identifier:
+                template_resource = TemplateResource()
+                template_resource.request = request
+                template = template_resource.get_template(identifier)
+                if not template:
+                    messages.error(request, 'Template "%s" not found.' % identifier)
+                    return redirect('templates')
+
+                try:
+                    template_resource.remove(identifier)
+                except Exception as e:
+                    raise
+                    messages.error(request, 'Can not delete template "%s": %s' % (template.name, str(e)))
+                else:
+                    messages.success(request, 'Template "%s" deleted.' % template.name)
+        else:
+            messages.error(request, 'Invalid action.')
+
+        return redirect('templates')
+
+    # There is no hierarchy here.
+    kubernetes_client = KubernetesClient()
+    trail = [{'name': '<i class="fa fa-university" aria-hidden="true"></i> %s' % kubernetes_client.host}]
+
+    # Fill in the contents.
+    contents = []
+    try:
+        template_resource = TemplateResource()
+        template_resource.request = request
+        contents = template_resource.list()
+    except:
+        messages.error(request, 'Can not connect to Kubernetes.')
+
+    # Sort them up.
+    sort_by = request.GET.get('sort_by')
+    if sort_by and sort_by in ('name', 'description', 'singleton'):
+        request.session['services_sort_by'] = sort_by
+    else:
+        sort_by = request.session.get('services_sort_by', 'name')
+    order = request.GET.get('order')
+    if order and order in ('asc', 'desc'):
+        request.session['services_order'] = order
+    else:
+        order = request.session.get('services_order', 'asc')
+
+    contents = sorted(contents,
+                      key=lambda x: x[sort_by],
+                      reverse=True if order == 'desc' else False)
+
+    return render(request, 'dashboard/templates.html', {'title': 'Templates',
+                                                        'trail': trail,
+                                                        'contents': contents,
+                                                        'sort_by': sort_by,
+                                                        'order': order,
+                                                        'add_template_form': AddTemplateForm()})
+
+@login_required
+def template_download(request, identifier):
+    # Validate given identifier.
+    template_resource = TemplateResource()
+    template_resource.request = request
+    template = template_resource.get_template(identifier)
+    if not template:
+        messages.error(request, 'Invalid service.')
+        return redirect('services')
+
+    response = HttpResponse(template.data, content_type='application/x-yaml')
+    response['Content-Disposition'] = 'attachment; filename="%s.template.yaml"' % template.identifier
+    return response
 
 @login_required
 def images(request):
@@ -586,7 +689,7 @@ def signup(request):
 
 @login_required
 def change_password(request):
-    next = request.GET.get('next', settings.LOGIN_REDIRECT_URL)
+    next_url = request.GET.get('next', settings.LOGIN_REDIRECT_URL)
 
     if request.method == 'POST':
         form = PasswordChangeForm(request.user, request.POST)
@@ -596,16 +699,16 @@ def change_password(request):
             user.update_kubernetes_credentials()
             User.export_to_htpasswd(settings.HTPASSWD_EXPORT_DIR)
             messages.success(request, 'Password successfully changed.')
-            return redirect(next)
+            return redirect(next_url)
     else:
         form = PasswordChangeForm(request.user)
 
     return render(request, 'dashboard/form.html', {'title': 'Change Password',
                                                    'form': form,
                                                    'action': 'Change',
-                                                   'next': next})
+                                                   'next': next_url})
 
 @login_required
-def logout(request, next):
+def logout(request, next_url):
     auth_logout(request)
-    return redirect(next)
+    return redirect(next_url)
