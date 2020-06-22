@@ -46,10 +46,10 @@ def services(request):
         if 'action' not in request.POST:
             messages.error(request, 'Invalid action.')
         elif request.POST['action'] == 'Create':
-            form = AddServiceForm(request.POST)
+            form = AddServiceForm(request.POST, request=request)
             if form.is_valid():
-                file_name = form.cleaned_data['file_name']
-                return redirect('service_create', file_name)
+                identifier = form.cleaned_data['id']
+                return redirect('service_create', identifier)
             else:
                 messages.error(request, 'Failed to create service. Probably invalid service name.')
         elif request.POST['action'] == 'Remove':
@@ -104,14 +104,17 @@ def services(request):
                                                        'contents': contents,
                                                        'sort_by': sort_by,
                                                        'order': order,
-                                                       'add_service_form': AddServiceForm()})
+                                                       'add_service_form': AddServiceForm(request=request)})
 
 @login_required
-def service_create(request, file_name=''):
-    # Validate given file name.
-    try:
-        template = FileTemplate(file_name)
-    except:
+def service_create(request, identifier=''):
+    # Validate given identifier.
+    template_resource = TemplateResource()
+    template_resource.request = request
+    for template in template_resource.templates:
+        if template.identifier == identifier:
+            break
+    else:
         messages.error(request, 'Invalid service.')
         return redirect('services')
 
@@ -120,7 +123,7 @@ def service_create(request, file_name=''):
         form = CreateServiceForm(request.POST, variables=template.variables, all_required=True)
         if form.is_valid():
             data = request.POST.dict()
-            data['filename'] = file_name
+            data['id'] = identifier
 
             service_resource = ServiceResource()
             service_resource.request = request

@@ -55,14 +55,17 @@ class SignUpForm(UserCreationForm):
             raise ValidationError('A user with that email already exists.')
         return email
 
-def service_template_choices():
-    from .api import TemplateResource
-
-    template_resource = TemplateResource()
-    return [(t['filename'], '%s: %s' % (t['name'], t['description'])) for t in template_resource.list()]
-
 class AddServiceForm(forms.Form):
-    file_name = forms.ChoiceField(label='Service to create', choices=service_template_choices)
+    def __init__(self, *args, **kwargs):
+        self.request = kwargs.pop('request')
+        super().__init__(*args, **kwargs)
+
+        from .api import TemplateResource
+
+        template_resource = TemplateResource()
+        template_resource.request = self.request
+        self.fields['id'] = forms.ChoiceField(label='Service to create',
+                                              choices=[(t['id'], '%s: %s' % (t['name'], t['description'])) for t in template_resource.list()])
 
 class CreateServiceForm(forms.Form):
     def __init__(self, *args, **kwargs):
