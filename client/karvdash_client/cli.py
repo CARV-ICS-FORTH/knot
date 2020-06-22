@@ -25,7 +25,7 @@ def cmd_list_services(api, args):
 
 def cmd_create_service(api, args):
     variables = dict(map(lambda s: s.split('='), args.variables))
-    pprint(api.create_service(args.filename, variables))
+    pprint(api.create_service(args.id, variables))
 
 def cmd_exec_service(api, args):
     if not args.args:

@@ -73,7 +73,7 @@ data:
     token = $TOKEN
 ---
 kind: Template
-name: TokenConfigMapTemplate
+name: TokenConfigMap
 variables:
 - name: NAME
   default: user
@@ -92,7 +92,7 @@ spec:
   data: $DATA
 ---
 kind: Template
-name: ServiceTemplateTemplate
+name: ServiceTemplate
 variables:
 - name: NAME
   default: template
@@ -143,6 +143,15 @@ class ServiceResource(APIResource):
                     'detail': {'POST': 'execute',
                                'DELETE': 'delete'}}
 
+    def _get_template(self, identifier):
+        template_resource = TemplateResource()
+        template_resource.request = self.request
+        for template in template_resource.templates:
+            if template.identifier == identifier:
+                return template
+
+        return None
+
     def list(self):
         kubernetes_client = KubernetesClient()
 
@@ -162,8 +171,7 @@ class ServiceResource(APIResource):
             # ports = [str(p.port) for p in service.spec.ports if p.protocol == 'TCP']
             url = 'http://%s-%s.%s' % (name, self.user.username, settings.INGRESS_DOMAIN) if name in ingresses else None
             try:
-                filename = service.metadata.labels['karvdash-template']
-                service_template = FileTemplate(filename).format()
+                service_template = self._get_template(service.metadata.labels['karvdash-template']).format()
             except:
                 service_template = None
             if service_template:
@@ -181,9 +189,18 @@ class ServiceResource(APIResource):
         return contents
 
     def create(self):
-        try:
-            template = FileTemplate(self.data.pop('filename'))
-        except:
+        # Backwards compatibility.
+        filename = self.data.pop('filename', None)
+        if filename:
+            identifier = filename + '.template.yaml'
+        else:
+            try:
+                identifier = self.data.pop('id')
+            except:
+                raise BadRequest()
+
+        template = self._get_template(identifier)
+        if not template:
             raise NotFound()
 
         form = CreateServiceForm(self.data, variables=template.variables)
@@ -199,7 +216,7 @@ class ServiceResource(APIResource):
 
         kubernetes_client = KubernetesClient()
         if template.singleton and len(kubernetes_client.list_services(namespace=self.user.namespace,
-                                                                      label_selector='karvdash-template=%s' % template.filename)):
+                                                                      label_selector='karvdash-template=%s' % template.identifier)):
             raise Conflict()
 
         # Resolve naming conflicts.
