@@ -10,6 +10,10 @@ nav {
 nav > div > img {
   width: 90%;
 }
+a.nav-link i.fa {
+  width: 1.4em;
+  text-align: center;
+}
 table tbody tr td .btn {
   display: none;
 }

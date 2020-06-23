@@ -42,6 +42,10 @@ a:focus:not(.btn) {
   color: #212529!important;
   background-color: rgb(58, 250, 250)!important;
 }
+a.nav-link i.fa {
+  width: 1.4em;
+  text-align: center;
+}
 .dropdown-item.active, .dropdown-item:active {
   background-color: rgb(58, 250, 250)!important;
 }
