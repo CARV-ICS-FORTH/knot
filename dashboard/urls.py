@@ -28,6 +28,7 @@ urlpatterns = [
     path('templates', views.templates, name='templates'),
     path('template/<str:identifier>', views.template_download, name='template_download'),
     path('images', views.images, name='images'),
+    path('image/<path:name>', views.image_info, name='image_info'),
     path('data', views.data, name='data'),
     path('data/<path:path>', views.data, name='data'),
     path('users', views.users, name='users'),

@@ -271,22 +271,6 @@ def images(request):
                     messages.success(request, 'Image "%s:%s" added.' % (name, tag))
             else:
                 messages.error(request, 'Failed to add image. Probably invalid characters in name or tag.')
-        elif request.POST['action'] == 'Delete':
-            if not request.user.is_staff:
-                messages.error(request, 'Invalid action.')
-            else:
-                name = request.POST.get('name', None)
-                try:
-                    repository, tag = name.split(':')
-                except ValueError:
-                    messages.error(request, 'Invalid name.')
-                else:
-                    try:
-                        docker_client.registry(repository).del_alias(tag)
-                    except Exception as e:
-                        messages.error(request, 'Failed to delete image: %s.' % str(e))
-                    else:
-                        messages.success(request, 'Image "%s" deleted. Run garbage collection in the registry to reclaim space.' % name)
         elif request.POST['action'] == 'Collect':
             if not request.user.is_staff:
                 messages.error(request, 'Invalid action.')
@@ -312,32 +296,13 @@ def images(request):
     contents = []
     try:
         for repository in docker_client.registry().list_repos():
-            registry = docker_client.registry(repository)
-            try:
-                for alias in registry.list_aliases():
-                    digest = registry.get_digest(alias)
-                    existing_content = next((c for c in contents if c['digest'] == digest), None)
-                    if existing_content:
-                        existing_content['aliases'].append(alias)
-                        continue
-                    hashes = registry.get_alias(alias, sizes=True)
-                    contents.append({'name': repository,
-                                     'tag': str(alias),
-                                     'digest': digest,
-                                     'aliases': [str(alias)],
-                                     'size': sum([h[1] for h in hashes]),
-                                     'actions': request.user.is_staff})
-            except:
-                continue
+            contents.append({'name': repository})
     except:
         messages.error(request, 'Can not connect to Docker registry.')
-    for content in contents:
-        content['aliases'].sort()
-        content['tag'] = content['aliases'][0]
 
     # Sort them up.
     sort_by = request.GET.get('sort_by')
-    if sort_by and sort_by in ('name', 'tag', 'size'):
+    if sort_by and sort_by in ('name'):
         request.session['images_sort_by'] = sort_by
     else:
         sort_by = request.session.get('images_sort_by', 'name')
@@ -357,6 +322,78 @@ def images(request):
                                                      'sort_by': sort_by,
                                                      'order': order,
                                                      'add_image_form': AddImageForm()})
+
+@login_required
+def image_info(request, name):
+    docker_client = DockerClient(settings.DOCKER_REGISTRY, settings.DOCKER_REGISTRY_NO_VERIFY)
+
+    # Handle changes.
+    if request.method == 'POST':
+        if 'action' not in request.POST:
+            messages.error(request, 'Invalid action.')
+        elif request.POST['action'] == 'Delete':
+            if not request.user.is_staff:
+                messages.error(request, 'Invalid action.')
+            else:
+                tag = request.POST.get('tag', None)
+                try:
+                    docker_client.registry(name).del_alias(tag)
+                except Exception as e:
+                    messages.error(request, 'Failed to delete image: %s.' % str(e))
+                else:
+                    messages.success(request, 'Image "%s" deleted. Run garbage collection in the registry to reclaim space.' % name)
+        else:
+            messages.error(request, 'Invalid action.')
+
+        return redirect('images')
+
+    # There is no hierarchy here.
+    trail = [{'name': '<i class="fa fa-archive" aria-hidden="true"></i> %s' % docker_client.safe_registry_url}]
+
+    # Fill in the contents.
+    contents = []
+    try:
+        registry = docker_client.registry(name)
+        for alias in registry.list_aliases():
+            digest = registry.get_digest(alias)
+            existing_content = next((c for c in contents if c['digest'] == digest), None)
+            if existing_content:
+                existing_content['aliases'].append(alias)
+                continue
+            hashes = registry.get_alias(alias, sizes=True)
+            contents.append({'name': name,
+                             'tag': str(alias),
+                             'digest': digest,
+                             'aliases': [str(alias)],
+                             'size': sum([h[1] for h in hashes]),
+                             'actions': request.user.is_staff})
+    except:
+        messages.error(request, 'Can not connect to Docker registry.')
+    for content in contents:
+        content['aliases'].sort()
+        content['tag'] = content['aliases'][0] if content['aliases'] else ''
+
+    # Sort them up.
+    sort_by = request.GET.get('sort_by')
+    if sort_by and sort_by in ('name', 'tag', 'size'):
+        request.session['images_sort_by'] = sort_by
+    else:
+        sort_by = request.session.get('images_sort_by', 'name')
+    order = request.GET.get('order')
+    if order and order in ('asc', 'desc'):
+        request.session['images_order'] = order
+    else:
+        order = request.session.get('images_order', 'asc')
+
+    contents = sorted(contents,
+                      key=lambda x: x[sort_by],
+                      reverse=True if order == 'desc' else False)
+
+    return render(request, 'dashboard/image.html', {'title': 'Image Info',
+                                                    'trail': trail,
+                                                    'contents': contents,
+                                                    'sort_by': sort_by,
+                                                    'order': order})
 
 @login_required
 def data(request, path='/'):
