@@ -605,6 +605,26 @@ def files(request, path='/'):
                     messages.success(request, 'Image "%s:%s" added.' % (name, tag))
             else:
                 messages.error(request, 'Failed to add image. Probably invalid characters in name or tag.')
+        elif request.POST['action'] == 'Add template':
+            name = request.POST.get('filename', None)
+            if name:
+                real_name = os.path.join(real_path, name)
+                data = {}
+                with open(real_name, 'rb') as f:
+                    data['data'] = base64.b64encode(f.read())
+
+                template_resource = TemplateResource()
+                template_resource.request = request
+                template_resource.data = data
+                try:
+                    template = template_resource.add()
+                except restless.exceptions.BadRequest:
+                    messages.error(request, 'Can not add template. Probably invalid file format.')
+                    return redirect('templates')
+                except Exception as e:
+                    messages.error(request, 'Can not add template: %s' % str(e))
+                else:
+                    messages.success(request, 'Template "%s" added.' % template['name'])
         else:
             messages.error(request, 'Invalid action.')
 

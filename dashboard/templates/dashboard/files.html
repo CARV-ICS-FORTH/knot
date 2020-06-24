@@ -150,6 +150,14 @@
                 {% if item.name|endswith:'.tar' %}
                 <button type="button" class="dropdown-item btn-sm text-secondary confirm-image" data-toggle="modal" data-target="#addImageModal" id="{{ item.name }}"><i class="fa fa-cube" aria-hidden="true"></i> Add image</button>
                 {% endif %}
+                {% if item.name|endswith:'.template.yaml' %}
+                <form method="post">
+                  {% csrf_token %}
+                  <input type="hidden" name="action" value="Add template" />
+                  <input type="hidden" name="filename" value="{{ item.name }}" />
+                  <button type="submit" class="dropdown-item btn-sm text-secondary"><i class="fa fa-map" aria-hidden="true"></i> Add template</button>
+                </form>
+                {% endif %}
               </div>
             </div>
           </td>
