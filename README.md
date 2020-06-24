@@ -73,6 +73,7 @@ The following variables can be set:
 | `KARVDASH_SERVICE_REDIRECT_SSL`      | Set to anything to redirect all services to SSL (default is disabled).                |
 | `KARVDASH_DOCKER_REGISTRY`           | The URL of the Docker registry (default is "http://127.0.0.1:5000").                  |
 | `KARVDASH_DOCKER_REGISTRY_NO_VERIFY` | Set to anything to skip Docker registry SSL verification (default is to verify).      |
+| `KARVDASH_DATASETS_AVAILABLE`        | Set to anything to enable dataset management (default is disabled).                   |
 | `KARVDASH_API_BASE_URL`              | The URL used for internal API calls (default is "http://karvdash.default.svc/api").   |
 | `KARVDASH_LOCAL_HOST_DIR`            | The host path for the local file domain.                                              |
 | `KARVDASH_REMOTE_HOST_DIR`           | The host path for the remote file domain.                                             |

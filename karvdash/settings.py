@@ -234,3 +234,8 @@ INGRESS_DOMAIN = os.getenv('KARVDASH_INGRESS_DOMAIN', 'localtest.me')
 DASHBOARD_TITLE = os.getenv('KARVDASH_DASHBOARD_TITLE', 'Dashboard')
 DASHBOARD_THEME = os.getenv('KARVDASH_DASHBOARD_THEME', 'evolve')
 ISSUES_URL = os.getenv('KARVDASH_ISSUES_URL')
+
+
+# Datasets
+
+DATASETS_AVAILABLE = True if os.getenv('KARVDASH_DATASETS_AVAILABLE', '') else False

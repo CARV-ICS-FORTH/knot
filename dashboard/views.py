@@ -397,6 +397,9 @@ def image_info(request, name):
 
 @login_required
 def datasets(request):
+    if not settings.DATASETS_AVAILABLE:
+        return redirect('dashboard')
+
     # Validate given name.
     dataset_resource = DatasetResource()
     dataset_resource.request = request
@@ -470,6 +473,9 @@ def datasets(request):
 
 @login_required
 def dataset_download(request, name):
+    if not settings.DATASETS_AVAILABLE:
+        return redirect('dashboard')
+
     # Validate given name.
     dataset_resource = DatasetResource()
     dataset_resource.request = request
