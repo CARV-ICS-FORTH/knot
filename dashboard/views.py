@@ -16,6 +16,8 @@ import os
 import shutil
 import restless
 import base64
+import zipfile
+import re
 
 from django.shortcuts import render, redirect, reverse
 from django.http import HttpResponse, FileResponse
@@ -440,6 +442,20 @@ def data(request, path='/'):
             else:
                 # XXX Show form errors in messages.
                 pass
+        elif request.POST['action'] == 'Download':
+            name = request.POST['name']
+            zip_path = os.path.normpath(os.path.join(real_path, name))
+            if not zip_path.startswith(real_path) or not os.path.isdir(os.path.join(real_path, name)):
+                messages.error(request, 'Can not download "%s".' % name)
+            else:
+                response = HttpResponse(content_type='application/zip')
+                with zipfile.ZipFile(response, 'w') as zip_file:
+                    for root, dirs, files in os.walk(zip_path):
+                        for file in files:
+                            zip_add_file = os.path.join(root, file)
+                            zip_file.write(zip_add_file, zip_add_file[len(os.path.dirname(zip_path)):])
+                response['Content-Disposition'] = 'attachment; filename="%s.zip"' % re.sub(r'[^A-Za-z0-9 \-_]+', '', name)
+                return response
         elif request.POST['action'] == 'Add':
             form = AddFilesForm(request.POST, request.FILES)
             files = request.FILES.getlist('file_field')

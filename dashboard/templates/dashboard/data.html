@@ -138,6 +138,14 @@
                 <i class="fa fa-wrench" aria-hidden="true"></i> Actions
               </button>
               <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownActionsButton">
+                {% if item.type == 'dir' %}
+                <form method="post">
+                  {% csrf_token %}
+                  <input type="hidden" name="action" value="Download" />
+                  <input type="hidden" name="name" value="{{ item.name }}" />
+                  <button type="submit" class="dropdown-item btn-sm text-secondary"><i class="fa fa-archive" aria-hidden="true"></i> Download</button>
+                </form>
+                {% endif %}
                 <button type="button" class="dropdown-item btn-sm text-secondary confirm-delete" data-toggle="modal" data-target="#deleteModal" id="{{ item.name }}"><i class="fa fa-trash" aria-hidden="true"></i> Delete</button>
                 {% if item.name|endswith:'.tar' %}
                 <button type="button" class="dropdown-item btn-sm text-secondary confirm-image" data-toggle="modal" data-target="#addImageModal" id="{{ item.name }}"><i class="fa fa-cube" aria-hidden="true"></i> Add image</button>
