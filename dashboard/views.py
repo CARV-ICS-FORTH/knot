@@ -216,14 +216,14 @@ def templates(request):
     # Sort them up.
     sort_by = request.GET.get('sort_by')
     if sort_by and sort_by in ('name', 'description', 'singleton'):
-        request.session['services_sort_by'] = sort_by
+        request.session['templates_sort_by'] = sort_by
     else:
-        sort_by = request.session.get('services_sort_by', 'name')
+        sort_by = request.session.get('templates_sort_by', 'name')
     order = request.GET.get('order')
     if order and order in ('asc', 'desc'):
-        request.session['services_order'] = order
+        request.session['templates_order'] = order
     else:
-        order = request.session.get('services_order', 'asc')
+        order = request.session.get('templates_order', 'asc')
 
     contents = sorted(contents,
                       key=lambda x: x[sort_by],
@@ -378,14 +378,14 @@ def image_info(request, name):
     # Sort them up.
     sort_by = request.GET.get('sort_by')
     if sort_by and sort_by in ('name', 'tag', 'size'):
-        request.session['images_sort_by'] = sort_by
+        request.session['image_info_sort_by'] = sort_by
     else:
-        sort_by = request.session.get('images_sort_by', 'name')
+        sort_by = request.session.get('image_info_sort_by', 'name')
     order = request.GET.get('order')
     if order and order in ('asc', 'desc'):
-        request.session['images_order'] = order
+        request.session['image_info_order'] = order
     else:
-        order = request.session.get('images_order', 'asc')
+        order = request.session.get('image_info_order', 'asc')
 
     contents = sorted(contents,
                       key=lambda x: x[sort_by],
@@ -403,7 +403,7 @@ def files(request, path='/'):
     path = os.path.normpath(path)
     path = path.lstrip('/')
     if path == '':
-        path = request.session.get('data_path', list(settings.FILE_DOMAINS.keys())[0]) # First is the default.
+        path = request.session.get('files_path', list(settings.FILE_DOMAINS.keys())[0]) # First is the default.
     path_components = [p for p in path.split('/') if p]
 
     # Figure out the real path we are working on.
@@ -418,11 +418,11 @@ def files(request, path='/'):
 
                 real_path = os.path.join(user_path, '/'.join(path_components[1:]))
 
-            request.session['data_path'] = path
+            request.session['files_path'] = path
             break
     else:
         messages.error(request, 'Invalid path.')
-        request.session.pop('data_path', None)
+        request.session.pop('files_path', None)
         return redirect('files')
 
     # Handle changes.
@@ -516,10 +516,10 @@ def files(request, path='/'):
 
     # Respond appropriately if the path is not a directory.
     if os.path.isfile(real_path):
-        request.session['data_path'] = os.path.dirname(path) # Save path to folder.
+        request.session['files_path'] = os.path.dirname(path) # Save path to folder.
         return FileResponse(open(real_path, 'rb'), as_attachment=True, filename=os.path.basename(real_path))
     if not os.path.isdir(real_path):
-        request.session.pop('data_path', None)
+        request.session.pop('files_path', None)
         # messages.error(request, 'Invalid path.')
         return redirect('files')
 
@@ -551,14 +551,14 @@ def files(request, path='/'):
     # Sort them up.
     sort_by = request.GET.get('sort_by')
     if sort_by and sort_by in ('name', 'modified', 'size'):
-        request.session['data_sort_by'] = sort_by
+        request.session['files_sort_by'] = sort_by
     else:
-        sort_by = request.session.get('data_sort_by', 'name')
+        sort_by = request.session.get('files_sort_by', 'name')
     order = request.GET.get('order')
     if order and order in ('asc', 'desc'):
-        request.session['data_order'] = order
+        request.session['files_order'] = order
     else:
-        order = request.session.get('data_order', 'asc')
+        order = request.session.get('files_order', 'asc')
 
     contents = sorted(contents,
                       key=lambda x: x[sort_by],
@@ -658,7 +658,7 @@ def users(request):
     if order and order in ('asc', 'desc'):
         request.session['users_order'] = order
     else:
-        order = request.session.get('data_order', 'asc')
+        order = request.session.get('users_order', 'asc')
 
     contents = sorted(contents,
                       key=lambda x: x[sort_by],
