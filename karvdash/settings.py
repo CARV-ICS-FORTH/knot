@@ -176,7 +176,7 @@ MESSAGE_TAGS = {
 }
 
 
-# Data management domains
+# File management domains
 
 # local_name = os.getenv('KARVDASH_LOCAL_NAME', 'local')
 # remote_name = os.getenv('KARVDASH_REMOTE_NAME', 'remote')
@@ -185,18 +185,18 @@ local_name = 'local'
 remote_name = 'remote'
 shared_name = 'shared'
 
-DATA_DOMAINS = {}
+FILE_DOMAINS = {}
 if local_name:
     local_default_dir = os.path.join(BASE_DIR, local_name)
-    DATA_DOMAINS[local_name] = {'dir': os.getenv('KARVDASH_LOCAL_DIR', local_default_dir),
+    FILE_DOMAINS[local_name] = {'dir': os.getenv('KARVDASH_LOCAL_DIR', local_default_dir),
                                 'host_dir': os.getenv('KARVDASH_LOCAL_HOST_DIR', local_default_dir)}
 if remote_name:
     remote_default_dir = os.path.join(BASE_DIR, remote_name)
-    DATA_DOMAINS[remote_name] = {'dir': os.getenv('KARVDASH_REMOTE_DIR', remote_default_dir),
+    FILE_DOMAINS[remote_name] = {'dir': os.getenv('KARVDASH_REMOTE_DIR', remote_default_dir),
                                  'host_dir': os.getenv('KARVDASH_REMOTE_HOST_DIR', remote_default_dir)}
 if shared_name:
     shared_default_dir = os.path.join(BASE_DIR, shared_name)
-    DATA_DOMAINS[shared_name] = {'dir': os.getenv('KARVDASH_SHARED_DIR', shared_default_dir),
+    FILE_DOMAINS[shared_name] = {'dir': os.getenv('KARVDASH_SHARED_DIR', shared_default_dir),
                                  'host_dir': os.getenv('KARVDASH_SHARED_HOST_DIR', shared_default_dir),
                                  'mode': 'shared'}
 

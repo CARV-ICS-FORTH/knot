@@ -226,9 +226,9 @@ class ServiceResource(APIResource):
         template.NAME = name
         template.HOSTNAME = '%s-%s.%s' % (name, self.user.username, settings.INGRESS_DOMAIN)
         template.REGISTRY = DockerClient(settings.DOCKER_REGISTRY, settings.DOCKER_REGISTRY_NO_VERIFY).registry_host
-        template.LOCAL = settings.DATA_DOMAINS['local']['dir'].rstrip('/')
-        template.REMOTE = settings.DATA_DOMAINS['remote']['dir'].rstrip('/')
-        template.SHARED = settings.DATA_DOMAINS['shared']['dir'].rstrip('/')
+        template.LOCAL = settings.FILE_DOMAINS['local']['dir'].rstrip('/')
+        template.REMOTE = settings.FILE_DOMAINS['remote']['dir'].rstrip('/')
+        template.SHARED = settings.FILE_DOMAINS['shared']['dir'].rstrip('/')
 
         # Inject data folders.
         # if settings.DEBUG:

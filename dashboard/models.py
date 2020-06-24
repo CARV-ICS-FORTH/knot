@@ -45,7 +45,7 @@ class User(AuthUser):
     @property
     def volumes(self):
         volumes = {}
-        for domain, variables in settings.DATA_DOMAINS.items():
+        for domain, variables in settings.FILE_DOMAINS.items():
             if not variables['dir'] or not variables['host_dir']:
                 continue
             if variables.get('mode') == 'shared':

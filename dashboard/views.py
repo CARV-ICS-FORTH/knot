@@ -398,16 +398,16 @@ def image_info(request, name):
                                                     'order': order})
 
 @login_required
-def data(request, path='/'):
+def files(request, path='/'):
     # Normalize given path and split.
     path = os.path.normpath(path)
     path = path.lstrip('/')
     if path == '':
-        path = request.session.get('data_path', list(settings.DATA_DOMAINS.keys())[0]) # First is the default.
+        path = request.session.get('data_path', list(settings.FILE_DOMAINS.keys())[0]) # First is the default.
     path_components = [p for p in path.split('/') if p]
 
     # Figure out the real path we are working on.
-    for domain, variables in settings.DATA_DOMAINS.items():
+    for domain, variables in settings.FILE_DOMAINS.items():
         if path_components[0] == domain:
             if variables.get('mode') == 'shared':
                 real_path = os.path.join(variables['dir'], '/'.join(path_components[1:]))
@@ -423,7 +423,7 @@ def data(request, path='/'):
     else:
         messages.error(request, 'Invalid path.')
         request.session.pop('data_path', None)
-        return redirect('data')
+        return redirect('files')
 
     # Handle changes.
     if request.method == 'POST':
@@ -512,7 +512,7 @@ def data(request, path='/'):
         else:
             messages.error(request, 'Invalid action.')
 
-        return redirect('data', path)
+        return redirect('files', path)
 
     # Respond appropriately if the path is not a directory.
     if os.path.isfile(real_path):
@@ -521,15 +521,15 @@ def data(request, path='/'):
     if not os.path.isdir(real_path):
         request.session.pop('data_path', None)
         # messages.error(request, 'Invalid path.')
-        return redirect('data')
+        return redirect('files')
 
     # This is a directory. Leave a trail of breadcrumbs.
     trail = []
     trail.append({'name': '<i class="fa fa-hdd-o" aria-hidden="true"></i>',
-                  'url': reverse('data', args=[domain]) if len(path_components) != 1 else None})
+                  'url': reverse('files', args=[domain]) if len(path_components) != 1 else None})
     for i, path_component in enumerate(path_components[1:]):
         trail.append({'name': path_component,
-                      'url': reverse('data', args=[os.path.join(*path_components[:i + 2])]) if i != (len(path_components) - 2) else None})
+                      'url': reverse('files', args=[os.path.join(*path_components[:i + 2])]) if i != (len(path_components) - 2) else None})
 
     # Fill in the contents.
     contents = []
@@ -546,7 +546,7 @@ def data(request, path='/'):
                          'modified': datetime.fromtimestamp(mtime),
                          'type': file_type,
                          'size': os.path.getsize(file_path) if file_type != 'dir' else 0,
-                         'url': reverse('data', args=[os.path.join(path, file_name)])})
+                         'url': reverse('files', args=[os.path.join(path, file_name)])})
 
     # Sort them up.
     sort_by = request.GET.get('sort_by')
@@ -564,15 +564,15 @@ def data(request, path='/'):
                       key=lambda x: x[sort_by],
                       reverse=True if order == 'desc' else False)
 
-    return render(request, 'dashboard/data.html', {'title': 'Data',
-                                                   'domain': domain,
-                                                   'trail': trail,
-                                                   'contents': contents,
-                                                   'sort_by': sort_by,
-                                                   'order': order,
-                                                   'add_folder_form': AddFolderForm(),
-                                                   'add_files_form': AddFilesForm(),
-                                                   'add_image_from_file_form': AddImageFromFileForm()})
+    return render(request, 'dashboard/files.html', {'title': 'Files',
+                                                    'domain': domain,
+                                                    'trail': trail,
+                                                    'contents': contents,
+                                                    'sort_by': sort_by,
+                                                    'order': order,
+                                                    'add_folder_form': AddFolderForm(),
+                                                    'add_files_form': AddFilesForm(),
+                                                    'add_image_from_file_form': AddImageFromFileForm()})
 
 @staff_member_required
 def users(request):
@@ -619,7 +619,7 @@ def users(request):
                         if os.path.exists(service_database_path):
                             shutil.rmtree(service_database_path)
 
-                        for name, variables in dict(settings.DATA_DOMAINS).items():
+                        for name, variables in dict(settings.FILE_DOMAINS).items():
                             if not variables['dir'] or not variables['host_dir']:
                                 continue
                             user_path = os.path.join(variables['host_dir'], user.username)

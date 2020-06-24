@@ -31,8 +31,8 @@
           </a>
         </li>
         <li class="nav-item">
-          <a class="nav-link {% if title == 'Data' %}active{% endif %}" href="{% url 'data' %}">
-            <i class="fa fa-database" aria-hidden="true"></i> Data
+          <a class="nav-link {% if title == 'Files' %}active{% endif %}" href="{% url 'files' %}">
+            <i class="fa fa-folder" aria-hidden="true"></i> Files
           </a>
         </li>
         {% if user.is_staff %}
