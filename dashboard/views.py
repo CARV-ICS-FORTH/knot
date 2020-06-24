@@ -30,9 +30,8 @@ from django.contrib import messages
 from datetime import datetime
 
 from .models import User
-from .forms import SignUpForm, EditUserForm, AddServiceForm, CreateServiceForm, AddTemplateForm, AddImageForm, AddFolderForm, AddFilesForm, AddImageFromFileForm
-from .api import ServiceResource, TemplateResource
-from .utils.template import FileTemplate
+from .forms import SignUpForm, EditUserForm, AddServiceForm, CreateServiceForm, AddTemplateForm, AddImageForm, AddDatasetForm, AddFolderForm, AddFilesForm, AddImageFromFileForm
+from .api import ServiceResource, TemplateResource, DatasetResource
 from .utils.kubernetes import KubernetesClient
 from .utils.docker import DockerClient
 
@@ -183,7 +182,7 @@ def templates(request):
             if identifier:
                 template_resource = TemplateResource()
                 template_resource.request = request
-                template = template_resource.get_template(identifier)
+                template = template_resource.get_template(identifier) # Need the name for error messages.
                 if not template:
                     messages.error(request, 'Template "%s" not found.' % identifier)
                     return redirect('templates')
@@ -191,7 +190,6 @@ def templates(request):
                 try:
                     template_resource.remove(identifier)
                 except Exception as e:
-                    raise
                     messages.error(request, 'Can not delete template "%s": %s' % (template.name, str(e)))
                 else:
                     messages.success(request, 'Template "%s" deleted.' % template.name)
@@ -396,6 +394,98 @@ def image_info(request, name):
                                                     'contents': contents,
                                                     'sort_by': sort_by,
                                                     'order': order})
+
+@login_required
+def datasets(request):
+    # Validate given name.
+    dataset_resource = DatasetResource()
+    dataset_resource.request = request
+
+    # Handle changes.
+    if request.method == 'POST':
+        if 'action' not in request.POST:
+            messages.error(request, 'Invalid action.')
+        elif request.POST['action'] == 'Add':
+            form = AddDatasetForm(request.POST, variables=dataset_resource.dataset_template.variables)
+            if form.is_valid():
+                data = request.POST.dict()
+
+                dataset_resource.data = data
+                try:
+                    dataset = dataset_resource.add()
+                except Exception as e:
+                    messages.error(request, 'Can not create dataset: %s' % str(e))
+                else:
+                    messages.success(request, 'Dataset "%s" created.' % dataset['name'])
+        elif request.POST['action'] == 'Delete':
+            name = request.POST.get('name', None)
+            if name:
+                try:
+                    dataset_resource.remove(name)
+                except restless.exceptions.NotFound:
+                    messages.error(request, 'Dataset "%s" not found.' % name)
+                except Exception as e:
+                    messages.error(request, 'Can not delete dataset "%s": %s' % (name, str(e)))
+                else:
+                    messages.success(request, 'Dataset "%s" deleted.' % name)
+        else:
+            messages.error(request, 'Invalid action.')
+
+        return redirect('datasets')
+
+    # There is no hierarchy here.
+    kubernetes_client = KubernetesClient()
+    trail = [{'name': '<i class="fa fa-university" aria-hidden="true"></i> %s' % kubernetes_client.host}]
+
+    # Fill in the contents.
+    contents = []
+    try:
+        contents = dataset_resource.list()
+    except:
+        raise
+        messages.error(request, 'Can not connect to Kubernetes.')
+
+    # Sort them up.
+    sort_by = request.GET.get('sort_by')
+    if sort_by and sort_by in ('name', 'description', 'singleton'):
+        request.session['datasets_sort_by'] = sort_by
+    else:
+        sort_by = request.session.get('datasets_sort_by', 'name')
+    order = request.GET.get('order')
+    if order and order in ('asc', 'desc'):
+        request.session['datasets_order'] = order
+    else:
+        order = request.session.get('datasets_order', 'asc')
+
+    contents = sorted(contents,
+                      key=lambda x: x[sort_by],
+                      reverse=True if order == 'desc' else False)
+
+    return render(request, 'dashboard/datasets.html', {'title': 'Datasets',
+                                                       'trail': trail,
+                                                       'contents': contents,
+                                                       'sort_by': sort_by,
+                                                       'order': order,
+                                                       'add_dataset_form': AddDatasetForm(variables=dataset_resource.dataset_template.variables)})
+
+@login_required
+def dataset_download(request, name):
+    # Validate given name.
+    dataset_resource = DatasetResource()
+    dataset_resource.request = request
+    dataset = dataset_resource.get_dataset(name)
+    if not dataset:
+        messages.error(request, 'Invalid dataset.')
+        return redirect('datasets')
+
+    # Get a dataset template and fill it in.
+    template = dataset_resource.dataset_template
+    for variable, value in dataset.items():
+        setattr(template, variable.upper(), value)
+
+    response = HttpResponse(template.yaml, content_type='application/x-yaml')
+    response['Content-Disposition'] = 'attachment; filename="%s.yaml"' % name
+    return response
 
 @login_required
 def files(request, path='/'):

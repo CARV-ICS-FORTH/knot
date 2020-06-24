@@ -25,7 +25,7 @@ from restless.dj import DjangoResource
 from restless.exceptions import NotFound, BadRequest, Conflict, Forbidden
 
 from .models import APIToken, User
-from .forms import CreateServiceForm
+from .forms import CreateServiceForm, AddDatasetForm
 from .utils.template import Template, ServiceTemplate, FileTemplate
 from .utils.kubernetes import KubernetesClient
 from .utils.docker import DockerClient
@@ -98,6 +98,41 @@ variables:
   default: template
 - name: DATA
   default: ""
+'''
+
+DATASET_TEMPLATE = '''
+apiVersion: com.ie.ibm.hpsys/v1alpha1
+kind: Dataset
+metadata:
+  name: $NAME
+spec:
+  local:
+    type: "COS"
+    endpoint: $ENDPOINT
+    accessKeyID: $ACCESSKEYID
+    secretAccessKey: $SECRETACCESSKEY
+    bucket: $BUCKET
+    region: $REGION
+---
+kind: Template
+name: Dataset
+variables:
+- name: NAME
+  default: dataset
+- name: ENDPOINT
+  default: ""
+  help: Enter S3 service endpoint URL.
+- name: ACCESSKEYID
+  label: Access Key ID
+  default: ""
+- name: SECRETACCESSKEY
+  label: Secret Access Key
+  default: ""
+- name: BUCKET
+  default: ""
+- name: REGION
+  default: ""
+  help: Optional.
 '''
 
 class APIResource(DjangoResource):
@@ -411,3 +446,84 @@ class TemplateResource(APIResource):
             raise Forbidden()
         kubernetes_client = KubernetesClient()
         kubernetes_client.delete_crd(group='karvdash.carv.ics.forth.gr', version='v1', namespace=self.user.namespace, plural='templates', name=template.identifier)
+
+class DatasetResource(APIResource):
+    http_methods = {'list': {'GET': 'list',
+                             'POST': 'add'},
+                    'detail': {'POST': 'edit',
+                               'DELETE': 'remove'}}
+
+    @property
+    def dataset_template(self):
+        return Template(DATASET_TEMPLATE)
+
+    def get_dataset(self, name):
+        for dataset in self.datasets:
+            if dataset['name'] == name:
+                return dataset
+        return None
+
+    @property
+    def datasets(self):
+        kubernetes_client = KubernetesClient()
+
+        contents = []
+        for dataset in kubernetes_client.list_crds(group='com.ie.ibm.hpsys', version='v1alpha1', namespace=self.user.namespace, plural='datasets'):
+            try:
+                if dataset['spec']['local']['type'] != 'COS':
+                    raise ValueError
+            except:
+                continue
+            contents.append({'name': dataset['metadata']['name'],
+                             'endpoint': dataset['spec']['local']['endpoint'],
+                             'accessKeyID': dataset['spec']['local']['accessKeyID'],
+                             'secretAccessKey': dataset['spec']['local']['secretAccessKey'],
+                             'bucket': dataset['spec']['local']['bucket'],
+                             'region': dataset['spec']['local']['region']})
+
+        return contents
+
+    def list(self):
+        return self.datasets
+
+    def add(self):
+        template = self.dataset_template
+        form = AddDatasetForm(self.data, variables=template.variables)
+        if not form.is_valid():
+            raise BadRequest()
+
+        for variable in template.variables:
+            name = variable['name']
+            if name in self.data:
+                setattr(template, name, form.cleaned_data[name])
+
+        # Resolve naming conflicts.
+        name = template.NAME
+        names = [dataset['name'] for dataset in self.datasets]
+        while name in names:
+            name = form.cleaned_data['NAME'] + '-' + ''.join([random.choice(string.ascii_lowercase) for i in range(4)])
+
+        template.NAME = name
+
+        kubernetes_client = KubernetesClient()
+        kubernetes_client.apply_crd(group='com.ie.ibm.hpsys', version='v1alpha1', namespace=self.user.namespace, plural='datasets', yaml=yaml.load(template.yaml, Loader=yaml.FullLoader))
+
+        return {'name': template.NAME,
+                'endpoint': template.ENDPOINT,
+                'accessKeyID': template.ACCESSKEYID,
+                'secretAccessKey': template.SECRETACCESSKEY,
+                'bucket': template.BUCKET,
+                'region': template.REGION}
+
+    def edit(self, pk):
+        pass
+
+    def remove(self, pk):
+        name = pk
+
+        dataset = self.get_dataset(name)
+        if not dataset:
+            raise NotFound()
+
+        kubernetes_client = KubernetesClient()
+        kubernetes_client.delete_crd(group='com.ie.ibm.hpsys', version='v1alpha1', namespace=self.user.namespace, plural='datasets', name=name)

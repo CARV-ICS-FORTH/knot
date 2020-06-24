@@ -77,7 +77,7 @@ class CreateServiceForm(forms.Form):
             if name.upper() in ('NAMESPACE', 'HOSTNAME', 'REGISTRY', 'LOCAL', 'REMOTE', 'SHARED'):
                 continue
             kwargs = {'validators': [validate_kubernetes_label]} if name == 'NAME' else {'required': all_required}
-            self.fields[name] = forms.CharField(label=name.capitalize(),
+            self.fields[name] = forms.CharField(label=variable.get('label', name.capitalize()),
                                                 initial=variable['default'],
                                                 help_text=variable.get('help'),
                                                 **kwargs)
@@ -89,6 +89,9 @@ class AddImageForm(forms.Form):
     name = forms.CharField(label='Image name', min_length=1, max_length=128, validators=[validate_docker_name])
     tag = forms.CharField(label='Tag', min_length=1, max_length=128, validators=[validate_docker_tag])
     file_field = forms.FileField(label='Saved image file to add')
+
+class AddDatasetForm(CreateServiceForm):
+    pass
 
 class AddFolderForm(forms.Form):
     name = forms.CharField(label='Name for the new folder', min_length=1, max_length=255, initial='New Folder')
