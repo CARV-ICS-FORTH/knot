@@ -15,7 +15,6 @@
 import os
 import shutil
 import restless
-import base64
 import zipfile
 import re
 
@@ -161,7 +160,7 @@ def templates(request):
             if form.is_valid():
                 data = request.POST.dict()
                 for f in files:
-                    data['data'] = base64.b64encode(f.read())
+                    data['data'] = f.read()
 
                 template_resource = TemplateResource()
                 template_resource.request = request
@@ -611,7 +610,7 @@ def files(request, path='/'):
                 real_name = os.path.join(real_path, name)
                 data = {}
                 with open(real_name, 'rb') as f:
-                    data['data'] = base64.b64encode(f.read())
+                    data['data'] = f.read()
 
                 template_resource = TemplateResource()
                 template_resource.request = request

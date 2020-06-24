@@ -23,7 +23,7 @@ from .inject import inject_hostpath_volumes, inject_service_details, inject_ingr
 
 class Template(object):
     def __init__(self, data):
-        self._data = data
+        self._data = data if type(data) == str else data.decode()
         self._name = ''
         self._description = ''
         self._singleton = False
@@ -105,7 +105,7 @@ class Template(object):
                   'singleton': self._singleton,
                   'variables': self._variables}
         if include_data:
-            result.update({'data': self.data if type(self.data) == str else self.data.decode()})
+            result.update({'data': self._data})
         return result
 
     def __str__(self):

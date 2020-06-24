@@ -14,7 +14,6 @@
 
 import os
 import requests
-import base64
 
 try:
     from configparser import ConfigParser
@@ -169,7 +168,7 @@ class API:
         :returns: The template created
         """
 
-        parameters = {'data': base64.b64encode(data).decode()}
+        parameters = {'data': data if type(data) == str else data.decode()}
         r = requests.post(self.base_url + '/templates/', json=parameters, headers=self._headers)
         r.raise_for_status()
         return r.json()

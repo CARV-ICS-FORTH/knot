@@ -404,7 +404,7 @@ class TemplateResource(APIResource):
 
     def add(self):
         try:
-            data = base64_decode(self.data.pop('data'))
+            data = self.data.pop('data')
             template = ServiceTemplate(data)
         except:
             raise BadRequest()
