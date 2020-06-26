@@ -37,7 +37,7 @@ The templates screen is accessed by selecting "Templates" from the menu on the l
 
 .. figure:: images/templates-screen.png
 
-To add a new template, click on the respective button on the right. The template file format is described in the :doc:`Templates <templates>` chapter.
+To add a new template, click on the respective button on the right. The template file format is described in the :ref:`Service templates` chapter.
 
 Images screen
 -------------
@@ -48,12 +48,21 @@ The images screen is accessed by selecting "Images" from the menu on the left. Y
 
 To add a new image, click on the respective button on the right. You will be asked to provide a name, tag, and file (exported image) for the new image. Note that you must provide a unique name and tag combination, to avoid overwriting other user's images.
 
+Datasets screen
+---------------
+
+The datasets screen is accessed by selecting "Datasets" from the menu on the left. You are presented with a list of configured datasets. Select a dataset to download its configuration in YAML format. Select the “Actions” button to delete a dataset (only user templates can be deleted).
+
+.. figure:: images/templates-screen.png
+
+To add a new dataset, click on the respective button on the right and fill in the fields.
+
 Files screen
 ------------
 
 The files screen is accessed by selecting "Files" from the menu on the left. You are presented with a list of folder and files in the respective domain. Change domain ("local", "remote", or "shared") by clicking on the corresponding buttons on the upper-right of the screen. "Local" and "remote" domains contain private user files in corresponding storage pools (local to nodes or at a remote share), while "shared" is common accross all users. Any user can add or remove files in "shared".
 
-Select a folder to navigate into that path (the current path is shown above the list), or a file to download it. Select the "Actions" button to download a folder as an archive or delete an object (non-empty folders can not be deleted). Respective actions are also available to upload compatible image files (ending in `.tar`) and add templates (ending in `.template.yaml`).
+Select a folder to navigate into that path (the current path is shown above the list), or a file to download it. Select the "Actions" button to download a folder as an archive or delete an object (non-empty folders can not be deleted). Respective actions are also available to upload compatible image files (ending in ``.tar``) and add templates (ending in ``.template.yaml``).
 
 .. figure:: images/files-screen.png
 

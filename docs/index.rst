@@ -14,7 +14,7 @@ Karvdash provides:
 
   * Manage services or applications that run in Kubernetes.
   * Manage container images stored in a private Docker registry.
-  * Manage collections of data that are automatically attached to service and application containers when launched.
+  * Manage collections of local or remote data that are automatically attached to service and application containers when launched.
 
 * A method to launch services or applications from templates that support setting variables before launch.
 * An easy an automated way to isolate services in different Kubernetes namespaces depending on the Karvdash user they belong to.

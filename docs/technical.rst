@@ -20,10 +20,112 @@ For the first two domains ("local" and "remote") Karvdash creates a subfolder fo
 
 To attach these data folders to service and application containers, Karvdash provides a Kubernetes mutating admission webhook which intercepts all calls to create pods or deployments and injects the appropriate "HostPaths" to respective configurations before they are applied. The Karvdash service itself also has the same data folders mounted in order to present their contents via the dashboard.
 
+Remote datasets
+---------------
+
+In addition to local data domains, Karvdash interfaces with the `Dataset Lifecycle Framework <https://github.com/IBM/dataset-lifecycle-framework>`_ to mount external S3 buckets to running containers. Karvdash provides the frontend to configure datasets and then sets up the appropriate Kubernetes labels to enable DLF for the user's namespace and attach configured datasets to deployed pods.
+
 Service templates
 -----------------
 
 Karvdash provides a way for users to easily configure and start services, by integrating a simple service templating mechanism - practically YAML files with variables. The user can specify execution parameters through the dashboard before deployment, and Karvdash will set other "internal" platform configuration values, such as private Docker registry location, external DNS name, etc. Moreover, Karvdash automatically manages service names when starting multiple services from the same template, while it also allows "singleton" services that can only be deployed once per user.
+
+To convert a YAML deployment into a Karvdash service template:
+
+* Replace strings with variables where necessary.
+* Add a "Template" section with variable names, their default values and optional help text.
+* Make sure there is exactly one "Service" section named using the variable ``NAME``
+* Optionally have an "Ingress" section pointing to the service (the dashboard will provide a link to the hostname assigned to the ingress if there is one).
+
+The "Template" section should contain the following fields:
+
+===============  ========  =============================================================================
+Field            Required  Description
+---------------  --------  -----------------------------------------------------------------------------
+``kind``         Yes       Set to ``Template``
+``name``         Yes       The template name to show in the dashboard
+``description``  No        A simple, short description
+``singleton``    No        If set, only one instance of the template can be running
+``variables``    Yes       The template variables (``name`` and ``default`` required, ``help`` optional)
+===============  ========  =============================================================================
+
+An example template is::
+
+    # hello-kubernetes.template.yaml
+
+    apiVersion: networking.k8s.io/v1beta1
+    kind: Ingress
+    metadata:
+      name: $NAME
+    spec:
+      rules:
+      - host: $HOSTNAME
+        http:
+          paths:
+          - backend:
+              serviceName: $NAME
+              servicePort: 8080
+    ---
+    apiVersion: v1
+    kind: Service
+    metadata:
+      name: $NAME
+    spec:
+      type: ClusterIP
+      ports:
+      - port: 8080
+      selector:
+        app: $NAME
+    ---
+    apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      name: $NAME
+    spec:
+      replicas: 1
+      selector:
+        matchLabels:
+          app: $NAME
+      template:
+        metadata:
+          labels:
+            app: $NAME
+        spec:
+          containers:
+          - name: $NAME
+            image: paulbouwer/hello-kubernetes:1.5
+            ports:
+            - containerPort: 8080
+            env:
+            - name: MESSAGE
+              value: $MESSAGE
+    ---
+    kind: Template
+    name: Hello Kubernetes
+    description: Show a message in a web page
+    variables:
+    - name: NAME
+      default: hello-kubernetes
+    - name: HOSTNAME
+      default: hello-kubernetes.example.com
+    - name: MESSAGE
+      default: I just deployed this on Kubernetes!
+      help: Message to display
+
+The following variables are automatically set by Karvdash. If they are used in a template, they are not presented to the user, but rather their values are filled in by Karvdash before starting a service.
+
+=============  ===========================================================
+Field          Description
+-------------  -----------------------------------------------------------
+``NAMESPACE``  The namespace that the service will run in
+``HOSTNAME``   The external hostname that will be assigned to the service
+``REGISTRY``   The private Docker registry configured for the installation
+``LOCAL``      The path to the "local" data domain
+``REMOTE``     The path to the "remote" data domain
+``SHARED``     The path to the "shared" data domain
+=============  ===========================================================
+
+Karvdash distinguishes between internal system templates, which are stored in the filesystem and can not be changed, and custom user templates, which are stored as CRDs in Kubernetes in the user's namespace. To manage service templates with ``kubectl`` use the ``templates`` resource identifier (i.e. ``kubectl get templates``).
 
 User namespaces
 ---------------
