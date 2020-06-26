@@ -22,7 +22,7 @@ Services screen
 The services screen is accessed by selecting "Services" from the menu on the left. You are presented with a list of running services. Select a service name and you will be taken to the service frontend in a new browser tab. Select the "Actions" button to remove a service.
 
 .. note::
-   The service may take some time to initialize. If you select a service name immediately after creation, you may see a proxy error. Just wait a few seconds and refresh your browser.
+   The service may take some time to initialize. If you select a service name immediately after creation, you may see a proxy error. Just wait for a few seconds and refresh your browser.
 
 .. figure:: images/services-screen.png
 

@@ -13,6 +13,9 @@ POST    ``/services/``         Create/start a service
 POST    ``/services/<name>/``  Execute a command at service pods
 DELETE  ``/services/<name>/``  Delete/stop a running service
 GET     ``/templates/``        List available templates
+POST    ``/templates/``        Add a template
+GET     ``/templates/<id>``    Get template data
+DELETE  ``/templates/<id>``    Remove a template
 ======  =====================  =============================================
 
 All methods use a JSON dictionary for input data (if applicable) and respond using JSON formatting. For a detailed description of request and response variables consult the `Python library`_ documentation.
@@ -28,7 +31,7 @@ The ``karvdashctl`` tool has a ``--help`` flag to show available commands::
 
     $ karvdashctl -h
     usage: karvdashctl [-h] [--config CONFIG]
-                       {list_services,create_service,exec_service,delete_service,list_templates}
+                       {list_services,create_service,exec_service,delete_service,list_templates,add_template,get_template,remove_template}
                        ...
 
     Karvdash API client command line tool
@@ -38,20 +41,26 @@ The ``karvdashctl`` tool has a ``--help`` flag to show available commands::
       --config CONFIG       Karvdash API client configuration file
 
     API command:
-      {list_services,create_service,exec_service,delete_service,list_templates}
+      {list_services,create_service,exec_service,delete_service,list_templates,add_template,get_template,remove_template}
         list_services       List running services
-        create_service      Create a service from a template
-        exec_service        Execute a command at a running service
-        delete_service      Delete a running service
+        create_service      Create/start a service
+        exec_service        Execute a command at service pods
+        delete_service      Delete/stop a running service
         list_templates      List available templates
+        add_template        Add a template
+        get_template        Get template data
+        remove_template     Remove a template
 
 And comes with help text for each individual command::
 
-    $ karvdashctl create_service --help
-    usage: karvdashctl create_service [-h] filename variables [variables ...]
+    optional arguments:
+      -h, --help  show this help message and exit
+
+    $ karvdashctl create_service -h
+    usage: karvdashctl create_service [-h] id variables [variables ...]
 
     positional arguments:
-      filename    Template filename
+      id          Template identifier
       variables   Template variables as key=value pairs (provide at least a
                   "name")
 
