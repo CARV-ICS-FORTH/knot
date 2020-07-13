@@ -132,21 +132,27 @@ class KubernetesClient(object):
 
     def delete_namespace_label(self, namespace, label):
         body = {"metadata": {"labels": {label: None}}}
-        self.core_client.patch_namespace(namespace, body)
+        try:
+            self.core_client.patch_namespace(namespace, body)
+        except:
+            pass
 
     def get_datasets(self, namespace):
         contents = []
-        for dataset in self.list_crds(group='com.ie.ibm.hpsys', version='v1alpha1', namespace=namespace, plural='datasets'):
-            try:
-                if dataset['spec']['local']['type'] != 'COS':
-                    raise ValueError
-            except:
-                continue
-            contents.append({'name': dataset['metadata']['name'],
-                             'endpoint': dataset['spec']['local']['endpoint'],
-                             'accessKeyID': dataset['spec']['local']['accessKeyID'],
-                             'secretAccessKey': dataset['spec']['local']['secretAccessKey'],
-                             'bucket': dataset['spec']['local']['bucket'],
-                             'region': dataset['spec']['local']['region']})
+        try:
+            for dataset in self.list_crds(group='com.ie.ibm.hpsys', version='v1alpha1', namespace=namespace, plural='datasets'):
+                try:
+                    if dataset['spec']['local']['type'] != 'COS':
+                        raise ValueError
+                except:
+                    continue
+                contents.append({'name': dataset['metadata']['name'],
+                                 'endpoint': dataset['spec']['local']['endpoint'],
+                                 'accessKeyID': dataset['spec']['local']['accessKeyID'],
+                                 'secretAccessKey': dataset['spec']['local']['secretAccessKey'],
+                                 'bucket': dataset['spec']['local']['bucket'],
+                                 'region': dataset['spec']['local']['region']})
+        except:
+            pass
 
         return contents
