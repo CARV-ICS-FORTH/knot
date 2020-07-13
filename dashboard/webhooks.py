@@ -22,7 +22,8 @@ from django.views.decorators.http import require_POST
 from django.views.decorators.csrf import csrf_exempt
 
 from .models import User
-from .utils.inject import inject_hostpath_volumes
+from .utils.kubernetes import KubernetesClient
+from .utils.inject import inject_hostpath_volumes, inject_datasets
 
 
 @require_POST
@@ -40,6 +41,7 @@ def mutate(request):
         return HttpResponseBadRequest()
 
     inject_hostpath_volumes([service], user.volumes, add_api_settings=True)
+    inject_datasets([service], KubernetesClient().get_datasets(namespace))
     patch = jsonpatch.JsonPatch.from_diff(data['request']['object'], service)
     encoded_patch = base64.b64encode(patch.to_string().encode('utf-8')).decode('utf-8')
 

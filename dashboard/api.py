@@ -19,6 +19,7 @@ import json
 import yaml
 import socket
 import re
+import kubernetes
 
 from django.conf import settings
 from restless.dj import DjangoResource
@@ -268,6 +269,7 @@ class ServiceResource(APIResource):
         # Inject data folders.
         # if settings.DEBUG:
         #     template.inject_hostpath_volumes(self.user.volumes, add_api_settings=True)
+        #     template.inject_datasets(kubernetes_client.get_datasets(self.user.namespace))
 
         # Add template label and values.
         template.inject_service_details()
@@ -295,6 +297,11 @@ class ServiceResource(APIResource):
 
                 kubernetes_client.apply_yaml(namespace_yaml)
                 kubernetes_client.create_docker_registry_secret(self.user.namespace, settings.DOCKER_REGISTRY, 'admin@%s' % settings.INGRESS_DOMAIN)
+
+            if len(kubernetes_client.get_datasets(self.user.namespace)):
+                kubernetes_client.add_namespace_label(self.user.namespace, "monitor-pods-datasets")
+            else:
+                kubernetes_client.delete_namespace_label(self.user.namespace, "monitor-pods-datasets")
 
             api_base_url = settings.API_BASE_URL
             if not api_base_url:
@@ -466,22 +473,7 @@ class DatasetResource(APIResource):
     @property
     def datasets(self):
         kubernetes_client = KubernetesClient()
-
-        contents = []
-        for dataset in kubernetes_client.list_crds(group='com.ie.ibm.hpsys', version='v1alpha1', namespace=self.user.namespace, plural='datasets'):
-            try:
-                if dataset['spec']['local']['type'] != 'COS':
-                    raise ValueError
-            except:
-                continue
-            contents.append({'name': dataset['metadata']['name'],
-                             'endpoint': dataset['spec']['local']['endpoint'],
-                             'accessKeyID': dataset['spec']['local']['accessKeyID'],
-                             'secretAccessKey': dataset['spec']['local']['secretAccessKey'],
-                             'bucket': dataset['spec']['local']['bucket'],
-                             'region': dataset['spec']['local']['region']})
-
-        return contents
+        return kubernetes_client.get_datasets(self.user.namespace)
 
     def list(self):
         return self.datasets
@@ -506,7 +498,14 @@ class DatasetResource(APIResource):
         template.NAME = name
 
         kubernetes_client = KubernetesClient()
-        kubernetes_client.apply_crd(group='com.ie.ibm.hpsys', version='v1alpha1', namespace=self.user.namespace, plural='datasets', yaml=yaml.load(template.yaml, Loader=yaml.FullLoader))
+        try:
+            kubernetes_client.apply_crd(group='com.ie.ibm.hpsys', version='v1alpha1', namespace=self.user.namespace, plural='datasets', yaml=yaml.load(template.yaml, Loader=yaml.FullLoader))
+        except kubernetes.client.rest.ApiException as e:
+            try:
+                message = json.loads(e.body)['message']
+            except:
+                message = str(e)
+            raise Exception(message)
 
         return {'name': template.NAME,
                 'endpoint': template.ENDPOINT,

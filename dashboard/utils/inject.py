@@ -92,3 +92,25 @@ def inject_ingress_auth(yaml_data, secret, realm, redirect_ssl=False):
             part['metadata']['annotations']['nginx.ingress.kubernetes.io/auth-realm'] = realm
             if redirect_ssl:
                 part['metadata']['annotations']['nginx.ingress.kubernetes.io/force-ssl-redirect'] = '"true"'
+
+def inject_datasets(yaml_data, datasets):
+    def add_datasets_to_metadata(template):
+        if 'metadata' not in template:
+            template['metadata'] = {}
+        if 'labels' not in template['metadata']:
+            template['metadata']['labels'] = {}
+        for i, dataset in enumerate(datasets):
+            template['metadata']['labels']['dataset.%d.id' % i] = dataset['name']
+            template['metadata']['labels']['dataset.%d.useas' % i] = 'mount'
+
+    for part in yaml_data:
+        try:
+            if part['kind'] == 'Deployment':
+                template = part['spec']['template']
+            elif part['kind'] == 'Pod':
+                template = part
+            else:
+                continue
+        except:
+            continue
+        add_datasets_to_metadata(template)

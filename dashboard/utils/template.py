@@ -18,7 +18,7 @@ import yaml
 
 from django.conf import settings
 
-from .inject import inject_hostpath_volumes, inject_service_details, inject_ingress_auth
+from .inject import inject_hostpath_volumes, inject_service_details, inject_ingress_auth, inject_datasets
 
 
 class Template(object):
@@ -70,6 +70,9 @@ class Template(object):
 
     def inject_ingress_auth(self, secret, realm, redirect_ssl=False):
         inject_ingress_auth(self._template, secret, realm, redirect_ssl=redirect_ssl)
+
+    def inject_datasets(self, datasets):
+        inject_datasets(self._template, datasets)
 
     @property
     def data(self):
