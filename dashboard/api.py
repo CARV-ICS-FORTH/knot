@@ -488,6 +488,8 @@ class DatasetResource(APIResource):
             name = variable['name']
             if name in self.data:
                 setattr(template, name, form.cleaned_data[name])
+        if not template.REGION:
+            template.REGION = '""'
 
         # Resolve naming conflicts.
         name = template.NAME
