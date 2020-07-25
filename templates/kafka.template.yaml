@@ -60,7 +60,7 @@ spec:
         - name: KAFKA_CFG_ZOOKEEPER_CONNECT
           value: localhost:2181
         - name: KAFKA_CFG_ADVERTISED_LISTENERS
-          value: PLAINTEXT://localhost:9092
+          value: PLAINTEXT://${NAME}:9092
         - name: ALLOW_PLAINTEXT_LISTENER
           value: "yes"
         volumeMounts:
