@@ -109,6 +109,7 @@ rules:
   - events
   verbs:
   - create
+  - patch
 - apiGroups:
   - policy
   resources:
@@ -227,7 +228,7 @@ spec:
       - args:
         - server
         - --namespaced
-        image: argoproj/argocli:v2.8.2
+        image: argoproj/argocli:v2.10.1
         name: argo-server
         ports:
         - containerPort: 2746
@@ -239,6 +240,8 @@ spec:
             scheme: HTTP
           initialDelaySeconds: 10
           periodSeconds: 20
+      nodeSelector:
+        kubernetes.io/os: linux
       serviceAccountName: argo-server
 ---
 apiVersion: apps/v1
@@ -259,12 +262,14 @@ spec:
         - --configmap
         - workflow-controller-configmap
         - --executor-image
-        - argoproj/argoexec:v2.8.2
+        - argoproj/argoexec:v2.10.1
         - --namespaced
         command:
         - workflow-controller
-        image: argoproj/workflow-controller:v2.8.2
+        image: argoproj/workflow-controller:v2.10.1
         name: workflow-controller
+      nodeSelector:
+        kubernetes.io/os: linux
       serviceAccountName: argo
 ---
 kind: Template
