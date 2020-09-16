@@ -241,7 +241,7 @@ class ServiceResource(APIResource):
 
         for variable in template.variables:
             name = variable['name']
-            if name.upper() in ('NAMESPACE', 'HOSTNAME', 'REGISTRY', 'LOCAL', 'REMOTE', 'SHARED'): # Set here later on.
+            if name.upper() in ('NAMESPACE', 'HOSTNAME', 'REGISTRY', 'PRIVATE', 'SHARED'): # Set here later on.
                 continue
             if name in self.data:
                 setattr(template, name, form.cleaned_data[name])
@@ -262,8 +262,7 @@ class ServiceResource(APIResource):
         template.NAME = name
         template.HOSTNAME = '%s-%s.%s' % (name, self.user.username, settings.INGRESS_DOMAIN)
         template.REGISTRY = DockerClient(settings.DOCKER_REGISTRY, settings.DOCKER_REGISTRY_NO_VERIFY).registry_host
-        template.LOCAL = settings.FILE_DOMAINS['local']['dir'].rstrip('/')
-        template.REMOTE = settings.FILE_DOMAINS['remote']['dir'].rstrip('/')
+        template.PRIVATE = settings.FILE_DOMAINS['private']['dir'].rstrip('/')
         template.SHARED = settings.FILE_DOMAINS['shared']['dir'].rstrip('/')
 
         # Inject data folders.

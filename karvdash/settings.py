@@ -178,27 +178,13 @@ MESSAGE_TAGS = {
 
 # File management domains
 
-# local_name = os.getenv('KARVDASH_LOCAL_NAME', 'local')
-# remote_name = os.getenv('KARVDASH_REMOTE_NAME', 'remote')
-# shared_name = os.getenv('KARVDASH_SHARED_NAME', 'shared')
-local_name = 'local'
-remote_name = 'remote'
-shared_name = 'shared'
-
-FILE_DOMAINS = {}
-if local_name:
-    local_default_dir = os.path.join(BASE_DIR, local_name)
-    FILE_DOMAINS[local_name] = {'dir': os.getenv('KARVDASH_LOCAL_DIR', local_default_dir),
-                                'host_dir': os.getenv('KARVDASH_LOCAL_HOST_DIR', local_default_dir)}
-if remote_name:
-    remote_default_dir = os.path.join(BASE_DIR, remote_name)
-    FILE_DOMAINS[remote_name] = {'dir': os.getenv('KARVDASH_REMOTE_DIR', remote_default_dir),
-                                 'host_dir': os.getenv('KARVDASH_REMOTE_HOST_DIR', remote_default_dir)}
-if shared_name:
-    shared_default_dir = os.path.join(BASE_DIR, shared_name)
-    FILE_DOMAINS[shared_name] = {'dir': os.getenv('KARVDASH_SHARED_DIR', shared_default_dir),
-                                 'host_dir': os.getenv('KARVDASH_SHARED_HOST_DIR', shared_default_dir),
-                                 'mode': 'shared'}
+private_default_dir = os.path.join(BASE_DIR, 'private')
+shared_default_dir = os.path.join(BASE_DIR, 'shared')
+FILE_DOMAINS = {'private': {'dir': os.getenv('KARVDASH_PRIVATE_DIR', private_default_dir),
+                            'host_dir': os.getenv('KARVDASH_PRIVATE_HOST_DIR', private_default_dir)},
+                'shared': {'dir': os.getenv('KARVDASH_SHARED_DIR', shared_default_dir),
+                           'host_dir': os.getenv('KARVDASH_SHARED_HOST_DIR', shared_default_dir),
+                           'mode': 'shared'}}
 
 
 # Docker registry endpoint

@@ -60,7 +60,7 @@ To add a new dataset, click on the respective button on the right and fill in th
 Files screen
 ------------
 
-The files screen is accessed by selecting "Files" from the menu on the left. You are presented with a list of folder and files in the respective domain. Change domain ("local", "remote", or "shared") by clicking on the corresponding buttons on the upper-right of the screen. "Local" and "remote" domains contain private user files in corresponding storage pools (local to nodes or at a remote share), while "shared" is common accross all users. Any user can add or remove files in "shared".
+The files screen is accessed by selecting "Files" from the menu on the left. You are presented with a list of folder and files in the respective domain. Change domain ("private" or "shared") by clicking on the corresponding buttons on the upper-right of the screen. The "private" domain contains private user files, while "shared" is common accross all users. Any user can add or remove files in "shared".
 
 Select a folder to navigate into that path (the current path is shown above the list), or a file to download it. Select the "Actions" button to download a folder as an archive or delete an object (non-empty folders can not be deleted). Respective actions are also available to upload compatible image files (ending in ``.tar``) and add templates (ending in ``.template.yaml``).
 

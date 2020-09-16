@@ -15,10 +15,9 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-Create default directories for local, remote, and shared data:
+Create default directories for private and shared data:
 ```
-mkdir local
-mkdir remote
+mkdir private
 mkdir shared
 ```
 
@@ -50,8 +49,7 @@ Run it:
 docker run -d --rm --name karvdash \
     --env KARVDASH_ADMIN_PASSWORD=admin \
     --mount type=bind,source=$PWD,destination=/db \
-    --mount type=bind,source=$PWD/local,destination=/local \
-    --mount type=bind,source=$PWD/remote,destination=/remote \
+    --mount type=bind,source=$PWD/private,destination=/private \
     --mount type=bind,source=$PWD/shared,destination=/shared \
     -p 80:80/tcp \
     karvdash:latest
@@ -75,8 +73,7 @@ The following variables can be set:
 | `KARVDASH_DOCKER_REGISTRY_NO_VERIFY` | Set to anything to skip Docker registry SSL verification (default is to verify).      |
 | `KARVDASH_DATASETS_AVAILABLE`        | Set to anything to enable dataset management (default is disabled).                   |
 | `KARVDASH_API_BASE_URL`              | The URL used for internal API calls (default is "http://karvdash.default.svc/api").   |
-| `KARVDASH_LOCAL_HOST_DIR`            | The host path for the local file domain.                                              |
-| `KARVDASH_REMOTE_HOST_DIR`           | The host path for the remote file domain.                                             |
+| `KARVDASH_PRIVATE_HOST_DIR`          | The host path for the private file domain.                                            |
 | `KARVDASH_SHARED_HOST_DIR`           | The host path for the shared file domain.                                             |
 
 ## Run in Kubernetes

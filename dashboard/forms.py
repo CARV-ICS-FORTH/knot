@@ -74,7 +74,7 @@ class CreateServiceForm(forms.Form):
         super().__init__(*args, **kwargs)
         for variable in variables:
             name = variable['name']
-            if name.upper() in ('NAMESPACE', 'HOSTNAME', 'REGISTRY', 'LOCAL', 'REMOTE', 'SHARED'):
+            if name.upper() in ('NAMESPACE', 'HOSTNAME', 'REGISTRY', 'PRIVATE', 'SHARED'):
                 continue
             kwargs = {'validators': [validate_kubernetes_label]} if name == 'NAME' else {'required': all_required}
             self.fields[name] = forms.CharField(label=variable.get('label', name.capitalize()),

@@ -77,10 +77,8 @@ spec:
           value: "1"
         - name: KARVDASH_DOCKER_REGISTRY
           value: http://192.168.10.106:5000
-        - name: KARVDASH_LOCAL_HOST_DIR
-          value: /Users/chazapis/Source/FORTH/dashboard/local
-        - name: KARVDASH_REMOTE_HOST_DIR
-          value: /Users/chazapis/Source/FORTH/dashboard/remote
+        - name: KARVDASH_PRIVATE_HOST_DIR
+          value: /Users/chazapis/Source/FORTH/dashboard/private
         - name: KARVDASH_SHARED_HOST_DIR
           value: /Users/chazapis/Source/FORTH/dashboard/shared
         ports:
@@ -91,10 +89,8 @@ spec:
           mountPath: /db
         - name: docker-socket
           mountPath: /var/run/docker.sock
-        - name: local-volume
-          mountPath: /local
-        - name: remote-volume
-          mountPath: /remote
+        - name: private-volume
+          mountPath: /private
         - name: shared-volume
           mountPath: /shared
       volumes:
@@ -104,12 +100,9 @@ spec:
       - name: docker-socket
         hostPath:
           path: /var/run/docker.sock
-      - name: local-volume
+      - name: private-volume
         hostPath:
-          path: /Users/chazapis/Source/FORTH/dashboard/local
-      - name: remote-volume
-        hostPath:
-          path: /Users/chazapis/Source/FORTH/dashboard/remote
+          path: /Users/chazapis/Source/FORTH/dashboard/private
       - name: shared-volume
         hostPath:
           path: /Users/chazapis/Source/FORTH/dashboard/shared

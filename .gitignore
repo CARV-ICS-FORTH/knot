@@ -3,8 +3,7 @@ venv/
 _build/
 db.sqlite3
 *.pyc
-local/
-remote/
+private/
 shared/
 services/
 *.egg-info/

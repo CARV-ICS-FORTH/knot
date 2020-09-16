@@ -18,14 +18,11 @@
 
 {% block toolbar %}
 <div class="btn-group mr-2" role="group" aria-label="File domains">
-  <a class="btn btn-outline-secondary {% if domain == 'local' %}active{% endif %}" role="button" href="{% url 'files' 'local' %}">
-    <i class="fa fa-laptop" aria-hidden="true"></i> Local
-  </a>
-  <a class="btn btn-outline-secondary {% if domain == 'remote' %}active{% endif %}" role="button" href="{% url 'files' 'remote' %}">
-    <i class="fa fa-sitemap" aria-hidden="true"></i> Remote
+  <a class="btn btn-outline-secondary {% if domain == 'private' %}active{% endif %}" role="button" href="{% url 'files' 'private' %}">
+    <i class="fa fa-folder-open" aria-hidden="true"></i> Private
   </a>
   <a class="btn btn-outline-secondary {% if domain == 'shared' %}active{% endif %}" role="button" href="{% url 'files' 'shared' %}">
-    <i class="fa fa-folder-open" aria-hidden="true"></i> Shared
+    <i class="fa fa-group" aria-hidden="true"></i> Shared
   </a>
 </div>
 {% endblock %}

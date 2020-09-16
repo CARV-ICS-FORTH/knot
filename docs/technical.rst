@@ -6,13 +6,12 @@ Storage management
 
 In a cluster environment, it is common for each user to have a "home folder", usually mounted over NFS. Karvdash tries to apply this notion in a containerized environment: All cluster nodes share a common NFS folder, but this folder is also mounted inside containers as well. Thus, when running a notebook server (like Zeppelin or Jupyter), user data is available in the containerized environment at a well-known path - as it would be in a bare-metal cluster node. This, in addition to the web-based file browser provided by Karvdash, facilitates easy data management for applications, both for providing inputs and collecting outputs.
 
-In Karvdash, there are three such folders/data domains:
+In Karvdash, there are two such folders/data domains:
 
-* Local: User data that is stored on the cluster nodes themselves via a distributed filesystem. Mounted in containers under ``/local``.
-* Remote: User data that is stored on a separate storage device and shared via a network link. Mounted in containers under ``/remote``.
-* Shared: Data that is shared among all users (usually stored on the same device providing "remote" storage). Mounted in containers under ``/shared``.
+* Private: User data that is private to the user. Mounted in containers under ``/private``.
+* Shared: Data that is shared among all users. Mounted in containers under ``/shared``.
 
-For the first two domains ("local" and "remote") Karvdash creates a subfolder for each user, named after the corresponding username and only allows access within that subfolder (like a "home folder"). This is hidden to the user, meaning that ``/local`` and ``/remote`` are the user subfolders themselves. Users cannot go up a level and check other users' names and files.
+For the first domain Karvdash creates a subfolder for each user, named after the corresponding username and only allows access within that subfolder (like a "home folder"). This is hidden to the user, meaning that ``/private`` is the user subfolder itself. Users cannot go up a level and check other users' names and files.
 
 .. figure:: images/service-layout.png
 
@@ -120,8 +119,7 @@ Field          Description
 ``NAMESPACE``  The namespace that the service will run in
 ``HOSTNAME``   The external hostname that will be assigned to the service
 ``REGISTRY``   The private Docker registry configured for the installation
-``LOCAL``      The path to the "local" data domain
-``REMOTE``     The path to the "remote" data domain
+``PRIVATE``    The path to the "private" data domain
 ``SHARED``     The path to the "shared" data domain
 =============  ===========================================================
 

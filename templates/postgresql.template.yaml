@@ -34,7 +34,7 @@ spec:
         - name: POSTGRES_PASSWORD
           value: $PASSWORD
         - name: PGDATA
-          value: ${REMOTE}/.postgresql/data
+          value: ${PRIVATE}/.postgresql/data
 ---
 kind: Template
 name: PostgreSQL
@@ -45,8 +45,8 @@ variables:
   default: postgresql
 - name: HOSTNAME
   default: postgresql.example.com
-- name: REMOTE
-  default: /remote
+- name: PRIVATE
+  default: /private
 - name: PASSWORD
   default: postgres
   help: Password for postgres user

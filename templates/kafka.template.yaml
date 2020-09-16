@@ -22,16 +22,16 @@ data:
   start-zookeeper.sh: |
     #!/bin/bash -x
     /opt/bitnami/scripts/zookeeper/setup.sh
-    mkdir -p ${REMOTE}/.zookeeper/data
-    chown zookeeper:zookeeper ${REMOTE}/.zookeeper/data
-    sed -i 's|dataDir=.*|dataDir=${REMOTE}/.zookeeper/data|' /opt/bitnami/zookeeper/conf/zoo.cfg
+    mkdir -p ${PRIVATE}/.zookeeper/data
+    chown zookeeper:zookeeper ${PRIVATE}/.zookeeper/data
+    sed -i 's|dataDir=.*|dataDir=${PRIVATE}/.zookeeper/data|' /opt/bitnami/zookeeper/conf/zoo.cfg
     /opt/bitnami/scripts/zookeeper/run.sh
   start-kafka.sh: |
     #!/bin/bash -x
     /opt/bitnami/scripts/kafka/setup.sh
-    mkdir -p ${REMOTE}/.kafka/data
-    chown kafka:kafka ${REMOTE}/.kafka/data
-    sed -i 's|log.dirs=.*|log.dirs=${REMOTE}/.kafka/data|' /opt/bitnami/kafka/config/server.properties
+    mkdir -p ${PRIVATE}/.kafka/data
+    chown kafka:kafka ${PRIVATE}/.kafka/data
+    sed -i 's|log.dirs=.*|log.dirs=${PRIVATE}/.kafka/data|' /opt/bitnami/kafka/config/server.properties
     /opt/bitnami/scripts/kafka/run.sh
 ---
 apiVersion: apps/v1
@@ -96,5 +96,5 @@ variables:
   default: kafka
 - name: HOSTNAME
   default: kafka.example.com
-- name: REMOTE
-  default: /remote
+- name: PRIVATE
+  default: /private

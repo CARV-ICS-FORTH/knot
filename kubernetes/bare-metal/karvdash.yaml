@@ -80,10 +80,8 @@ spec:
           value: https://docker-registry:5000
         - name: KARVDASH_DOCKER_REGISTRY_NO_VERIFY
           value: "1"
-        - name: KARVDASH_LOCAL_HOST_DIR
-          value: /mnt/nfs/local
-        - name: KARVDASH_REMOTE_HOST_DIR
-          value: /mnt/nfs/remote
+        - name: KARVDASH_PRIVATE_HOST_DIR
+          value: /mnt/nfs/private
         - name: KARVDASH_SHARED_HOST_DIR
           value: /mnt/nfs/shared
         ports:
@@ -94,10 +92,8 @@ spec:
           mountPath: /db
         - name: docker-socket
           mountPath: /var/run/docker.sock
-        - name: local-volume
-          mountPath: /local
-        - name: remote-volume
-          mountPath: /remote
+        - name: private-volume
+          mountPath: /private
         - name: shared-volume
           mountPath: /shared
       volumes:
@@ -107,12 +103,9 @@ spec:
       - name: docker-socket
         hostPath:
           path: /var/run/docker.sock
-      - name: local-volume
+      - name: private-volume
         hostPath:
-          path: /mnt/nfs/local
-      - name: remote-volume
-        hostPath:
-          path: /mnt/nfs/remote
+          path: /mnt/nfs/private
       - name: shared-volume
         hostPath:
           path: /mnt/nfs/shared
