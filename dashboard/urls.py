@@ -30,6 +30,7 @@ urlpatterns = [
     path('images', views.images, name='images'),
     path('image/<path:name>', views.image_info, name='image_info'),
     path('datasets', views.datasets, name='datasets'),
+    path('dataset/add/<str:identifier>', views.dataset_add, name='dataset_add'),
     path('dataset/<str:name>', views.dataset_download, name='dataset_download'),
     path('files', views.files, name='files'),
     path('files/<path:path>', views.files, name='files'),

@@ -90,7 +90,19 @@ class AddImageForm(forms.Form):
     tag = forms.CharField(label='Tag', min_length=1, max_length=128, validators=[validate_docker_tag])
     file_field = forms.FileField(label='Saved image file to add')
 
-class AddDatasetForm(CreateServiceForm):
+class AddDatasetForm(forms.Form):
+    def __init__(self, *args, **kwargs):
+        self.request = kwargs.pop('request')
+        super().__init__(*args, **kwargs)
+
+        from .api import DatasetResource
+
+        dataset_resource = DatasetResource()
+        dataset_resource.request = self.request
+        self.fields['id'] = forms.ChoiceField(label='Dataset to create',
+                                              choices=[(t.identifier, '%s: %s' % (t.name, t.description)) for t in dataset_resource.dataset_templates])
+
+class CreateDatasetForm(CreateServiceForm):
     pass
 
 class AddFolderForm(forms.Form):
