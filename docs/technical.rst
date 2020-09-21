@@ -46,7 +46,7 @@ Field            Required  Description
 ``name``         Yes       The template name to show in the dashboard
 ``description``  No        A simple, short description
 ``singleton``    No        If set, only one instance of the template can be running
-``auth``         No        If set, HTTP authentication should be added by ingress (set by default)
+``auth``         No        If set, HTTP authentication should be added by the ingress (set by default)
 ``variables``    Yes       The template variables (``name`` and ``default`` required, ``help`` optional)
 ===============  ========  =============================================================================
 
