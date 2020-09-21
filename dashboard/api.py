@@ -275,7 +275,8 @@ class ServiceResource(APIResource):
         template.inject_service_details()
 
         # Add authentication.
-        template.inject_ingress_auth('karvdash-auth', 'Authentication Required - %s' % settings.DASHBOARD_TITLE, redirect_ssl=settings.SERVICE_REDIRECT_SSL)
+        if template.auth:
+            template.inject_ingress_auth('karvdash-auth', 'Authentication Required - %s' % settings.DASHBOARD_TITLE, redirect_ssl=settings.SERVICE_REDIRECT_SSL)
 
         # Save yaml.
         service_database_path = os.path.join(settings.SERVICE_DATABASE_DIR, self.user.username)
