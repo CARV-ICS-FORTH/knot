@@ -59,7 +59,7 @@
       <thead>
         <tr>
           <th scope="col"></th>
-          {% with 'name endpoint bucket region' as list %}
+          {% with 'name type endpoint' as list %}
           {% for item in list.split %}
           <th scope="col">
             {% if sort_by == item and order == 'asc' %}
@@ -83,9 +83,8 @@
           <td class="align-middle">
             <a class="text-secondary" href="{% url 'dataset_download' item.name %}">{{ item.name }}</a>
           </td>
+          <td class="align-middle">{{ item.type }}</td>
           <td class="align-middle">{{ item.endpoint }}</td>
-          <td class="align-middle">{{ item.bucket }}</td>
-          <td class="align-middle">{{ item.region }}</td>
           <td class="align-middle py-0">
             <div class="btn-group">
               <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="dropdownActionsButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">

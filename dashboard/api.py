@@ -26,7 +26,8 @@ from restless.dj import DjangoResource
 from restless.exceptions import NotFound, BadRequest, Conflict, Forbidden
 
 from .models import APIToken, User
-from .forms import CreateServiceForm, AddDatasetForm
+from .forms import CreateServiceForm, CreateDatasetForm
+from .datasets import LOCAL_S3_DATASET_TEMPLATE, REMOTE_S3_DATASET_TEMPLATE, HOSTPATH_DATASET_TEMPLATE
 from .utils.template import Template, ServiceTemplate, FileTemplate
 from .utils.kubernetes import KubernetesClient
 from .utils.docker import DockerClient
@@ -99,41 +100,6 @@ variables:
   default: template
 - name: DATA
   default: ""
-'''
-
-DATASET_TEMPLATE = '''
-apiVersion: com.ie.ibm.hpsys/v1alpha1
-kind: Dataset
-metadata:
-  name: $NAME
-spec:
-  local:
-    type: "COS"
-    endpoint: $ENDPOINT
-    accessKeyID: $ACCESSKEYID
-    secretAccessKey: $SECRETACCESSKEY
-    bucket: $BUCKET
-    region: $REGION
----
-kind: Template
-name: Dataset
-variables:
-- name: NAME
-  default: dataset
-- name: ENDPOINT
-  default: ""
-  help: Enter S3 service endpoint URL.
-- name: ACCESSKEYID
-  label: Access Key ID
-  default: ""
-- name: SECRETACCESSKEY
-  label: Secret Access Key
-  default: ""
-- name: BUCKET
-  default: ""
-- name: REGION
-  default: ""
-  help: Optional.
 '''
 
 class APIResource(DjangoResource):
@@ -257,7 +223,7 @@ class ServiceResource(APIResource):
         while name in names:
             name = form.cleaned_data['NAME'] + '-' + ''.join([random.choice(string.ascii_lowercase) for i in range(4)])
 
-        # Set name, hostname, registry, and storage paths.
+        # Set namespace, name, hostname, registry, and storage paths.
         template.NAMESPACE = self.user.namespace
         template.NAME = name
         template.HOSTNAME = '%s-%s.%s' % (name, self.user.username, settings.INGRESS_DOMAIN)
@@ -274,7 +240,8 @@ class ServiceResource(APIResource):
         template.inject_service_details()
 
         # Add authentication.
-        template.inject_ingress_auth('karvdash-auth', 'Authentication Required - %s' % settings.DASHBOARD_TITLE, redirect_ssl=settings.SERVICE_REDIRECT_SSL)
+        if template.auth:
+            template.inject_ingress_auth('karvdash-auth', 'Authentication Required - %s' % settings.DASHBOARD_TITLE, redirect_ssl=settings.SERVICE_REDIRECT_SSL)
 
         # Save yaml.
         service_database_path = os.path.join(settings.SERVICE_DATABASE_DIR, self.user.username)
@@ -460,8 +427,10 @@ class DatasetResource(APIResource):
                                'DELETE': 'remove'}}
 
     @property
-    def dataset_template(self):
-        return Template(DATASET_TEMPLATE)
+    def dataset_templates(self):
+        return [ServiceTemplate(LOCAL_S3_DATASET_TEMPLATE, identifier='s3-local'),
+                ServiceTemplate(REMOTE_S3_DATASET_TEMPLATE, identifier='s3-remote'),
+                ServiceTemplate(HOSTPATH_DATASET_TEMPLATE, identifier='hostpath')]
 
     def get_dataset(self, name):
         for dataset in self.datasets:
@@ -477,9 +446,8 @@ class DatasetResource(APIResource):
     def list(self):
         return self.datasets
 
-    def add(self):
-        template = self.dataset_template
-        form = AddDatasetForm(self.data, variables=template.variables)
+    def add(self, template):
+        form = CreateDatasetForm(self.data, variables=template.variables)
         if not form.is_valid():
             raise BadRequest()
 
@@ -487,8 +455,9 @@ class DatasetResource(APIResource):
             name = variable['name']
             if name in self.data:
                 setattr(template, name, form.cleaned_data[name])
-        if not template.REGION:
-            template.REGION = '""'
+        if 'REGION' in [v['name'].upper() for v in template.variables]:
+            if not template.REGION:
+                template.REGION = '""'
 
         # Resolve naming conflicts.
         name = template.NAME
@@ -496,6 +465,8 @@ class DatasetResource(APIResource):
         while name in names:
             name = form.cleaned_data['NAME'] + '-' + ''.join([random.choice(string.ascii_lowercase) for i in range(4)])
 
+        # Set namespace and name.
+        template.NAMESPACE = self.user.namespace
         template.NAME = name
 
         kubernetes_client = KubernetesClient()
@@ -508,12 +479,7 @@ class DatasetResource(APIResource):
                 message = str(e)
             raise Exception(message)
 
-        return {'name': template.NAME,
-                'endpoint': template.ENDPOINT,
-                'accessKeyID': template.ACCESSKEYID,
-                'secretAccessKey': template.SECRETACCESSKEY,
-                'bucket': template.BUCKET,
-                'region': template.REGION}
+        return {'name': name}
 
     def edit(self, pk):
         pass

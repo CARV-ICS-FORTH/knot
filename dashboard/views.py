@@ -29,7 +29,7 @@ from django.contrib import messages
 from datetime import datetime
 
 from .models import User
-from .forms import SignUpForm, EditUserForm, AddServiceForm, CreateServiceForm, AddTemplateForm, AddImageForm, AddDatasetForm, AddFolderForm, AddFilesForm, AddImageFromFileForm
+from .forms import SignUpForm, EditUserForm, AddServiceForm, CreateServiceForm, AddTemplateForm, AddImageForm, AddDatasetForm, CreateDatasetForm, AddFolderForm, AddFilesForm, AddImageFromFileForm
 from .api import ServiceResource, TemplateResource, DatasetResource
 from .utils.kubernetes import KubernetesClient
 from .utils.docker import DockerClient
@@ -408,17 +408,12 @@ def datasets(request):
         if 'action' not in request.POST:
             messages.error(request, 'Invalid action.')
         elif request.POST['action'] == 'Add':
-            form = AddDatasetForm(request.POST, variables=dataset_resource.dataset_template.variables)
+            form = AddDatasetForm(request.POST, request=request)
             if form.is_valid():
-                data = request.POST.dict()
-
-                dataset_resource.data = data
-                try:
-                    dataset = dataset_resource.add()
-                except Exception as e:
-                    messages.error(request, 'Can not create dataset: %s' % str(e))
-                else:
-                    messages.success(request, 'Dataset "%s" created.' % dataset['name'])
+                identifier = form.cleaned_data['id']
+                return redirect('dataset_add', identifier)
+            else:
+                messages.error(request, 'Failed to add dataset. Probably invalid dataset name.')
         elif request.POST['action'] == 'Delete':
             name = request.POST.get('name', None)
             if name:
@@ -449,7 +444,7 @@ def datasets(request):
 
     # Sort them up.
     sort_by = request.GET.get('sort_by')
-    if sort_by and sort_by in ('name', 'description', 'singleton'):
+    if sort_by and sort_by in ('name', 'type', 'endpoint'):
         request.session['datasets_sort_by'] = sort_by
     else:
         sort_by = request.session.get('datasets_sort_by', 'name')
@@ -468,7 +463,43 @@ def datasets(request):
                                                        'contents': contents,
                                                        'sort_by': sort_by,
                                                        'order': order,
-                                                       'add_dataset_form': AddDatasetForm(variables=dataset_resource.dataset_template.variables)})
+                                                       'add_dataset_form': AddDatasetForm(request=request)})
+                                                       # 'add_dataset_form': CreateDatasetForm(variables=dataset_resource.dataset_template.variables)})
+
+@login_required
+def dataset_add(request, identifier=''):
+    next_view = request.GET.get('next', 'datasets')
+
+    # Validate given identifier.
+    dataset_resource = DatasetResource()
+    dataset_resource.request = request
+    template = {t.identifier: t for t in dataset_resource.dataset_templates}.get(identifier, None)
+    if not template:
+        messages.error(request, 'Invalid dataset.')
+        return redirect('datasets')
+
+    # Handle changes.
+    if request.method == 'POST':
+        form = CreateDatasetForm(request.POST, variables=template.variables)
+        if form.is_valid():
+            data = request.POST.dict()
+
+            dataset_resource.data = data
+            try:
+                dataset = dataset_resource.add(template)
+            except Exception as e:
+                messages.error(request, 'Can not create dataset: %s' % str(e))
+            else:
+                messages.success(request, 'Dataset "%s" created.' % dataset['name'])
+
+            return redirect('datasets')
+    else:
+        form = CreateDatasetForm(variables=template.variables)
+
+    return render(request, 'dashboard/form.html', {'title': 'Add Dataset',
+                                                   'form': form,
+                                                   'action': 'Add',
+                                                   'next': reverse(next_view)})
 
 @login_required
 def dataset_download(request, name):

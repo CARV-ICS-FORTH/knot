@@ -1,0 +1,65 @@
+# minio.template.yaml
+
+apiVersion: networking.k8s.io/v1beta1
+kind: Ingress
+metadata:
+  name: $NAME
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+spec:
+  rules:
+  - host: $HOSTNAME
+    http:
+      paths:
+      - backend:
+          serviceName: $NAME
+          servicePort: 9000
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: $NAME
+spec:
+  type: ClusterIP
+  ports:
+  - port: 9000
+  selector:
+    app: $NAME
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: $NAME-pod
+  labels:
+    app: $NAME
+spec:
+  containers:
+    - name: main
+      image: minio/minio:RELEASE.2020-09-17T04-49-20Z
+      env:
+        - name: MINIO_ACCESS_KEY
+          value: ${ACCESS_KEY}
+        - name: MINIO_SECRET_KEY
+          value: ${SECRET_KEY}
+      ports:
+        - containerPort: 9000
+      command: [minio, server, "${PRIVATE}/.minio/data"]
+---
+kind: Template
+name: Minio
+description: Amazon S3 compatible object storage server
+auth: False
+variables:
+- name: NAME
+  default: minio
+- name: HOSTNAME
+  default: minio.example.com
+- name: PRIVATE
+  default: /private
+- name: ACCESS_KEY
+  default: admin
+  help: Access key
+- name: SECRET_KEY
+  default: password
+  help: Secret key (please use a strong secret)

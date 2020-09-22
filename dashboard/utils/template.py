@@ -27,6 +27,7 @@ class Template(object):
         self._name = ''
         self._description = ''
         self._singleton = False
+        self._auth = True
         self._variables = None
         self._values = {}
 
@@ -36,6 +37,7 @@ class Template(object):
                 self._name = part['name']
                 self._description = part.get('description', '')
                 self._singleton = part.get('singleton', False)
+                self._auth = part.get('auth', True)
                 self._variables = part['variables']
             else:
                 self._template.append(part)
@@ -91,6 +93,10 @@ class Template(object):
         return self._singleton
 
     @property
+    def auth(self):
+        return self._auth
+
+    @property
     def variables(self):
         return self._variables
 
@@ -106,6 +112,7 @@ class Template(object):
         result = {'name': self._name,
                   'description': self._description,
                   'singleton': self._singleton,
+                  'auth': self._auth,
                   'variables': self._variables}
         if include_data:
             result.update({'data': self._data})

@@ -142,16 +142,21 @@ class KubernetesClient(object):
         try:
             for dataset in self.list_crds(group='com.ie.ibm.hpsys', version='v1alpha1', namespace=namespace, plural='datasets'):
                 try:
-                    if dataset['spec']['local']['type'] != 'COS':
-                        raise ValueError
+                    dataset_type = dataset['spec']['local']['type']
                 except:
                     continue
+                if dataset_type == 'COS':
+                    dataset_type = 'S3'
+                    endpoint = dataset['spec']['local']['endpoint'] + '/' + dataset['spec']['local']['bucket']
+                elif dataset_type == 'HOST':
+                    dataset_type = 'HostPath'
+                    endpoint = dataset['spec']['local']['path']
+                else:
+                    continue
+
                 contents.append({'name': dataset['metadata']['name'],
-                                 'endpoint': dataset['spec']['local']['endpoint'],
-                                 'accessKeyID': dataset['spec']['local']['accessKeyID'],
-                                 'secretAccessKey': dataset['spec']['local']['secretAccessKey'],
-                                 'bucket': dataset['spec']['local']['bucket'],
-                                 'region': dataset['spec']['local']['region']})
+                                 'type': dataset_type,
+                                 'endpoint': endpoint})
         except:
             pass
 

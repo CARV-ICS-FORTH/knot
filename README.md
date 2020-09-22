@@ -36,13 +36,12 @@ Point your browser to http://localtest.me:8000 and login as "admin".
 
 ## Running in Docker
 
-Edit the `Dockerfile` and set the version of `kubectl` to match your Kubernetes cluster.
-
 Build the image:
 ```
-docker build -t karvdash:1.6.2 .
-docker tag karvdash:1.6.2 karvdash:latest
+make container
 ```
+
+Optionally, edit the `Makefile` to set the image prefix (registry name) and the version of `kubectl` to match your Kubernetes cluster.
 
 Run it:
 ```
