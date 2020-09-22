@@ -1,0 +1,14 @@
+.git/
+**/.DS_Store
+**/*.pyc
+**/__pycache__/
+client/
+kubernetes/
+venv/
+docs/_build/
+db.sqlite3
+local/
+remote/
+shared/
+private/
+services/

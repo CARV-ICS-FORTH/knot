@@ -7,7 +7,8 @@ WORKDIR /app
 
 RUN pip install -r requirements.txt
 
-RUN curl -o /usr/local/bin/kubectl https://storage.googleapis.com/kubernetes-release/release/v1.15.10/bin/linux/amd64/kubectl
+ARG KUBECTL_VERSION=v1.15.10
+RUN curl -o /usr/local/bin/kubectl https://storage.googleapis.com/kubernetes-release/release/${KUBECTL_VERSION}/bin/linux/amd64/kubectl
 RUN chmod +x /usr/local/bin/kubectl
 RUN apt-get update
 RUN apt-get install -y docker.io
