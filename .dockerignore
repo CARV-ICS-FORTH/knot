@@ -2,10 +2,14 @@
 **/.DS_Store
 **/*.pyc
 **/__pycache__/
-client/
+client/build/
+client/dist/
+client/*.egg-info/
+client/config.ini
+docs/_build/
+dashboard/static/docs/
 kubernetes/
 venv/
-docs/_build/
 db.sqlite3
 local/
 remote/

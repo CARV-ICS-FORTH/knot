@@ -75,6 +75,7 @@
               {% if user.is_impersonate %}<a class="dropdown-item text-dark" href="{% url 'impersonate-stop' %}">Stop impersonating</a>{% endif %}
               <a class="dropdown-item text-secondary" href="{% url 'change_password' %}?next={{ request.path }}">Change password</a>
               {% if issues_url %}<a class="dropdown-item text-secondary" href="{{ issues_url }}" target="_blank">Report an issue</a>{% endif %}
+              <a class="dropdown-item text-secondary" href="{% static 'docs/index.html' %}" target="_blank">Documentation</a>
               <a class="dropdown-item text-secondary" href="{% url 'logout' %}">Logout</a>
             </div>
           </div>
