@@ -43,7 +43,7 @@ make container
 
 Optionally, edit the `Makefile` to set the image prefix (registry name) and the version of `kubectl` to match your Kubernetes cluster.
 
-Run it:
+Run it (replace `<version>` with the version to run, i.e. `v1.7`):
 ```
 docker run -d --rm --name karvdash \
     --env KARVDASH_ADMIN_PASSWORD=admin \
@@ -51,7 +51,7 @@ docker run -d --rm --name karvdash \
     --mount type=bind,source=$PWD/private,destination=/private \
     --mount type=bind,source=$PWD/shared,destination=/shared \
     -p 80:80/tcp \
-    karvdash:latest
+    karvdash:<version>
 ```
 
 The following variables can be set:

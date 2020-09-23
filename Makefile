@@ -27,5 +27,3 @@ container:
 
 push:
 	docker push $(IMAGE_TAG)
-	docker tag $(IMAGE_TAG) $(REGISTRY_NAME)/$(IMAGE_NAME):latest
-	docker push $(REGISTRY_NAME)/$(IMAGE_NAME):latest
