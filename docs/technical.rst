@@ -4,7 +4,7 @@ Technical overview
 Storage management
 ------------------
 
-In a cluster environment, it is common for each user to have a "home folder", usually mounted over NFS. Karvdash tries to apply this notion in a containerized environment: All cluster nodes share a common NFS folder, but this folder is also mounted inside containers as well. Thus, when running a notebook server (like Zeppelin or Jupyter), user data is available in the containerized environment at a well-known path - as it would be in a bare-metal cluster node. This, in addition to the web-based file browser provided by Karvdash, facilitates easy data management for applications, both for providing inputs and collecting outputs.
+In a cluster environment, it is common for each user to have a "home folder", usually mounted over NFS, Lustre, Gluster, etc. Karvdash tries to apply this notion in a containerized environment: Given a cluster-wide shared folder, this folder is also mounted inside containers as well. Thus, when running a notebook server (like Zeppelin or Jupyter), user data is available in the containerized environment at a well-known path - as it would be in a bare-metal cluster node. This, in addition to the web-based file browser provided by Karvdash, facilitates easy data management for applications, both for providing inputs and collecting outputs.
 
 In Karvdash, there are two such folders/data domains:
 
@@ -22,7 +22,7 @@ To attach these data folders to service and application containers, Karvdash pro
 Remote datasets
 ---------------
 
-In addition to local data domains, Karvdash interfaces with the `Dataset Lifecycle Framework <https://github.com/IBM/dataset-lifecycle-framework>`_ to mount external S3 buckets to running containers. Karvdash provides the frontend to configure datasets and then sets up the appropriate Kubernetes labels to enable DLF for the user's namespace and attach configured datasets to deployed pods.
+In addition to the "private" and "shared" data domains, Karvdash interfaces with the `Dataset Lifecycle Framework <https://github.com/IBM/dataset-lifecycle-framework>`_ to mount internal or external S3 buckets, and additional host-specific paths to running containers. Karvdash provides the frontend to configure datasets and then sets up the appropriate Kubernetes labels to enable DLF for the user's namespace and attach configured datasets to deployed pods. DLF mounts datasets in containers at ``/mnt/datasets/<name>``.
 
 Service templates
 -----------------
