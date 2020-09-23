@@ -464,7 +464,6 @@ def datasets(request):
                                                        'sort_by': sort_by,
                                                        'order': order,
                                                        'add_dataset_form': AddDatasetForm(request=request)})
-                                                       # 'add_dataset_form': CreateDatasetForm(variables=dataset_resource.dataset_template.variables)})
 
 @login_required
 def dataset_add(request, identifier=''):
