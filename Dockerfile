@@ -5,11 +5,13 @@ ENV PYTHONUNBUFFERED 1
 COPY . /app
 WORKDIR /app
 
-RUN pip install -r requirements.txt
+RUN pip install -r requirements.txt && \
+    python manage.py collectstatic
 RUN (cd client && python setup.py install)
 RUN pip install -r docs/requirements.txt && \
     (cd docs && make html) && \
-    cp -r docs/_build/html dashboard/static/docs
+    mv docs/_build/html static/docs && \
+    rm -rf docs/_build
 
 ARG KUBECTL_VERSION=v1.15.10
 RUN curl -o /usr/local/bin/kubectl https://storage.googleapis.com/kubernetes-release/release/${KUBECTL_VERSION}/bin/linux/amd64/kubectl

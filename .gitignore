@@ -9,11 +9,8 @@ docs/_build/
 dashboard/static/docs/
 venv/
 db.sqlite3
+static/
 private/
 shared/
 private/
 services/
-csr.conf
-karvdash-maw.csr
-karvdash-maw.key
-karvdash-maw.pem

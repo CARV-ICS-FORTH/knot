@@ -22,12 +22,7 @@ Start the Karvdash service:
 kubectl apply -f karvdash.yaml
 ```
 
-And the mutating admission webhook configuration:
-```
-kubectl apply -f karvdash-maw.yaml
-```
-
-*The webhook template assumes that the dashboard runs with a verified SSL certificate. If you need an internal SSL proxy, check the local deployment instructions for Docker Desktop.*
+When starting, Karvdash will create all necessary certificates and a mutating webhook configuration to filter API calls for attaching storage and configuration when creating pods and deployments.
 
 You also need to apply some custom resource definitions for service templates used in Karvdash:
 ```

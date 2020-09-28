@@ -56,24 +56,7 @@ kubectl apply -f karvdash.yaml
 
 Karvdash should run in the `default` namespace (or at least a namespace with permissions to create other namespaces and service accounts).
 
-## Karvdash Mutating Admission Webhook
-
-If you are running Karvdash in debug mode, it will automatically attach user and shared volumes, as well as API configuration, to any service started.
-
-However, when deploying Karvdash, you will need to create a mutating webhook configuration to filter API calls for attaching storage and configuration when creating pods and deployments. Kubernetes will only communicate with webhooks over HTTPS, using trusted certificates. As the Karvdash service will probably run internally, behind an ingress using the `localtest.me` self-signed certificate, you need a separate service acting as an HTTPS webhook proxy, with a certificate signed by your Kubernetes installation.
-
-Build the webhook proxy Docker image:
-```
-(cd karvdash-maw/ssl && make cert)
-(cd karvdash-maw && docker build -t karvdash-maw:1 .)
-docker tag karvdash-maw:1 karvdash-maw:latest
-```
-
-Update the webhook service and configuration and apply:
-```
-sed -i '' "s/caBundle:.*/caBundle: $(cat karvdash-maw/ssl/karvdash-maw.pem | base64)/" karvdash-maw.yaml
-kubectl apply -f karvdash-maw.yaml
-```
+When starting, Karvdash will create all necessary certificates and a mutating webhook configuration to filter API calls for attaching storage and configuration when creating pods and deployments.
 
 ## Other
 

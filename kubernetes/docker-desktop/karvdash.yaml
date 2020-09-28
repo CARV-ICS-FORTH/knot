@@ -22,6 +22,9 @@ spec:
   type: ClusterIP
   ports:
   - port: 80
+    name: http
+  - port: 443
+    name: https
   selector:
     app: karvdash
 ---
@@ -83,7 +86,9 @@ spec:
           value: /Users/chazapis/Source/FORTH/dashboard/shared
         ports:
         - containerPort: 80
-          name: karvdash
+          name: http
+        - containerPort: 443
+          name: https
         volumeMounts:
         - name: karvdash-persistent-storage
           mountPath: /db

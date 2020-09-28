@@ -11,6 +11,7 @@ dashboard/static/docs/
 kubernetes/
 venv/
 db.sqlite3
+static/
 private/
 shared/
 services/
