@@ -18,9 +18,21 @@ REGISTRY_NAME=carvicsforth
 IMAGE_NAME=karvdash
 IMAGE_TAG=$(REGISTRY_NAME)/$(IMAGE_NAME):$(VERSION)
 
+CERTS_DIR=deploy/docker-desktop
+
 .PHONY: all container
 
 all: container push
+
+$(CERTS_DIR)/localtest.me.key $(CERTS_DIR)/localtest.me.crt:
+	mkdir -p $(CERTS_DIR)
+	openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout $(CERTS_DIR)/localtest.me.key -out $(CERTS_DIR)/localtest.me.crt -subj "/CN=*.localtest.me/CN=localtest.me/O=localtest.me"
+	CERT="  tls.crt: "`cat $(CERTS_DIR)/localtest.me.crt | base64`
+	KEY="  tls.key: "`cat $(CERTS_DIR)/localtest.me.key | base64`
+	echo $(CERT) $(KEY)
+
+prepare-docker-desktop: $(CERTS_DIR)/localtest.me.key $(CERTS_DIR)/localtest.me.crt
+	echo "asdf"
 
 container:
 	docker build -t $(IMAGE_TAG) -f Dockerfile --build-arg KUBECTL_VERSION=$(KUBECTL_VERSION) .
