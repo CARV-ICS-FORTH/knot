@@ -1,0 +1,118 @@
+apiVersion: networking.k8s.io/v1beta1
+kind: Ingress
+metadata:
+  annotations:
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/proxy-body-size: 1024m
+  name: karvdash
+spec:
+  rules:
+  - host: ${KARVDASH_INGRESS_DOMAIN}
+    http:
+      paths:
+      - backend:
+          serviceName: karvdash
+          servicePort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: karvdash
+spec:
+  type: ClusterIP
+  ports:
+  - port: 80
+    name: http
+  - port: 443
+    name: https
+  selector:
+    app: karvdash
+---
+apiVersion: v1
+kind: Secret
+data:
+  admin-password: YWRtaW4=
+  django-secret: JWFkJiU0KiF4cGYqJHdkM150NTYrI29kZTQ9QHleanVfdCtqOWYrMjBhanN0YV5nb2c=
+metadata:
+  name: karvdash-secret
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: karvdash
+  labels:
+    app: karvdash
+spec:
+  selector:
+    matchLabels:
+      app: karvdash
+      tier: frontend
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: karvdash
+        tier: frontend
+    spec:
+      containers:
+      - image: ${KARVDASH_IMAGE}
+        name: karvdash
+        env:
+        - name: DJANGO_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: karvdash-secret
+              key: django-secret
+        - name: DJANGO_DEBUG
+          value: ${KARVDASH_DEBUG}
+        - name: KARVDASH_ADMIN_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: karvdash-secret
+              key: admin-password
+        - name: KARVDASH_SERVICE_TEMPLATE_DIR
+          value: /db/templates
+        - name: KARVDASH_DASHBOARD_TITLE
+          value: ${KARVDASH_DASHBOARD_TITLE}
+        - name: KARVDASH_DASHBOARD_THEME
+          value: evolve
+        - name: KARVDASH_INGRESS_DOMAIN
+          value: ${KARVDASH_INGRESS_DOMAIN}
+        - name: KARVDASH_SERVICE_REDIRECT_SSL
+          value: "1"
+        - name: KARVDASH_DOCKER_REGISTRY
+          value: ${KARVDASH_DOCKER_REGISTRY}
+        - name: KARVDASH_DATASETS_AVAILABLE
+          value: ${KARVDASH_DATASETS_AVAILABLE}
+        - name: KARVDASH_PRIVATE_HOST_DIR
+          value: ${KARVDASH_PRIVATE_HOST_DIR}
+        - name: KARVDASH_SHARED_HOST_DIR
+          value: ${KARVDASH_SHARED_HOST_DIR}
+        ports:
+        - containerPort: 80
+          name: http
+        - containerPort: 443
+          name: https
+        volumeMounts:
+        - name: karvdash-persistent-storage
+          mountPath: /db
+        - name: docker-socket
+          mountPath: /var/run/docker.sock
+        - name: private-volume
+          mountPath: /private
+        - name: shared-volume
+          mountPath: /shared
+      volumes:
+      - name: karvdash-persistent-storage
+        hostPath:
+          path: ${KARVDASH_PERSISTENT_STORAGE_DIR}
+      - name: docker-socket
+        hostPath:
+          path: /var/run/docker.sock
+      - name: private-volume
+        hostPath:
+          path: ${KARVDASH_PRIVATE_HOST_DIR}
+      - name: shared-volume
+        hostPath:
+          path: ${KARVDASH_SHARED_HOST_DIR}
