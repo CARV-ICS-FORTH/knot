@@ -10,6 +10,8 @@ Check out the user guide and API documentation in [docs](docs) (also available i
 
 We use Kubernetes 1.15.x to develop, test, and run Karvdash.
 
+Karvdash includes service templates for [Zeppelin](https://zeppelin.apache.org) 0.9.0, [Argo](https://argoproj.github.io/argo/) (both [Argo Workflows](https://github.com/argoproj/argo) 2.10.1 and [Argo Events](https://github.com/argoproj/argo-events) 1.0.0), and other applications. The Zeppelin template uses a Karvdash-specific Docker image which adds `kubectl` 1.15.10, the `argo` utility (at the same version as the Argo service template), `karvdashctl` to manage Karvdash services from a notebook, as well as Spark 2.4.5 with Hadoop 2.7. If your requirements differ, you will need to create custom Docker images and service templates.
+
 ## Deployment
 
 To deploy Karvdash you need a running Kubernetes environment with the following features:
@@ -20,15 +22,14 @@ To deploy Karvdash you need a running Kubernetes environment with the following 
 
 Then, you can set the following environmental variables and run `make deploy`.
 
-| Variable                          | Description                                                                              |
-|-----------------------------------|------------------------------------------------------------------------------------------|
-| `KARVDASH_INGRESS_DOMAIN`         | The domain used (for example `example.com`).                                             |
-| `KARVDASH_DOCKER_REGISTRY`        | The URL of the Docker registry (for example `https://username:password@127.0.0.1:5000`). |
-| `KARVDASH_DATASETS_AVAILABLE`     | Set to anything to enable dataset management (default is disabled).                      |
-| `KARVDASH_PERSISTENT_STORAGE_DIR` | The host path for the Karvdash database, the running services repository,
-                                      and service templates directory.                                                         |
-| `KARVDASH_PRIVATE_HOST_DIR`       | The host path for the private file domain.                                               |
-| `KARVDASH_SHARED_HOST_DIR`        | The host path for the shared file domain.                                                |
+| Variable                          | Description                                                                                     |
+|-----------------------------------|-------------------------------------------------------------------------------------------------|
+| `KARVDASH_INGRESS_DOMAIN`         | The domain used (for example `example.com`).                                                    |
+| `KARVDASH_DOCKER_REGISTRY`        | The URL of the Docker registry (for example `https://username:password@127.0.0.1:5000`).        |
+| `KARVDASH_DATASETS_AVAILABLE`     | Set to anything to enable dataset management (default is disabled).                             |
+| `KARVDASH_PERSISTENT_STORAGE_DIR` | The host path for persistent storage (database, running services repository, template library). |
+| `KARVDASH_PRIVATE_HOST_DIR`       | The host path for the private file domain.                                                      |
+| `KARVDASH_SHARED_HOST_DIR`        | The host path for the shared file domain.                                                       |
 
 The directory variables should be set to some folder inside the node-wide, shared mountpoint.
 
@@ -43,6 +44,8 @@ make deploy
 ```
 
 This will install the necessary CRDs and use the variables to configure the `karvdash.yaml` template found in the [deploy](deploy/) folder.
+
+The `KARVDASH_PERSISTENT_STORAGE_DIR/templates` directory will be initialized with a set of default service templates (the ones in [db/templates](db/templates/)). You may place any custom, "system-wide" service templates there, so they are available (read-only) to all users. Note that there is no automatic process for upgrading templates when you upgrade Karvdash.
 
 Depending on your setup, you may want to create a custom version of this template. To deploy the Karvdash Docker image, you must provide mount points for `/db` (persistent storage directory), `/private`, and `/shared`, and set the following variables:
 

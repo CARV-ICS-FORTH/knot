@@ -12,11 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-VERSION=$(shell cat VERSION)
-KUBECTL_VERSION?=v1.15.10
 REGISTRY_NAME?=carvicsforth
-IMAGE_NAME=karvdash
-IMAGE_TAG=$(REGISTRY_NAME)/$(IMAGE_NAME):$(VERSION)
+KUBECTL_VERSION?=v1.15.10
+
+KARVDASH_VERSION=$(shell cat VERSION)
+KARVDASH_IMAGE_TAG=$(REGISTRY_NAME)/karvdash:$(KARVDASH_VERSION)
+
+# This should match the version used in the Zeppelin template (we use <Zeppelin version>.<build>).
+ZEPPELIN_VERSION=0.9.0.4
+ZEPPELIN_IMAGE_TAG=$(REGISTRY_NAME)/karvdash-zeppelin:$(ZEPPELIN_VERSION)
 
 DEPLOY_DIR=deploy
 DOCKER_DESKTOP_DIR=$(DEPLOY_DIR)/docker-desktop
@@ -77,7 +81,7 @@ deploy-docker-desktop: prepare-docker-desktop
 	# Template variables
 	IP_ADDRESS=$$(ipconfig getifaddr en0); \
 	export KARVDASH_INGRESS_DOMAIN=localtest.me; \
-	export KARVDASH_IMAGE=$(IMAGE_TAG); \
+	export KARVDASH_IMAGE=$(KARVDASH_IMAGE_TAG); \
 	export KARVDASH_DEBUG=1; \
 	export KARVDASH_DASHBOARD_TITLE="Karvdash on Docker Desktop"; \
 	export KARVDASH_DOCKER_REGISTRY="http://$$IP_ADDRESS:5000"; \
@@ -104,7 +108,7 @@ deploy: deploy-crds
 	if [[ -z $$KARVDASH_PERSISTENT_STORAGE_DIR ]]; then echo "KARVDASH_PERSISTENT_STORAGE_DIR is not set"; exit; fi; \
 	if [[ -z $$KARVDASH_PRIVATE_HOST_DIR ]]; then echo "KARVDASH_PRIVATE_HOST_DIR is not set"; exit; fi; \
 	if [[ -z $$KARVDASH_SHARED_HOST_DIR ]]; then echo "KARVDASH_SHARED_HOST_DIR is not set"; exit; fi; \
-	export KARVDASH_IMAGE=$(IMAGE_TAG); \
+	export KARVDASH_IMAGE=$(KARVDASH_IMAGE_TAG); \
 	export KARVDASH_DEBUG=""; \
 	export KARVDASH_DASHBOARD_TITLE=$${KARVDASH_DASHBOARD_TITLE:="Karvdash"}; \
 	export KARVDASH_DATASETS_AVAILABLE=$${KARVDASH_DATASETS_AVAILABLE:=""}; \
@@ -114,7 +118,7 @@ undeploy:
 	kubectl delete -f $(DEPLOY_DIR)/karvdash.yaml
 
 container:
-	docker build -t $(IMAGE_TAG) -f Dockerfile --build-arg KUBECTL_VERSION=$(KUBECTL_VERSION) .
+	docker build -t $(KARVDASH_IMAGE_TAG) -f Dockerfile --build-arg KUBECTL_VERSION=$(KUBECTL_VERSION) .
 
 push:
-	docker push $(IMAGE_TAG)
+	docker push $(KARVDASH_IMAGE_TAG)
