@@ -12,11 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-SHELL := /bin/bash
-
 VERSION=$(shell cat VERSION)
-KUBECTL_VERSION=v1.15.10
-REGISTRY_NAME=carvicsforth
+KUBECTL_VERSION?=v1.15.10
+REGISTRY_NAME?=carvicsforth
 IMAGE_NAME=karvdash
 IMAGE_TAG=$(REGISTRY_NAME)/$(IMAGE_NAME):$(VERSION)
 
@@ -35,7 +33,7 @@ data:
   tls.key: KEY
 endef
 
-.PHONY: all prepare-docker-desktop unprepare-docker-desktop deploy-docker-desktop undeploy-docker-desktop deploy-crds deploy undeploy container push
+.PHONY: all prepare-docker-desktop unprepare-docker-desktop deploy-docker-desktop undeploy-docker-desktop deploy-crds undeploy-crds deploy undeploy container push
 
 all: container push
 
@@ -94,6 +92,10 @@ undeploy-docker-desktop: unprepare-docker-desktop undeploy
 deploy-crds:
 	kubectl apply -f $(DEPLOY_DIR)/argo-crd.yaml
 	kubectl apply -f $(DEPLOY_DIR)/karvdash-crd.yaml
+
+undeploy-crds:
+	kubectl delete -f $(DEPLOY_DIR)/argo-crd.yaml
+	kubectl delete -f $(DEPLOY_DIR)/karvdash-crd.yaml
 
 deploy: deploy-crds
 	# Check for necessary set variables

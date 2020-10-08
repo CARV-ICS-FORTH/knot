@@ -2,7 +2,9 @@
 
 Karvdash (Kubernetes CARV dashboard) is a dashboard service for facilitating data science on [Kubernetes](https://kubernetes.io). It supplies the landing page for working on a Kubernetes cluster, manages users, launches notebooks, and wires up relevant storage to the appropriate paths inside running containers.
 
-Check out the user guide and API documentation in [docs](docs) (also available in Karvdash under "Documentation" at the user menu).
+Check out the user guide and API documentation in [docs](docs) (also available in Karvdash under "Documentation" at the user menu). Karvdash is written in [Python](https://www.python.org) using [Django](https://www.djangoproject.com).
+
+![Karvdash services screen](docs/images/services-screen.png)
 
 ## Compatibility
 
@@ -14,6 +16,7 @@ To deploy Karvdash you need a running Kubernetes environment with the following 
 * An [ingress controller](https://kubernetes.github.io/ingress-nginx/) answering to a domain name and its wildcard (i.e. both `example.com` and `*.example.com` should both point to your server). You can use [xip.io](http://xip.io) if you don't have a DNS entry.
 * A private Docker registry. You can deploy one using the [official instructions](https://docs.docker.com/registry/deploying/), or use [this](https://artifacthub.io/packages/helm/helm-stable/docker-registry) [Helm](https://helm.sh) chart.
 * A shared filesystem mounted at the same path across all Kubernetes nodes, like NFS, [Gluster](https://www.gluster.org), or similar.
+* Optionally the [Dataset Lifecycle Framework](https://github.com/IBM/dataset-lifecycle-framework) deployed, in which case Karvdash can be used to configure datasets (the DLF should monitor all namespaces).
 
 Then, you can set the following environmental variables and run `make deploy`.
 
@@ -21,11 +24,13 @@ Then, you can set the following environmental variables and run `make deploy`.
 |-----------------------------------|------------------------------------------------------------------------------------------|
 | `KARVDASH_INGRESS_DOMAIN`         | The domain used (for example `example.com`).                                             |
 | `KARVDASH_DOCKER_REGISTRY`        | The URL of the Docker registry (for example `https://username:password@127.0.0.1:5000`). |
-| `KARVDASH_PERSISTENT_STORAGE_DIR` | The host path for Karvdash database, running service repository, and service templates.  |
+| `KARVDASH_DATASETS_AVAILABLE`     | Set to anything to enable dataset management (default is disabled).                      |
+| `KARVDASH_PERSISTENT_STORAGE_DIR` | The host path for the Karvdash database, the running services repository,
+                                      and service templates directory.                                                         |
 | `KARVDASH_PRIVATE_HOST_DIR`       | The host path for the private file domain.                                               |
 | `KARVDASH_SHARED_HOST_DIR`        | The host path for the shared file domain.                                                |
 
-The directory variables should be set to some folder inside the shared mountpoint.
+The directory variables should be set to some folder inside the node-wide, shared mountpoint.
 
 For example:
 ```bash
@@ -37,9 +42,9 @@ export KARVDASH_SHARED_HOST_DIR=/mnt/nfs/shared
 make deploy
 ```
 
-This will install the necessary CRDs and use the variables to configure the `karvdash.yaml` template found in the `deploy` folder.
+This will install the necessary CRDs and use the variables to configure the `karvdash.yaml` template found in the [deploy](deploy/) folder.
 
-Depending on your setup, you may want to create a custom version of this template. To deploy the Karvdash Docker image, you must provide mount points for `/db` (persistent storage directory), `/private`, and `/shared`, and set any of the following variables:
+Depending on your setup, you may want to create a custom version of this template. To deploy the Karvdash Docker image, you must provide mount points for `/db` (persistent storage directory), `/private`, and `/shared`, and set the following variables:
 
 | Variable                             | Description                                                                           |
 |--------------------------------------|---------------------------------------------------------------------------------------|
@@ -60,36 +65,38 @@ Depending on your setup, you may want to create a custom version of this templat
 | `KARVDASH_PRIVATE_HOST_DIR`          | The host path for the private file domain.                                            |
 | `KARVDASH_SHARED_HOST_DIR`           | The host path for the shared file domain.                                             |
 
+To remove Karvdash, you can run `make undeploy`, which will remove the service, but not associated CRDs. Use `make undeploy-crds` for explicitly removing CRDs and any stored data.
+
 ## Development
 
 To work on Karvdash, you need a local Kubernetes environment, like Docker Desktop for macOS, with a running ingress controller and a local Docker registry (as you would on a bare metal setup).
 
 Especially for Docker Desktop ([versions 2.2.x.x-2.3.x.x](https://docs.docker.com/docker-for-mac/release-notes/) use Kubernetes 1.15.5) running on macOS, these are all provided with `make deploy-docker-desktop`. This will setup an SSL-enabled ingress controller answering to https://localtest.me (provided by [localtest.me](https://readme.localtest.me)), start a private Docker registry (without SSL), and deploy Karvdash.
 
-You can also install all the requirements with `make prepare-docker-desktop` and then run Karvdash locally.
+You can also install all the requirements with `make prepare-docker-desktop` and then run Karvdash locally (note that when running Karvdash outside Kubernetes, there is no mutating admission webhook to attach file domains and datasets to service containers).
 
 First, create the Python environment:
-```
+```bash
 python3 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
 ```
 
 Create default directories for the database, private, and shared data:
-```
+```bash
 mkdir db
 mkdir private
 mkdir shared
 ```
 
 Prepare the application:
-```
+```bash
 ./manage.py migrate
 ./manage.py createadmin --noinput --username admin --password admin --email admin@example.com --preserve
 ```
 
 And start it:
-```
+```bash
 ./manage.py runserver
 ```
 
@@ -97,13 +104,15 @@ Point your browser to http://localtest.me:8000 and login as "admin".
 
 ## Building images
 
-To build the Karvdash Docker image:
-```
+Docker images are `available <https://hub.docker.com/r/carvicsforth/karvdash>`_. To build, run:
+```bash
 make container
 ```
 
+Change the version by editing `VERSION`. The images use `kubectl` 1.15.10 by default, but this can be changed by setting the `KUBECTL_VERSION` variable before running `make`.
+
 To upload to Docker Hub:
-```
+```bash
 make push
 ```
 
