@@ -8,9 +8,7 @@ client/config.ini
 docs/_build/
 dashboard/static/docs/
 venv/
-db.sqlite3
+db/
 static/
 private/
 shared/
-private/
-services/
