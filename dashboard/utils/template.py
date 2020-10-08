@@ -146,16 +146,17 @@ class ServiceTemplate(Template):
         return result
 
 class FileTemplate(ServiceTemplate):
-    def __init__(self, filename):
-        self._filename = filename
+    def __init__(self, path):
+        self._path = path
+        self._filename = os.path.basename(path)
 
         try:
-            with open(os.path.join(settings.SERVICE_TEMPLATE_DIR, filename), 'rb') as f:
+            with open(path, 'rb') as f:
                 data = f.read()
         except:
-            raise ValueError('Can not read template "%s"' % filename)
+            raise ValueError('Can not read template "%s"' % path)
 
-        super().__init__(data, identifier=filename.split('.')[0])
+        super().__init__(data, identifier=self._filename.split('.')[0])
 
     @property
     def filename(self):

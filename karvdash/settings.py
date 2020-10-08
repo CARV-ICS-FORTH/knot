@@ -103,13 +103,16 @@ PASSWORD_HASHERS = [
 # Database
 # https://docs.djangoproject.com/en/3.0/ref/settings/#databases
 
+DATABASE_DIR = os.getenv('KARVDASH_DATABASE_DIR', os.path.join(BASE_DIR, 'db'))
+if not os.path.exists(DATABASE_DIR):
+    os.makedirs(DATABASE_DIR)
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.getenv('KARVDASH_DATABASE_DIR', os.path.join(BASE_DIR, 'db', 'db.sqlite3')),
+        'NAME': os.path.join(DATABASE_DIR, 'db.sqlite3'),
     }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/3.0/ref/settings/#auth-password-validators
@@ -197,7 +200,8 @@ DOCKER_REGISTRY_NO_VERIFY = True if os.getenv('KARVDASH_DOCKER_REGISTRY_NO_VERIF
 
 # Service templates
 
-SERVICE_TEMPLATE_DIR = os.getenv('KARVDASH_SERVICE_TEMPLATE_DIR', os.path.join(BASE_DIR, 'templates'))
+SYSTEM_TEMPLATE_DIR = os.path.join(BASE_DIR, 'templates')
+SERVICE_TEMPLATE_DIR = os.getenv('KARVDASH_SERVICE_TEMPLATE_DIR', os.path.join(BASE_DIR, 'db', 'templates'))
 SERVICE_DATABASE_DIR = os.getenv('KARVDASH_SERVICE_DATABASE_DIR', os.path.join(BASE_DIR, 'db', 'services'))
 SERVICE_REDIRECT_SSL = True if os.getenv('KARVDASH_SERVICE_REDIRECT_SSL', '') else False
 

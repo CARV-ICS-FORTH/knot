@@ -348,15 +348,27 @@ class TemplateResource(APIResource):
     @property
     def templates(self):
         contents = []
-        for file_name in os.listdir(settings.SERVICE_TEMPLATE_DIR):
+        for file_name in os.listdir(settings.SYSTEM_TEMPLATE_DIR):
             if not file_name.endswith('.template.yaml'):
+                continue
+            if os.path.exists(os.path.join(settings.SERVICE_TEMPLATE_DIR, file_name)):
                 continue
 
             try:
-                template = FileTemplate(file_name)
+                template = FileTemplate(os.path.join(settings.SYSTEM_TEMPLATE_DIR, file_name))
             except:
                 continue
             contents.append(template)
+        if os.path.exists(settings.SERVICE_TEMPLATE_DIR):
+            for file_name in os.listdir(settings.SERVICE_TEMPLATE_DIR):
+                if not file_name.endswith('.template.yaml'):
+                    continue
+
+                try:
+                    template = FileTemplate(os.path.join(settings.SERVICE_TEMPLATE_DIR, file_name))
+                except:
+                    continue
+                contents.append(template)
 
         kubernetes_client = KubernetesClient()
         try:

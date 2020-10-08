@@ -45,7 +45,7 @@ make deploy
 
 This will install the necessary CRDs and use the variables to configure the `karvdash.yaml` template found in the [deploy](deploy/) folder.
 
-The `KARVDASH_PERSISTENT_STORAGE_DIR/templates` directory will be initialized with a set of default service templates (the ones in [db/templates](db/templates/)). You may place any custom, "system-wide" service templates there, so they are available (read-only) to all users. Note that there is no automatic process for upgrading templates when you upgrade Karvdash.
+The `KARVDASH_PERSISTENT_STORAGE_DIR/templates` directory can be used to add new templates or override default service templates (the ones in [templates](templates/)). You may place any custom, "system-wide" service templates there, so they are available (read-only) to all users.
 
 Depending on your setup, you may want to create a custom version of this template. To deploy the Karvdash Docker image, you must provide mount points for `/db` (persistent storage directory), `/private`, and `/shared`, and set the following variables:
 
@@ -54,7 +54,6 @@ Depending on your setup, you may want to create a custom version of this templat
 | `DJANGO_SECRET`                      | Secret for Django. Use a random string of 50 characters.                              |
 | `DJANGO_DEBUG`                       | Set to anything to enable, empty to disable (default is enabled).                     |
 | `KARVDASH_ADMIN_PASSWORD`            | The default admin password (default is `admin`).                                      |
-| `KARVDASH_SERVICE_TEMPLATE_DIR`      | The path to service templates (default is `/app/templates`)                           |
 | `KARVDASH_HTPASSWD_EXPORT_DIR`       | If set, the path to export the htpasswd file in.                                      |
 | `KARVDASH_DASHBOARD_TITLE`           | The title of the dashboard (default is `Dashboard`).                                  |
 | `KARVDASH_DASHBOARD_THEME`           | The theme of the dashboard. Choose between "evolve" and "CARV" (default is `evolve`). |
