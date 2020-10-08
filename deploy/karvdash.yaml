@@ -7,7 +7,7 @@ metadata:
   name: karvdash
 spec:
   rules:
-  - host: 139.91.92.156.xip.io
+  - host: ${KARVDASH_INGRESS_DOMAIN}
     http:
       paths:
       - backend:
@@ -56,7 +56,7 @@ spec:
         tier: frontend
     spec:
       containers:
-      - image: docker-registry:5000/karvdash:latest
+      - image: ${KARVDASH_IMAGE}
         name: karvdash
         env:
         - name: DJANGO_SECRET
@@ -65,28 +65,30 @@ spec:
               name: karvdash-secret
               key: django-secret
         - name: DJANGO_DEBUG
-          value: ""
+          value: ${KARVDASH_DEBUG}
         - name: KARVDASH_ADMIN_PASSWORD
           valueFrom:
             secretKeyRef:
               name: karvdash-secret
               key: admin-password
+        - name: KARVDASH_SERVICE_TEMPLATE_DIR
+          value: /db/templates
         - name: KARVDASH_DASHBOARD_TITLE
-          value: CARV Kubernetes
+          value: ${KARVDASH_DASHBOARD_TITLE}
         - name: KARVDASH_DASHBOARD_THEME
-          value: CARV
+          value: evolve
         - name: KARVDASH_INGRESS_DOMAIN
-          value: 139.91.92.156.xip.io
+          value: ${KARVDASH_INGRESS_DOMAIN}
         - name: KARVDASH_SERVICE_REDIRECT_SSL
           value: "1"
         - name: KARVDASH_DOCKER_REGISTRY
-          value: https://docker-registry:5000
-        - name: KARVDASH_DOCKER_REGISTRY_NO_VERIFY
-          value: "1"
+          value: ${KARVDASH_DOCKER_REGISTRY}
+        - name: KARVDASH_DATASETS_AVAILABLE
+          value: ${KARVDASH_DATASETS_AVAILABLE}
         - name: KARVDASH_PRIVATE_HOST_DIR
-          value: /mnt/nfs/private
+          value: ${KARVDASH_PRIVATE_HOST_DIR}
         - name: KARVDASH_SHARED_HOST_DIR
-          value: /mnt/nfs/shared
+          value: ${KARVDASH_SHARED_HOST_DIR}
         ports:
         - containerPort: 80
           name: http
@@ -103,14 +105,14 @@ spec:
           mountPath: /shared
       volumes:
       - name: karvdash-persistent-storage
-        persistentVolumeClaim:
-          claimName: karvdash-pvc
+        hostPath:
+          path: ${KARVDASH_PERSISTENT_STORAGE_DIR}
       - name: docker-socket
         hostPath:
           path: /var/run/docker.sock
       - name: private-volume
         hostPath:
-          path: /mnt/nfs/private
+          path: ${KARVDASH_PRIVATE_HOST_DIR}
       - name: shared-volume
         hostPath:
-          path: /mnt/nfs/shared
+          path: ${KARVDASH_SHARED_HOST_DIR}

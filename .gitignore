@@ -5,8 +5,10 @@ client/build/
 client/dist/
 client/*.egg-info/
 client/config.ini
+deploy/docker-desktop/localtest.me.crt
+deploy/docker-desktop/localtest.me.key
+deploy/docker-desktop/ingress-nginx.yaml
 docs/_build/
-dashboard/static/docs/
 venv/
 db/
 static/
