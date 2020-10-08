@@ -45,9 +45,9 @@ make deploy
 
 This will install the necessary CRDs and use the variables to configure the `karvdash.yaml` template found in the [deploy](deploy/) folder.
 
-The `KARVDASH_PERSISTENT_STORAGE_DIR/templates` directory can be used to add new templates or override default service templates (the ones in [templates](templates/)). You may place any custom, "system-wide" service templates there, so they are available (read-only) to all users.
+Create a `templates` directory inside `KARVDASH_PERSISTENT_STORAGE_DIR` to add new templates or override defaults (the ones in [templates](templates/)). Templates placed there will be available as read-only to all users.
 
-Depending on your setup, you may want to create a custom version of this template. To deploy the Karvdash Docker image, you must provide mount points for `/db` (persistent storage directory), `/private`, and `/shared`, and set the following variables:
+Depending on your setup, you may want to create a custom version of `karvdash.yaml`. To deploy the Karvdash Docker image, you must provide mount points for `/db` (persistent storage directory), `/private`, and `/shared`, and set the following variables:
 
 | Variable                             | Description                                                                           |
 |--------------------------------------|---------------------------------------------------------------------------------------|
@@ -67,13 +67,13 @@ Depending on your setup, you may want to create a custom version of this templat
 | `KARVDASH_PRIVATE_HOST_DIR`          | The host path for the private file domain.                                            |
 | `KARVDASH_SHARED_HOST_DIR`           | The host path for the shared file domain.                                             |
 
-To remove Karvdash, you can run `make undeploy`, which will remove the service, but not associated CRDs. Use `make undeploy-crds` for explicitly removing CRDs and any stored data.
+To remove Karvdash, run `make undeploy`, which will remove the service, but not associated CRDs. Use `make undeploy-crds` for explicitly removing CRDs and any stored data.
 
 ## Development
 
-To work on Karvdash, you need a local Kubernetes environment, like Docker Desktop for macOS, with a running ingress controller and a local Docker registry (as you would on a bare metal setup).
+To work on Karvdash, you need a local Kubernetes environment, with a running ingress controller and a local Docker registry (as you would on a bare metal setup).
 
-Especially for Docker Desktop ([versions 2.2.x.x-2.3.x.x](https://docs.docker.com/docker-for-mac/release-notes/) use Kubernetes 1.15.5) running on macOS, these are all provided with `make deploy-docker-desktop`. This will setup an SSL-enabled ingress controller answering to https://localtest.me (provided by [localtest.me](https://readme.localtest.me)), start a private Docker registry (without SSL), and deploy Karvdash.
+Especially for [Docker Desktop](https://www.docker.com/products/docker-desktop) for macOS ([versions 2.2.x.x-2.3.x.x](https://docs.docker.com/docker-for-mac/release-notes/) use Kubernetes 1.15.5), these are all provided with `make deploy-docker-desktop`. This will setup an SSL-enabled ingress controller answering to https://localtest.me (provided by [localtest.me](https://readme.localtest.me)), start a private Docker registry (without SSL), and deploy Karvdash.
 
 You can also install all the requirements with `make prepare-docker-desktop` and then run Karvdash locally (note that when running Karvdash outside Kubernetes, there is no mutating admission webhook to attach file domains and datasets to service containers).
 
@@ -84,9 +84,8 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-Create default directories for the database, private, and shared data:
+Create default directories for private and shared data:
 ```bash
-mkdir db
 mkdir private
 mkdir shared
 ```
@@ -106,12 +105,12 @@ Point your browser to http://localtest.me:8000 and login as "admin".
 
 ## Building images
 
-Docker images are `available <https://hub.docker.com/r/carvicsforth/karvdash>`_. To build, run:
+Docker images are [available](https://hub.docker.com/r/carvicsforth/karvdash>). To build your own, run:
 ```bash
 make container
 ```
 
-Change the version by editing `VERSION`. The images use `kubectl` 1.15.10 by default, but this can be changed by setting the `KUBECTL_VERSION` variable before running `make`.
+Change the version by editing `VERSION`. The images use `kubectl` 1.15.10 by default, but this can be changed by setting the `KUBECTL_VERSION` variable before running `make`. You can also set your Docker account in `REGISTRY_NAME`.
 
 To upload to Docker Hub:
 ```bash
