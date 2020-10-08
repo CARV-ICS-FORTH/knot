@@ -18,9 +18,10 @@ KUBECTL_VERSION?=v1.15.10
 KARVDASH_VERSION=$(shell cat VERSION)
 KARVDASH_IMAGE_TAG=$(REGISTRY_NAME)/karvdash:$(KARVDASH_VERSION)
 
-# This should match the version used in the Zeppelin template (we use <Zeppelin version>.<build>).
+# This should match the version used in Zeppelin templates (we use <Zeppelin version>.<build>).
 ZEPPELIN_VERSION=0.9.0.4
 ZEPPELIN_IMAGE_TAG=$(REGISTRY_NAME)/karvdash-zeppelin:$(ZEPPELIN_VERSION)
+ZEPPELIN_GPU_IMAGE_TAG=$(REGISTRY_NAME)/karvdash-zeppelin-gpu:$(ZEPPELIN_VERSION)
 
 DEPLOY_DIR=deploy
 DOCKER_DESKTOP_DIR=$(DEPLOY_DIR)/docker-desktop
@@ -37,9 +38,9 @@ data:
   tls.key: KEY
 endef
 
-.PHONY: all prepare-docker-desktop unprepare-docker-desktop deploy-docker-desktop undeploy-docker-desktop deploy-crds undeploy-crds deploy undeploy container push
+.PHONY: all prepare-docker-desktop unprepare-docker-desktop deploy-docker-desktop undeploy-docker-desktop deploy-crds undeploy-crds deploy undeploy service-containers service-containers-push container container-push
 
-all: container push
+all: container
 
 $(DOCKER_DESKTOP_DIR)/localtest.me.key $(DOCKER_DESKTOP_DIR)/localtest.me.crt:
 	mkdir -p $(DOCKER_DESKTOP_DIR)
@@ -115,8 +116,16 @@ deploy: deploy-crds
 undeploy:
 	kubectl delete -f $(DEPLOY_DIR)/karvdash.yaml
 
-container:
-	docker build -t $(KARVDASH_IMAGE_TAG) -f Dockerfile --build-arg KUBECTL_VERSION=$(KUBECTL_VERSION) .
+service-containers:
+	docker build -f containers/zeppelin/Dockerfile --build-arg KUBECTL_VERSION=$(KUBECTL_VERSION) -t $(ZEPPELIN_IMAGE_TAG) .
+	docker build -f containers/zeppelin-gpu/Dockerfile --build-arg BASE=$(ZEPPELIN_IMAGE_TAG) -t $(ZEPPELIN_GPU_IMAGE_TAG) .
 
-push:
+service-containers-push:
+	docker push $(ZEPPELIN_IMAGE_TAG)
+	docker push $(ZEPPELIN_GPU_IMAGE_TAG)
+
+container:
+	docker build -f Dockerfile --build-arg KUBECTL_VERSION=$(KUBECTL_VERSION) -t $(KARVDASH_IMAGE_TAG) .
+
+container-push:
 	docker push $(KARVDASH_IMAGE_TAG)

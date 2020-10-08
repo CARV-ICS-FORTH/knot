@@ -10,7 +10,13 @@ Check out the user guide and API documentation in [docs](docs) (also available i
 
 We use Kubernetes 1.15.x to develop, test, and run Karvdash.
 
-Karvdash includes service templates for [Zeppelin](https://zeppelin.apache.org) 0.9.0, [Argo](https://argoproj.github.io/argo/) (both [Argo Workflows](https://github.com/argoproj/argo) 2.10.1 and [Argo Events](https://github.com/argoproj/argo-events) 1.0.0), and other applications. The Zeppelin template uses a Karvdash-specific Docker image which adds `kubectl` 1.15.10, the `argo` utility (at the same version as the Argo service template), `karvdashctl` to manage Karvdash services from a notebook, as well as [Spark](http://spark.apache.org) 2.4.5 with [Hadoop](https://hadoop.apache.org) 2.7. If your requirements differ, you will need to create custom Docker images and service templates.
+Karvdash includes service templates for [Zeppelin](https://zeppelin.apache.org) 0.9.0, [Argo](https://argoproj.github.io/argo/) (both [Argo Workflows](https://github.com/argoproj/argo) 2.10.1 and [Argo Events](https://github.com/argoproj/argo-events) 1.0.0), and other applications.
+
+The Zeppelin template uses a Karvdash-specific Docker image which adds `kubectl` 1.15.10, the `argo` utility (at the same version as the Argo service template), `karvdashctl` to manage Karvdash services from a notebook, as well as [Spark](http://spark.apache.org) 2.4.5 with [Hadoop](https://hadoop.apache.org) 2.7.
+
+The Zeppelin "with GPU support" template uses the above image with [CUDA](https://developer.nvidia.com/cuda-toolkit) 10.1 and [TensorFlow](http://www.tensorflow.org) 2.2.1 preinstalled, as well as the necessary directives to place the resulting container in a node with a GPU.
+
+If your application requirements differ, you will need to create custom Docker images and service templates.
 
 ## Deployment
 
@@ -105,7 +111,7 @@ Point your browser to http://localtest.me:8000 and login as "admin".
 
 ## Building images
 
-Docker images are [available](https://hub.docker.com/r/carvicsforth/karvdash>). To build your own, run:
+Docker images for Karvdash are [available](https://hub.docker.com/r/carvicsforth/karvdash>). To build your own, run:
 ```bash
 make container
 ```
@@ -114,7 +120,13 @@ Change the version by editing `VERSION`. The images use `kubectl` 1.15.10 by def
 
 To upload to Docker Hub:
 ```bash
-make push
+make container-push
+```
+
+To build and push additional service containers (custom Zeppelin-based containers):
+```bash
+make service-containers
+make service-containers-push
 ```
 
 ## Acknowledgements
