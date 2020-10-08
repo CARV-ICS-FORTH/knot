@@ -73,11 +73,9 @@ unprepare-docker-desktop:
 	kubectl delete -f $(DOCKER_DESKTOP_DIR)/docker-registry.yaml
 
 deploy-docker-desktop: prepare-docker-desktop
-	# Directories needed for state and files
-	mkdir -p db
+	# Directories needed for files
 	mkdir -p private
 	mkdir -p shared
-	cp -r templates db/
 	# Template variables
 	IP_ADDRESS=$$(ipconfig getifaddr en0); \
 	export KARVDASH_INGRESS_DOMAIN=localtest.me; \
