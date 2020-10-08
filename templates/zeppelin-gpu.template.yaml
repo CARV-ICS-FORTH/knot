@@ -1,0 +1,75 @@
+# zeppelin.template.yaml
+
+apiVersion: networking.k8s.io/v1beta1
+kind: Ingress
+metadata:
+  name: $NAME
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+spec:
+  rules:
+  - host: $HOSTNAME
+    http:
+      paths:
+      - backend:
+          serviceName: $NAME
+          servicePort: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: $NAME
+spec:
+  type: ClusterIP
+  ports:
+  - port: 8080
+  selector:
+    app: $NAME
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: $NAME-pod
+  labels:
+    app: $NAME
+spec:
+  hostname: $NAME-pod
+  subdomain: $NAME
+  containers:
+  - name: $NAME
+    image: carvicsforth/karvdash-zeppelin-gpu:0.9.0.4
+    resources:
+      limits:
+        nvidia.com/gpu: 1
+    ports:
+    - containerPort: 8080
+    securityContext:
+      # allowPrivilegeEscalation: false
+      runAsUser: 0
+    env:
+    - name: KARVDASH_NAMESPACE
+      value: $NAMESPACE
+    - name: ZEPPELIN_RUN_MODE
+      value: local
+    - name: ZEPPELIN_ADDR
+      value: 0.0.0.0
+    - name: ZEPPELIN_PORT
+      value: "8080"
+    - name: ZEPPELIN_NOTEBOOK_DIR
+      value: ${PRIVATE}/.zeppelin/notebook
+    - name: ZEPPELIN_LOG_DIR
+      value: ${PRIVATE}/.zeppelin/logs
+---
+kind: Template
+name: Zeppelin TF/GPU
+description: Notebook server with TensorFlow and GPU support
+variables:
+- name: NAMESPACE
+  default: default
+- name: NAME
+  default: zeppelin-gpu
+- name: HOSTNAME
+  default: zeppelin-gpu.example.com
+- name: PRIVATE
+  default: /private
