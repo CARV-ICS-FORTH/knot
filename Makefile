@@ -78,7 +78,7 @@ deploy-docker-desktop: prepare-docker-desktop
 	mkdir -p private
 	mkdir -p shared
 	# Template variables
-	IP_ADDRESS=$$(ipconfig getifaddr en0); \
+	IP_ADDRESS=$$(ipconfig getifaddr en0 || ipconfig getifaddr en1); \
 	export KARVDASH_INGRESS_DOMAIN=localtest.me; \
 	export KARVDASH_IMAGE=$(KARVDASH_IMAGE_TAG); \
 	export KARVDASH_DEBUG=1; \
@@ -115,6 +115,7 @@ deploy: deploy-crds
 
 undeploy:
 	kubectl delete -f $(DEPLOY_DIR)/karvdash.yaml
+	kubectl delete mutatingwebhookconfigurations/karvdash
 
 service-containers:
 	docker build -f containers/zeppelin/Dockerfile --build-arg KUBECTL_VERSION=$(KUBECTL_VERSION) -t $(ZEPPELIN_IMAGE_TAG) .

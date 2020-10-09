@@ -65,7 +65,7 @@ spec:
               name: karvdash-secret
               key: django-secret
         - name: DJANGO_DEBUG
-          value: ${KARVDASH_DEBUG}
+          value: "${KARVDASH_DEBUG}"
         - name: KARVDASH_ADMIN_PASSWORD
           valueFrom:
             secretKeyRef:
@@ -84,7 +84,7 @@ spec:
         - name: KARVDASH_DOCKER_REGISTRY
           value: ${KARVDASH_DOCKER_REGISTRY}
         - name: KARVDASH_DATASETS_AVAILABLE
-          value: ${KARVDASH_DATASETS_AVAILABLE}
+          value: "${KARVDASH_DATASETS_AVAILABLE}"
         - name: KARVDASH_PRIVATE_HOST_DIR
           value: ${KARVDASH_PRIVATE_HOST_DIR}
         - name: KARVDASH_SHARED_HOST_DIR

@@ -73,7 +73,7 @@ Depending on your setup, you may want to create a custom version of `karvdash.ya
 | `KARVDASH_PRIVATE_HOST_DIR`          | The host path for the private file domain.                                            |
 | `KARVDASH_SHARED_HOST_DIR`           | The host path for the shared file domain.                                             |
 
-To remove Karvdash, run `make undeploy`, which will remove the service, but not associated CRDs. Use `make undeploy-crds` for explicitly removing CRDs and any stored data.
+To remove Karvdash, run `make undeploy`, which will remove the service and mutating admission webhook, but not associated CRDs. Use `make undeploy-crds` for explicitly removing CRDs and any stored data.
 
 ## Development
 
