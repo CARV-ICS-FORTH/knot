@@ -79,9 +79,10 @@ deploy-docker-desktop: prepare-docker-desktop
 	mkdir -p shared
 	# Template variables
 	IP_ADDRESS=$$(ipconfig getifaddr en0 || ipconfig getifaddr en1); \
+	export DJANGO_SECRET="JWFkJiU0KiF4cGYqJHdkM150NTYrI29kZTQ9QHleanVfdCtqOWYrMjBhanN0YV5nb2c="; \
+	export DJANGO_DEBUG=1; \
 	export KARVDASH_INGRESS_DOMAIN=localtest.me; \
 	export KARVDASH_IMAGE=$(KARVDASH_IMAGE_TAG); \
-	export KARVDASH_DEBUG=1; \
 	export KARVDASH_DASHBOARD_TITLE="Karvdash on Docker Desktop"; \
 	export KARVDASH_DOCKER_REGISTRY="http://$$IP_ADDRESS:5000"; \
 	export KARVDASH_DATASETS_AVAILABLE=""; \
@@ -102,16 +103,21 @@ undeploy-crds:
 
 deploy: deploy-crds
 	# Check for necessary set variables
+	if [[ -z $$DJANGO_SECRET ]]; then echo "DJANGO_SECRET is not set"; exit; fi; \
 	if [[ -z $$KARVDASH_INGRESS_DOMAIN ]]; then echo "KARVDASH_INGRESS_DOMAIN is not set"; exit; fi; \
 	if [[ -z $$KARVDASH_DOCKER_REGISTRY ]]; then echo "KARVDASH_DOCKER_REGISTRY is not set"; exit; fi; \
 	if [[ -z $$KARVDASH_PERSISTENT_STORAGE_DIR ]]; then echo "KARVDASH_PERSISTENT_STORAGE_DIR is not set"; exit; fi; \
 	if [[ -z $$KARVDASH_PRIVATE_HOST_DIR ]]; then echo "KARVDASH_PRIVATE_HOST_DIR is not set"; exit; fi; \
 	if [[ -z $$KARVDASH_SHARED_HOST_DIR ]]; then echo "KARVDASH_SHARED_HOST_DIR is not set"; exit; fi; \
+	export DJANGO_DEBUG=$${DJANGO_DEBUG:=""}; \
 	export KARVDASH_IMAGE=$(KARVDASH_IMAGE_TAG); \
-	export KARVDASH_DEBUG=""; \
+	export KARVDASH_HTPASSWD_EXPORT_DIR=$${KARVDASH_HTPASSWD_EXPORT_DIR:=""}; \
 	export KARVDASH_DASHBOARD_TITLE=$${KARVDASH_DASHBOARD_TITLE:="Karvdash"}; \
+	export KARVDASH_DASHBOARD_THEME=$${KARVDASH_DASHBOARD_THEME:="evolve"}; \
+	export KARVDASH_ISSUES_URL=$${KARVDASH_ISSUES_URL:=""}; \
+	export KARVDASH_DOCKER_REGISTRY_NO_VERIFY=$${KARVDASH_DOCKER_REGISTRY_NO_VERIFY:=""}; \
 	export KARVDASH_DATASETS_AVAILABLE=$${KARVDASH_DATASETS_AVAILABLE:=""}; \
-	envsubst < $(DEPLOY_DIR)/karvdash.yaml # | kubectl apply -f -
+	envsubst < $(DEPLOY_DIR)/karvdash.yaml | kubectl apply -f -
 
 undeploy:
 	kubectl delete -f $(DEPLOY_DIR)/karvdash.yaml
