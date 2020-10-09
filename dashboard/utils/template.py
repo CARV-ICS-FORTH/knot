@@ -16,8 +16,6 @@ import os
 import string
 import yaml
 
-from django.conf import settings
-
 from .inject import inject_hostpath_volumes, inject_service_details, inject_ingress_auth, inject_datasets
 
 
