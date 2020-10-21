@@ -87,8 +87,4 @@ The admin user has access to an additional screen named "Users". Moreover, in th
 
 The users screen is accessed by selecting "Users" from the menu on the left. You are presented with a list of users, by username. Each user can be "active", meaning with access to the dashboard and services. Each user can also be promoted to an "admin". The respective actions are available in the menu presented when selecting the "Actions" button. An administrator can edit any user's email, change passwords, impersonate, and delete users.
 
-.. figure:: images/users-screen.png
-
 When impersonating another user, the whole interface changes to what the user sees and the user icon at the top-right of the screen darkens to signify "impersonation mode". The user menu provides the option to stop impersonating and return to the original user's view.
-
-.. figure:: images/impersonate-screen.png
