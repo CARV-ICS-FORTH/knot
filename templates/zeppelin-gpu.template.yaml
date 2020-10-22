@@ -44,9 +44,6 @@ spec:
         nvidia.com/gpu: 1
     ports:
     - containerPort: 8080
-    securityContext:
-      # allowPrivilegeEscalation: false
-      runAsUser: 0
     env:
     - name: KARVDASH_NAMESPACE
       value: $NAMESPACE
