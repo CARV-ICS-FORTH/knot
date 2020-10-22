@@ -14,10 +14,18 @@ RUN pip install -r docs/requirements.txt && \
     rm -rf docs/_build
 
 ARG KUBECTL_VERSION=v1.15.10
-RUN curl -o /usr/local/bin/kubectl https://storage.googleapis.com/kubernetes-release/release/${KUBECTL_VERSION}/bin/linux/amd64/kubectl
-RUN chmod +x /usr/local/bin/kubectl
-RUN apt-get update
-RUN apt-get install -y docker.io
+RUN curl -o /usr/local/bin/kubectl https://storage.googleapis.com/kubernetes-release/release/${KUBECTL_VERSION}/bin/linux/amd64/kubectl && \
+    chmod +x /usr/local/bin/kubectl
+RUN apt-get update && \
+    apt-get install -y docker.io && \
+    apt-get clean \
+    && rm -rf \
+        /var/lib/apt/lists/* \
+        /tmp/* \
+        /var/tmp/* \
+        /usr/share/man \
+        /usr/share/doc \
+        /usr/share/doc-base
 
 VOLUME /db
 VOLUME /private
