@@ -38,7 +38,7 @@ data:
   tls.key: KEY
 endef
 
-.PHONY: all prepare-docker-desktop unprepare-docker-desktop deploy-docker-desktop undeploy-docker-desktop deploy-crds undeploy-crds deploy undeploy service-containers service-containers-push container container-push
+.PHONY: all prepare-docker-desktop unprepare-docker-desktop deploy-docker-desktop undeploy-docker-desktop deploy-crds undeploy-crds deploy-rbac undeploy-rbac deploy undeploy service-containers service-containers-push container container-push
 
 all: container
 
@@ -63,7 +63,7 @@ $(DOCKER_DESKTOP_DIR)/ingress-nginx.yaml: $(DOCKER_DESKTOP_DIR)/localtest.me.key
 	# Change the service to LoadBalancer so the port is accessible at localhost
 	sed -i '' "s/NodePort/LoadBalancer/" $(DOCKER_DESKTOP_DIR)/ingress-nginx.yaml
 
-prepare-docker-desktop: $(DOCKER_DESKTOP_DIR)/ingress-nginx.yaml deploy-crds
+prepare-docker-desktop: $(DOCKER_DESKTOP_DIR)/ingress-nginx.yaml deploy-crds deploy-rbac
 	kubectl apply -f $(DOCKER_DESKTOP_DIR)/ingress-nginx.yaml
 	kubectl apply -f $(DOCKER_DESKTOP_DIR)/docker-registry-pvc.yaml
 	kubectl apply -f $(DOCKER_DESKTOP_DIR)/docker-registry.yaml
@@ -101,7 +101,15 @@ undeploy-crds:
 	kubectl delete -f $(DEPLOY_DIR)/argo-crd.yaml
 	kubectl delete -f $(DEPLOY_DIR)/karvdash-crd.yaml
 
-deploy: deploy-crds
+deploy-rbac:
+	kubectl apply -f $(DEPLOY_DIR)/discover-base-url-rbac.yaml
+	kubectl apply -f $(DEPLOY_DIR)/namespace-view-rbac.yaml
+
+undeploy-rbac:
+	kubectl delete -f $(DEPLOY_DIR)/discover-base-url-rbac.yaml
+	kubectl delete -f $(DEPLOY_DIR)/namespace-view-rbac.yaml
+
+deploy: deploy-crds deploy-rbac
 	# Check for necessary set variables
 	if [[ -z $$DJANGO_SECRET ]]; then echo "DJANGO_SECRET is not set"; exit; fi; \
 	if [[ -z $$KARVDASH_INGRESS_DOMAIN ]]; then echo "KARVDASH_INGRESS_DOMAIN is not set"; exit; fi; \

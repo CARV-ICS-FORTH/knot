@@ -1,0 +1,56 @@
+# kubebox.template.yaml
+
+apiVersion: networking.k8s.io/v1beta1
+kind: Ingress
+metadata:
+  name: $NAME
+spec:
+  rules:
+  - host: $HOSTNAME
+    http:
+      paths:
+      - backend:
+          serviceName: $NAME
+          servicePort: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: $NAME
+spec:
+  type: ClusterIP
+  ports:
+  - port: 8080
+    name: kubebox
+  selector:
+    app: $NAME
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: $NAME
+spec:
+  selector:
+    matchLabels:
+      app: $NAME
+  template:
+    metadata:
+      labels:
+        app: $NAME
+    spec:
+      containers:
+      - image: astefanutti/kubebox:0.8-server
+        name: $NAME
+        ports:
+        - containerPort: 8080
+          protocol: TCP
+---
+kind: Template
+name: Kubebox
+description: Terminal and web console
+singleton: yes
+variables:
+- name: NAME
+  default: kubebox
+- name: HOSTNAME
+  default: kubebox.example.com
