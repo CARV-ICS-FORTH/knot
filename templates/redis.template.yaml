@@ -28,7 +28,7 @@ spec:
     spec:
       containers:
       - name: $NAME
-        image: redis
+        image: redis:6.0.8
         ports:
         - containerPort: 6379
 ---
