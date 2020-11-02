@@ -84,6 +84,7 @@ deploy-docker-desktop: prepare-docker-desktop
 	export KARVDASH_INGRESS_DOMAIN=localtest.me; \
 	export KARVDASH_IMAGE=$(KARVDASH_IMAGE_TAG); \
 	export KARVDASH_DASHBOARD_TITLE="Karvdash on Docker Desktop"; \
+	export KARVDASH_DASHBOARD_THEME="evolve"; \
 	export KARVDASH_DOCKER_REGISTRY="http://$$IP_ADDRESS:5000"; \
 	export KARVDASH_DATASETS_AVAILABLE=""; \
 	export KARVDASH_PERSISTENT_STORAGE_DIR="$(PWD)/db"; \
