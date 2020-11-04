@@ -24,8 +24,8 @@ CERTS_DIR=/db/certs
 if [ ! -d $CERTS_DIR ]; then
     mkdir -p $CERTS_DIR
     openssl genrsa -out $CERTS_DIR/server.key 2048
-    openssl req -nodes -new -x509 -keyout $CERTS_DIR/ca.key -out $CERTS_DIR/ca.crt -subj "/CN=karvdash CA"
-    openssl req -new -key $CERTS_DIR/server.key -subj "/CN=$SERVER_NAME" | openssl x509 -req -CA $CERTS_DIR/ca.crt -CAkey $CERTS_DIR/ca.key -set_serial 01 -out $CERTS_DIR/server.crt
+    openssl req -nodes -new -x509 -days 3650 -keyout $CERTS_DIR/ca.key -out $CERTS_DIR/ca.crt -subj "/CN=karvdash CA"
+    openssl req -new -key $CERTS_DIR/server.key -subj "/CN=$SERVER_NAME" | openssl x509 -req -CA $CERTS_DIR/ca.crt -CAkey $CERTS_DIR/ca.key -set_serial 01 -days 3650 -out $CERTS_DIR/server.crt
 fi
 
 CA_BUNDLE=`cat $CERTS_DIR/ca.crt | base64 -w 0`
