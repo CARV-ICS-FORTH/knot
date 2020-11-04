@@ -17,6 +17,7 @@ KUBECTL_VERSION?=v1.15.10
 
 KARVDASH_VERSION=$(shell cat VERSION)
 KARVDASH_IMAGE_TAG=$(REGISTRY_NAME)/karvdash:$(KARVDASH_VERSION)
+KARVDASH_WEBHOOK_PROXY_IMAGE_TAG=$(REGISTRY_NAME)/karvdash-webhook-proxy:$(KARVDASH_VERSION)
 
 # This should match the version used in Zeppelin templates (we use <Zeppelin version>.<build>).
 ZEPPELIN_VERSION=0.9.0.4
@@ -38,9 +39,9 @@ data:
   tls.key: KEY
 endef
 
-.PHONY: all prepare-docker-desktop unprepare-docker-desktop deploy-docker-desktop undeploy-docker-desktop deploy-crds undeploy-crds deploy-rbac undeploy-rbac deploy undeploy service-containers service-containers-push container container-push
+.PHONY: all prepare-docker-desktop unprepare-docker-desktop deploy-docker-desktop undeploy-docker-desktop deploy-crds undeploy-crds deploy-rbac undeploy-rbac deploy undeploy service-containers service-containers-push containers containers-push
 
-all: container
+all: containers
 
 $(DOCKER_DESKTOP_DIR)/localtest.me.key $(DOCKER_DESKTOP_DIR)/localtest.me.crt:
 	mkdir -p $(DOCKER_DESKTOP_DIR)
@@ -83,6 +84,7 @@ deploy-docker-desktop: prepare-docker-desktop
 	export DJANGO_DEBUG=1; \
 	export KARVDASH_INGRESS_DOMAIN=localtest.me; \
 	export KARVDASH_IMAGE=$(KARVDASH_IMAGE_TAG); \
+	export KARVDASH_WEBHOOK_PROXY_IMAGE=$(KARVDASH_WEBHOOK_PROXY_IMAGE_TAG); \
 	export KARVDASH_DASHBOARD_TITLE="Karvdash on Docker Desktop"; \
 	export KARVDASH_DASHBOARD_THEME="evolve"; \
 	export KARVDASH_DOCKER_REGISTRY="http://$$IP_ADDRESS:5000"; \
@@ -120,6 +122,7 @@ deploy: deploy-crds deploy-rbac
 	if [[ -z $$KARVDASH_SHARED_HOST_DIR ]]; then echo "KARVDASH_SHARED_HOST_DIR is not set"; exit; fi; \
 	export DJANGO_DEBUG=$${DJANGO_DEBUG:=""}; \
 	export KARVDASH_IMAGE=$(KARVDASH_IMAGE_TAG); \
+	export KARVDASH_WEBHOOK_PROXY_IMAGE=$(KARVDASH_WEBHOOK_PROXY_IMAGE_TAG); \
 	export KARVDASH_HTPASSWD_EXPORT_DIR=$${KARVDASH_HTPASSWD_EXPORT_DIR:=""}; \
 	export KARVDASH_DASHBOARD_TITLE=$${KARVDASH_DASHBOARD_TITLE:="Karvdash"}; \
 	export KARVDASH_DASHBOARD_THEME=$${KARVDASH_DASHBOARD_THEME:="evolve"}; \
@@ -131,6 +134,7 @@ deploy: deploy-crds deploy-rbac
 undeploy:
 	kubectl delete -f $(DEPLOY_DIR)/karvdash.yaml
 	kubectl delete mutatingwebhookconfigurations/karvdash
+	kubectl delete validatingwebhookconfigurations/karvdash
 
 service-containers:
 	docker build -f containers/zeppelin/Dockerfile --build-arg KUBECTL_VERSION=$(KUBECTL_VERSION) -t $(ZEPPELIN_IMAGE_TAG) .
@@ -140,8 +144,10 @@ service-containers-push:
 	docker push $(ZEPPELIN_IMAGE_TAG)
 	docker push $(ZEPPELIN_GPU_IMAGE_TAG)
 
-container:
+containers:
+	docker build -f containers/webhook-proxy/Dockerfile --build-arg KUBECTL_VERSION=$(KUBECTL_VERSION) -t $(KARVDASH_WEBHOOK_PROXY_IMAGE_TAG) .
 	docker build -f Dockerfile --build-arg KUBECTL_VERSION=$(KUBECTL_VERSION) -t $(KARVDASH_IMAGE_TAG) .
 
-container-push:
+containers-push:
+	docker push $(KARVDASH_WEBHOOK_PROXY_IMAGE_TAG)
 	docker push $(KARVDASH_IMAGE_TAG)

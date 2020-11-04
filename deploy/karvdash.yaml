@@ -56,6 +56,14 @@ spec:
         tier: frontend
     spec:
       containers:
+      - image: ${KARVDASH_WEBHOOK_PROXY_IMAGE}
+        name: karvdash-webhook-proxy
+        ports:
+        - containerPort: 443
+          name: https
+        volumeMounts:
+        - name: karvdash-persistent-storage
+          mountPath: /db
       - image: ${KARVDASH_IMAGE}
         name: karvdash
         env:
@@ -96,8 +104,6 @@ spec:
         ports:
         - containerPort: 80
           name: http
-        - containerPort: 443
-          name: https
         volumeMounts:
         - name: karvdash-persistent-storage
           mountPath: /db

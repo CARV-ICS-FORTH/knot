@@ -115,14 +115,14 @@ Point your browser to http://localtest.me:8000 and login as "admin".
 
 Docker images for Karvdash are [available](https://hub.docker.com/r/carvicsforth/karvdash). To build your own, run:
 ```bash
-make container
+make containers
 ```
 
 Change the version by editing `VERSION`. The images use `kubectl` 1.15.10 by default, but this can be changed by setting the `KUBECTL_VERSION` variable before running `make`. You can also set your Docker account in `REGISTRY_NAME`.
 
 To upload to Docker Hub:
 ```bash
-make container-push
+make containers-push
 ```
 
 To build and push additional service containers (custom Zeppelin-based containers):

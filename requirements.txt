@@ -8,4 +8,5 @@ PyYAML==5.3
 passlib==1.7.2
 restless==2.1.1
 jsonpatch==1.25
-uWSGI==2.0.19.1
+gunicorn==20.0.4
+whitenoise==5.2.0
