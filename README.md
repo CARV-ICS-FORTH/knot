@@ -28,13 +28,13 @@ To deploy Karvdash you need a running Kubernetes environment with the following 
 
 Also, make sure that the `default` service account in the `default` namespace (used by Karvdash), has administrator-level access to all namespaces, with `kubectl create clusterrolebinding default-cluster-admin --clusterrole=cluster-admin --serviceaccount=default:default`.
 
-Then, you can set the following environmental variables and run `make deploy`.
+Then, you should set at least the following environmental variables and run `make deploy`:
 
 | Variable                          | Description                                                                                     |
 |-----------------------------------|-------------------------------------------------------------------------------------------------|
+| `DJANGO_SECRET`                   | Secret for Django. Use a random string of 50 characters.                                        |
 | `KARVDASH_INGRESS_DOMAIN`         | The domain used (for example `example.com`).                                                    |
 | `KARVDASH_DOCKER_REGISTRY`        | The URL of the Docker registry (for example `https://username:password@127.0.0.1:5000`).        |
-| `KARVDASH_DATASETS_AVAILABLE`     | Set to anything to enable dataset management (default is disabled).                             |
 | `KARVDASH_PERSISTENT_STORAGE_DIR` | The host path for persistent storage (database, running services repository, template library). |
 | `KARVDASH_PRIVATE_HOST_DIR`       | The host path for the private file domain.                                                      |
 | `KARVDASH_SHARED_HOST_DIR`        | The host path for the shared file domain.                                                       |
@@ -43,6 +43,7 @@ The directory variables should be set to some folder inside the node-wide, share
 
 For example:
 ```bash
+export DJANGO_SECRET=<a random string of 50 characters>
 export KARVDASH_INGRESS_DOMAIN=example.com
 export KARVDASH_DOCKER_REGISTRY=http://127.0.0.1:5000
 export KARVDASH_PERSISTENT_STORAGE_DIR=/mnt/nfs/karvdash
@@ -51,9 +52,9 @@ export KARVDASH_SHARED_HOST_DIR=/mnt/nfs/shared
 make deploy
 ```
 
-This will install the necessary CRDs and use the variables to configure the `karvdash.yaml` template found in the [deploy](deploy/) folder.
+This will install the necessary CRDs and use the variables to configure the `karvdash.yaml` template found in the [deploy](deploy/) folder. Check the `Makefile` for additional, optional variables used by `karvdash.yaml`.
 
-Create a `templates` directory inside `KARVDASH_PERSISTENT_STORAGE_DIR` to add new templates or override defaults (the ones in [templates](templates/)). Templates placed there will be available as read-only to all users.
+Create a `templates` directory inside `KARVDASH_PERSISTENT_STORAGE_DIR` to add new service templates or override defaults (the ones in [templates](templates/)). Templates placed there will be available as read-only to all users.
 
 Depending on your setup, you may want to create a custom version of `karvdash.yaml`. To deploy the Karvdash Docker image, you must provide mount points for `/db` (persistent storage directory), `/private`, and `/shared`, and set the following variables:
 
