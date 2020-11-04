@@ -26,6 +26,8 @@ To deploy Karvdash you need a running Kubernetes environment with the following 
 * A shared filesystem mounted at the same path across all Kubernetes nodes, like NFS, [Gluster](https://www.gluster.org), or similar.
 * Optionally the [Dataset Lifecycle Framework](https://github.com/IBM/dataset-lifecycle-framework) deployed, in which case Karvdash can be used to configure datasets (the DLF should monitor all namespaces).
 
+Also, make sure that the `default` service account in the `default` namespace (used by Karvdash), has administrator-level access to all namespaces, with `kubectl create clusterrolebinding default-cluster-admin --clusterrole=cluster-admin --serviceaccount=default:default`.
+
 Then, you can set the following environmental variables and run `make deploy`.
 
 | Variable                          | Description                                                                                     |
@@ -81,7 +83,7 @@ To work on Karvdash, you need a local Kubernetes environment, with a running ing
 
 Especially for [Docker Desktop](https://www.docker.com/products/docker-desktop) for macOS ([versions 2.2.x.x-2.3.x.x](https://docs.docker.com/docker-for-mac/release-notes/) use Kubernetes 1.15.5), these are all provided with `make deploy-docker-desktop`. This will setup an SSL-enabled ingress controller answering to https://localtest.me (provided by [localtest.me](https://readme.localtest.me)), start a private Docker registry (without SSL), and deploy Karvdash.
 
-Note that some versions of Docker Desktop [do not enforce RBAC rules](https://github.com/docker/for-mac/issues/3694), so there is no namespace isolation. Enable it by running `kubectl delete clusterrolebinding docker-for-desktop-binding`.
+Note that some versions of Docker Desktop [do not enforce RBAC rules](https://github.com/docker/for-mac/issues/3694), so there is no namespace isolation. Enable it by running `kubectl delete clusterrolebinding docker-for-desktop-binding`. You then need to explicitly set permissions for the `default` service account in the `default` namespace, with `kubectl create clusterrolebinding default-cluster-admin --clusterrole=cluster-admin --serviceaccount=default:default`.
 
 You can also install all the requirements with `make prepare-docker-desktop` and then run Karvdash locally (note that when running Karvdash outside Kubernetes, there is no mutating admission webhook to attach file domains and datasets to service containers).
 
