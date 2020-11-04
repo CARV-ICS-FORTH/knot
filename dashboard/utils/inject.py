@@ -66,6 +66,29 @@ def inject_hostpath_volumes(yaml_data, volumes, add_api_settings=False):
             continue
         add_volumes_to_spec(spec)
 
+def validate_hostpath_volumes(yaml_data, volumes):
+    allowed_paths = [variables['host_dir'] for name, variables in volumes.items() if 'host_dir' in variables]
+
+    for part in yaml_data:
+        try:
+            if part['kind'] == 'Deployment':
+                spec_volumes = part['spec']['template']['spec']['volumes']
+            elif part['kind'] == 'Pod':
+                spec_volumes = part['spec']['volumes']
+            else:
+                continue
+        except:
+            continue
+        if not spec_volumes:
+            continue
+        for volume in spec_volumes:
+            if 'hostPath' not in volume or 'path' not in volume['hostPath']:
+                continue
+            if volume['hostPath']['path'] not in allowed_paths:
+                return False
+
+    return True
+
 def inject_service_details(yaml_data, template=None, values=None):
     for part in yaml_data:
         if part.get('kind') == 'Service':

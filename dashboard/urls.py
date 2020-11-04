@@ -44,6 +44,7 @@ urlpatterns = [
     path('logout', views.logout, {'next_url': settings.LOGOUT_REDIRECT_URL}, name='logout'),
 
     path('webhooks/mutate', webhooks.mutate),
+    path('webhooks/validate', webhooks.validate),
 
     path('api/services/', include(ServiceResource.urls())),
     path('api/templates/', include(TemplateResource.urls())),

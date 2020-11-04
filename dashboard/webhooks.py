@@ -23,7 +23,7 @@ from django.views.decorators.csrf import csrf_exempt
 
 from .models import User
 from .utils.kubernetes import KubernetesClient
-from .utils.inject import inject_hostpath_volumes, inject_datasets
+from .utils.inject import inject_hostpath_volumes, validate_hostpath_volumes, inject_datasets
 
 
 @require_POST
@@ -33,6 +33,7 @@ def mutate(request):
         data = json.loads(request.body.decode('utf-8'))
         assert(data['kind'] == 'AdmissionReview')
         assert(data['request']['operation'] == 'CREATE')
+        uid = data['request']['uid']
         namespace = data['request']['namespace']
         assert(namespace.startswith('karvdash-'))
         user = User.objects.get(username=namespace[len('karvdash-'):])
@@ -45,7 +46,27 @@ def mutate(request):
     patch = jsonpatch.JsonPatch.from_diff(data['request']['object'], service)
     encoded_patch = base64.b64encode(patch.to_string().encode('utf-8')).decode('utf-8')
 
-    return JsonResponse({'response': {'allowed': True,
+    return JsonResponse({'response': {'uid': uid,
+                                      'allowed': True,
                                       'status': {'message': 'Adding Karvdash volumes and API settings'},
                                       'patchType': 'JSONPatch',
                                       'patch': encoded_patch}})
+
+@require_POST
+@csrf_exempt
+def validate(request):
+    try:
+        data = json.loads(request.body.decode('utf-8'))
+        assert(data['kind'] == 'AdmissionReview')
+        assert(data['request']['operation'] == 'CREATE')
+        uid = data['request']['uid']
+        namespace = data['request']['namespace']
+        assert(namespace.startswith('karvdash-'))
+        user = User.objects.get(username=namespace[len('karvdash-'):])
+        service = copy.deepcopy(data['request']['object'])
+    except:
+        return HttpResponseBadRequest()
+
+    return JsonResponse({'response': {'uid': uid,
+                                      'allowed': validate_hostpath_volumes([service], user.volumes),
+                                      'status': {'message': 'Checking for unauthorized hostPath volumes'}}})

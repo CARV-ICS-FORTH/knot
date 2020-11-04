@@ -17,7 +17,7 @@ For the first domain Karvdash creates a subfolder for each user, named after the
 
    The dashboard runs as a service in Kubernetes and coordinates the execution of other services in particular namespaces. All provisioned containers share common mountpoints that correspond to specific paths in the hosts.
 
-To attach these data folders to service and application containers, Karvdash provides a Kubernetes mutating admission webhook which intercepts all calls to create pods or deployments and injects the appropriate "HostPaths" to respective configurations before they are applied. The Karvdash service itself also has the same data folders mounted in order to present their contents via the dashboard.
+To attach these data folders to service and application containers, Karvdash provides a Kubernetes mutating admission webhook which intercepts all calls to create pods or deployments and injects the appropriate "HostPaths" to respective configurations before they are applied. The Karvdash service itself also has the same data folders mounted in order to present their contents via the dashboard. Another validating admission webhook makes sure that only allowed host paths are mounted in pods.
 
 Remote datasets
 ---------------

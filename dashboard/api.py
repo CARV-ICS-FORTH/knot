@@ -440,9 +440,11 @@ class DatasetResource(APIResource):
 
     @property
     def dataset_templates(self):
+        # return [ServiceTemplate(LOCAL_S3_DATASET_TEMPLATE, identifier='s3-local'),
+        #         ServiceTemplate(REMOTE_S3_DATASET_TEMPLATE, identifier='s3-remote'),
+        #         ServiceTemplate(HOSTPATH_DATASET_TEMPLATE, identifier='hostpath')]
         return [ServiceTemplate(LOCAL_S3_DATASET_TEMPLATE, identifier='s3-local'),
-                ServiceTemplate(REMOTE_S3_DATASET_TEMPLATE, identifier='s3-remote'),
-                ServiceTemplate(HOSTPATH_DATASET_TEMPLATE, identifier='hostpath')]
+                ServiceTemplate(REMOTE_S3_DATASET_TEMPLATE, identifier='s3-remote')]
 
     def get_dataset(self, name):
         for dataset in self.datasets:

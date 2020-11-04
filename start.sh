@@ -54,6 +54,30 @@ webhooks:
       matchLabels:
         karvdash: enabled
     failurePolicy: Fail
+---
+apiVersion: admissionregistration.k8s.io/v1beta1
+kind: ValidatingWebhookConfiguration
+metadata:
+  name: karvdash
+  labels:
+    app: karvdash
+webhooks:
+  - name: $SERVER_NAME
+    clientConfig:
+      caBundle: $CA_BUNDLE
+      service:
+        name: karvdash
+        namespace: $NAMESPACE
+        path: "/webhooks/validate"
+    rules:
+      - operations: ["CREATE"]
+        apiGroups: ["*"]
+        apiVersions: ["*"]
+        resources: ["pods", "deployments"]
+    namespaceSelector:
+      matchLabels:
+        karvdash: enabled
+    failurePolicy: Fail
 EOF
 
 kubectl apply -n $NAMESPACE -f /db/webhook.yaml

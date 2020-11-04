@@ -148,9 +148,9 @@ class KubernetesClient(object):
                 if dataset_type == 'COS':
                     dataset_type = 'S3'
                     endpoint = dataset['spec']['local']['endpoint'] + '/' + dataset['spec']['local']['bucket']
-                elif dataset_type == 'HOST':
-                    dataset_type = 'HostPath'
-                    endpoint = dataset['spec']['local']['path']
+                # elif dataset_type == 'HOST':
+                #     dataset_type = 'HostPath'
+                #     endpoint = dataset['spec']['local']['path']
                 else:
                     continue
 
