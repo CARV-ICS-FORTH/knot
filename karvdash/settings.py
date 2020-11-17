@@ -232,3 +232,8 @@ ISSUES_URL = os.getenv('KARVDASH_ISSUES_URL')
 # Datasets
 
 DATASETS_AVAILABLE = True if os.getenv('KARVDASH_DATASETS_AVAILABLE', '') else False
+
+
+# Local directories allowed to be mounted in containers (in addition to file domains).
+
+ALLOWED_HOSTPATH_DIRS = [d.strip() for d in os.getenv('KARVDASH_ALLOWED_HOSTPATH_DIRS', '').split(':') if d.strip()]

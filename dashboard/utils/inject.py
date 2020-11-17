@@ -66,8 +66,9 @@ def inject_hostpath_volumes(yaml_data, volumes, add_api_settings=False):
             continue
         add_volumes_to_spec(spec)
 
-def validate_hostpath_volumes(yaml_data, volumes):
+def validate_hostpath_volumes(yaml_data, volumes, other_allowed_paths=[]):
     allowed_paths = [variables['host_dir'] for name, variables in volumes.items() if 'host_dir' in variables]
+    allowed_paths += other_allowed_paths
 
     for part in yaml_data:
         try:

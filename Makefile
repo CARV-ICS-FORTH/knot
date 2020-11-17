@@ -129,6 +129,7 @@ deploy: deploy-crds deploy-rbac
 	export KARVDASH_ISSUES_URL=$${KARVDASH_ISSUES_URL:=""}; \
 	export KARVDASH_DOCKER_REGISTRY_NO_VERIFY=$${KARVDASH_DOCKER_REGISTRY_NO_VERIFY:=""}; \
 	export KARVDASH_DATASETS_AVAILABLE=$${KARVDASH_DATASETS_AVAILABLE:=""}; \
+	export KARVDASH_ALLOWED_HOSTPATH_DIRS=$${KARVDASH_ALLOWED_HOSTPATH_DIRS:=""}; \
 	envsubst < $(DEPLOY_DIR)/karvdash.yaml | kubectl apply -f -
 
 undeploy:

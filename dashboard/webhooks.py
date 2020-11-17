@@ -20,6 +20,7 @@ import base64
 from django.http import HttpResponseBadRequest, JsonResponse
 from django.views.decorators.http import require_POST
 from django.views.decorators.csrf import csrf_exempt
+from django.conf import settings
 
 from .models import User
 from .utils.kubernetes import KubernetesClient
@@ -68,5 +69,5 @@ def validate(request):
         return HttpResponseBadRequest()
 
     return JsonResponse({'response': {'uid': uid,
-                                      'allowed': validate_hostpath_volumes([service], user.volumes),
+                                      'allowed': validate_hostpath_volumes([service], user.volumes, other_allowed_paths=settings.ALLOWED_HOSTPATH_DIRS),
                                       'status': {'message': 'Checking for unauthorized hostPath volumes'}}})

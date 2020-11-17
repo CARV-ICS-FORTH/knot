@@ -101,6 +101,8 @@ spec:
           value: ${KARVDASH_PRIVATE_HOST_DIR}
         - name: KARVDASH_SHARED_HOST_DIR
           value: ${KARVDASH_SHARED_HOST_DIR}
+        - name: KARVDASH_ALLOWED_HOSTPATH_DIRS
+          value: ${KARVDASH_ALLOWED_HOSTPATH_DIRS}
         ports:
         - containerPort: 80
           name: http

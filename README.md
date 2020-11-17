@@ -75,8 +75,9 @@ Depending on your setup, you may want to create a custom version of `karvdash.ya
 | `KARVDASH_API_BASE_URL`              | The URL used for internal API calls (default is `http://karvdash.default.svc/api`).   |
 | `KARVDASH_PRIVATE_HOST_DIR`          | The host path for the private file domain.                                            |
 | `KARVDASH_SHARED_HOST_DIR`           | The host path for the shared file domain.                                             |
+| `KARVDASH_ALLOWED_HOSTPATH_DIRS`     | Other host paths to allow attaching to containers (separate with `:`).                |
 
-To remove Karvdash, run `make undeploy`, which will remove the service and mutating admission webhook, but not associated CRDs and additional RBAC rules. Use `make undeploy-crds` for explicitly removing CRDs and any stored data, and `make undeploy-rbac` for removing RBAC rules.
+To remove Karvdash, run `make undeploy`, which will remove the service and admission webhooks, but not associated CRDs and additional RBAC rules. Use `make undeploy-crds` for explicitly removing CRDs and any stored data, and `make undeploy-rbac` for removing RBAC rules.
 
 ## Development
 
