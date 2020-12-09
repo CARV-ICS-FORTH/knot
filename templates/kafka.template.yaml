@@ -3,98 +3,90 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: $NAME
+  name: ${NAME}
 spec:
-  type: ClusterIP
   ports:
-  - port: 9092
-    name: kafka
-  - port: 2181
-    name: zeppelin
+  - name: broker
+    port: 9092
   selector:
-    app: $NAME
+    app: cp-kafka
 ---
-apiVersion: v1
-kind: ConfigMap
+apiVersion: apps/v1beta1
+kind: StatefulSet
 metadata:
-  name: start-scripts
-data:
-  start-zookeeper.sh: |
-    #!/bin/bash -x
-    /opt/bitnami/scripts/zookeeper/setup.sh
-    mkdir -p ${PRIVATE}/.zookeeper/data
-    chown zookeeper:zookeeper ${PRIVATE}/.zookeeper/data
-    sed -i 's|dataDir=.*|dataDir=${PRIVATE}/.zookeeper/data|' /opt/bitnami/zookeeper/conf/zoo.cfg
-    /opt/bitnami/scripts/zookeeper/run.sh
-  start-kafka.sh: |
-    #!/bin/bash -x
-    /opt/bitnami/scripts/kafka/setup.sh
-    mkdir -p ${PRIVATE}/.kafka/data
-    chown kafka:kafka ${PRIVATE}/.kafka/data
-    sed -i 's|log.dirs=.*|log.dirs=${PRIVATE}/.kafka/data|' /opt/bitnami/kafka/config/server.properties
-    /opt/bitnami/scripts/kafka/run.sh
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: $NAME
+  name: cp-kafka
 spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: $NAME
+  podManagementPolicy: OrderedReady
+  replicas: ${SERVERS}
+  serviceName: ${NAME}
   template:
     metadata:
       labels:
-        app: $NAME
+        app: cp-kafka
     spec:
+      # affinity:
+      #   podAntiAffinity:
+      #     preferredDuringSchedulingIgnoredDuringExecution:
+      #     - podAffinityTerm:
+      #         labelSelector:
+      #           matchExpressions:
+      #           - key: app
+      #             operator: In
+      #             values:
+      #             - cp-kafka
+      #         topologyKey: kubernetes.io/hostname
+      #       weight: 1
       containers:
-      - name: kafka
-        image: bitnami/kafka:2.5.0
-        args: ["/start.sh"]
+      - command:
+        - sh
+        - -c
+        - |
+          export KAFKA_BROKER_ID=${HOSTNAME##*-} && \
+          export KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://${HOSTNAME}.${NAME}:9092,EXTERNAL://${HOST_IP}:$((31090 + ${KAFKA_BROKER_ID})) && \
+          mkdir -p ${PRIVATE}/.cp-kafka-$KAFKA_BROKER_ID/data && \
+          find /etc -type f -exec sed -i "s|/var/lib/kafka/*|${PRIVATE}/.cp-kafka-$KAFKA_BROKER_ID/|" {} \; && \
+          unset KAFKA_HOST; unset KAFKA_PORT && \
+          /etc/confluent/docker/run
+        env:
+        - name: HOST_IP
+          valueFrom:
+            fieldRef:
+              fieldPath: status.hostIP
+        - name: KAFKA_HEAP_OPTS
+          value: -Xmx1G -Xms1G
+        - name: KAFKA_ZOOKEEPER_CONNECT
+          value: ${ZOOKEEPER}
+        # - name: KAFKA_METRIC_REPORTERS
+        #   value: "io.confluent.metrics.reporter.ConfluentMetricsReporter"
+        - name: CONFLUENT_METRICS_REPORTER_BOOTSTRAP_SERVERS
+          value: PLAINTEXT://${NAME}:9092
+        - name: KAFKA_LISTENER_SECURITY_PROTOCOL_MAP
+          value: PLAINTEXT:PLAINTEXT,EXTERNAL:PLAINTEXT
+        # - name: KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR
+        #   value: "3"
+        - name: KAFKA_JMX_PORT
+          value: "5555"
+        image: confluentinc/cp-kafka:5.3.1
+        imagePullPolicy: IfNotPresent
+        name: cp-kafka-broker
         ports:
         - containerPort: 9092
-        securityContext:
-          runAsUser: 0
-        env:
-        - name: KAFKA_CFG_ZOOKEEPER_CONNECT
-          value: localhost:2181
-        - name: KAFKA_CFG_ADVERTISED_LISTENERS
-          value: PLAINTEXT://${NAME}:9092
-        - name: ALLOW_PLAINTEXT_LISTENER
-          value: "yes"
-        volumeMounts:
-        - name: start-scripts-volume
-          mountPath: /start.sh
-          subPath: start-kafka.sh
-      - name: zookeeper
-        image: bitnami/zookeeper:3.6.1
-        args: ["/start.sh"]
-        ports:
-        - containerPort: 2181
-        securityContext:
-          runAsUser: 0
-        env:
-        - name: ALLOW_ANONYMOUS_LOGIN
-          value: "yes"
-        volumeMounts:
-        - name: start-scripts-volume
-          mountPath: /start.sh
-          subPath: start-zookeeper.sh
-      volumes:
-      - name: start-scripts-volume
-        configMap:
-          name: start-scripts
-          defaultMode: 0777
+          name: broker
+  updateStrategy:
+    type: RollingUpdate
 ---
 kind: Template
 name: Kafka
-description: Streaming platform
+description: Distributed streaming platform
 singleton: yes
 variables:
 - name: NAME
   default: kafka
-- name: HOSTNAME
-  default: kafka.example.com
+- name: SERVERS
+  default: 3
+  help: Set to an odd number from 3 and above
+- name: ZOOKEEPER
+  default: zookeeper
+  help: ZooKeeper service name
 - name: PRIVATE
   default: /private
