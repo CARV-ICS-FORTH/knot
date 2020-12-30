@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+SHELL=/bin/bash
+
 REGISTRY_NAME?=carvicsforth
 KUBECTL_VERSION?=v1.15.10
 
