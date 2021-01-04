@@ -1,4 +1,4 @@
-Django==3.0.2
+Django==3.0.11
 django-crispy-forms==1.8.1
 django-impersonate==1.4.1
 python-dxf==7.5.3
