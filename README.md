@@ -33,7 +33,7 @@ Then, you should set at least the following environmental variables and run `mak
 | Variable                          | Description                                                                                     |
 |-----------------------------------|-------------------------------------------------------------------------------------------------|
 | `DJANGO_SECRET`                   | Secret for Django. Use a random string of 50 characters.                                        |
-| `KARVDASH_INGRESS_DOMAIN`         | The domain used (for example `example.com`).                                                    |
+| `KARVDASH_INGRESS_DOMAIN`         | The domain used (for example `https://example.com`).                                            |
 | `KARVDASH_DOCKER_REGISTRY`        | The URL of the Docker registry (for example `https://username:password@127.0.0.1:5000`).        |
 | `KARVDASH_PERSISTENT_STORAGE_DIR` | The host path for persistent storage (database, running services repository, template library). |
 | `KARVDASH_PRIVATE_HOST_DIR`       | The host path for the private file domain.                                                      |
@@ -44,7 +44,7 @@ The directory variables should be set to some folder inside the node-wide, share
 For example:
 ```bash
 export DJANGO_SECRET=<a random string of 50 characters>
-export KARVDASH_INGRESS_DOMAIN=example.com
+export KARVDASH_INGRESS_DOMAIN=https://example.com
 export KARVDASH_DOCKER_REGISTRY=http://127.0.0.1:5000
 export KARVDASH_PERSISTENT_STORAGE_DIR=/mnt/nfs/karvdash
 export KARVDASH_PRIVATE_HOST_DIR=/mnt/nfs/private
@@ -67,7 +67,7 @@ Depending on your setup, you may want to create a custom version of `karvdash.ya
 | `KARVDASH_DASHBOARD_TITLE`           | The title of the dashboard (default is `Dashboard`).                                  |
 | `KARVDASH_DASHBOARD_THEME`           | The theme of the dashboard. Choose between "evolve" and "CARV" (default is `evolve`). |
 | `KARVDASH_ISSUES_URL`                | If set, an option to "Report an issue" is shown in the user menu.                     |
-| `KARVDASH_INGRESS_DOMAIN`            | The domain used (default is `localtest.me`).                                          |
+| `KARVDASH_INGRESS_DOMAIN`            | The domain used (default is `http://localtest.me`).                                   |
 | `KARVDASH_SERVICE_REDIRECT_SSL`      | Set to anything to redirect all services to SSL (default is disabled).                |
 | `KARVDASH_DOCKER_REGISTRY`           | The URL of the Docker registry (default is `http://127.0.0.1:5000`).                  |
 | `KARVDASH_DOCKER_REGISTRY_NO_VERIFY` | Set to anything to skip Docker registry SSL verification (default is to verify).      |

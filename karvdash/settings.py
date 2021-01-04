@@ -219,8 +219,11 @@ API_BASE_URL = os.getenv('KARVDASH_API_BASE_URL')
 
 # Ingress domain
 
-INGRESS_DOMAIN = os.getenv('KARVDASH_INGRESS_DOMAIN', 'localtest.me')
+INGRESS_DOMAIN = os.getenv('KARVDASH_INGRESS_DOMAIN', 'http://localtest.me')
 
+# Backwards compatibility.
+if not INGRESS_DOMAIN.startswith('http'):
+    INGRESS_DOMAIN = ('https://' if SERVICE_REDIRECT_SSL else 'http://') + INGRESS_DOMAIN
 
 # Theme
 

@@ -84,7 +84,7 @@ deploy-docker-desktop: prepare-docker-desktop
 	IP_ADDRESS=$$(ipconfig getifaddr en0 || ipconfig getifaddr en1); \
 	export DJANGO_SECRET="JWFkJiU0KiF4cGYqJHdkM150NTYrI29kZTQ9QHleanVfdCtqOWYrMjBhanN0YV5nb2c="; \
 	export DJANGO_DEBUG=1; \
-	export KARVDASH_INGRESS_DOMAIN=localtest.me; \
+	export KARVDASH_INGRESS_DOMAIN=https://localtest.me; \
 	export KARVDASH_IMAGE=$(KARVDASH_IMAGE_TAG); \
 	export KARVDASH_WEBHOOK_PROXY_IMAGE=$(KARVDASH_WEBHOOK_PROXY_IMAGE_TAG); \
 	export KARVDASH_DASHBOARD_TITLE="Karvdash on Docker Desktop"; \

@@ -24,6 +24,7 @@ import kubernetes
 from django.conf import settings
 from restless.dj import DjangoResource
 from restless.exceptions import NotFound, BadRequest, Conflict, Forbidden
+from urllib.parse import urlparse
 
 from .models import APIToken, User
 from .forms import CreateServiceForm, CreateDatasetForm
@@ -162,12 +163,15 @@ class ServiceResource(APIResource):
             if file_name.endswith('.yaml'):
                 service_database.append(file_name[:-5])
 
+        ingress_url = urlparse(settings.INGRESS_DOMAIN)
+        ingress_host = '%s:%s' % (ingress_url.hostname, ingress_url.port) if ingress_url.port else ingress_url.hostname
+
         contents = []
         ingresses = [i.metadata.name for i in kubernetes_client.list_ingresses(namespace=self.user.namespace)]
         for service in kubernetes_client.list_services(namespace=self.user.namespace, label_selector=''):
             name = service.metadata.name
             # ports = [str(p.port) for p in service.spec.ports if p.protocol == 'TCP']
-            url = 'http://%s-%s.%s' % (name, self.user.username, settings.INGRESS_DOMAIN) if name in ingresses else None
+            url = '%s://%s-%s.%s' % (ingress_url.scheme, name, self.user.username, ingress_host) if name in ingresses else None
             try:
                 service_template = self.get_template(service.metadata.labels['karvdash-template']).format()
             except:
@@ -223,10 +227,13 @@ class ServiceResource(APIResource):
         while name in names:
             name = form.cleaned_data['NAME'] + '-' + ''.join([random.choice(string.ascii_lowercase) for i in range(4)])
 
+        ingress_url = urlparse(settings.INGRESS_DOMAIN)
+        ingress_host = '%s:%s' % (ingress_url.hostname, ingress_url.port) if ingress_url.port else ingress_url.hostname
+
         # Set namespace, name, hostname, registry, and storage paths.
         template.NAMESPACE = self.user.namespace
         template.NAME = name
-        template.HOSTNAME = '%s-%s.%s' % (name, self.user.username, settings.INGRESS_DOMAIN)
+        template.HOSTNAME = '%s-%s.%s' % (name, self.user.username, ingress_host)
         template.REGISTRY = DockerClient(settings.DOCKER_REGISTRY, settings.DOCKER_REGISTRY_NO_VERIFY).registry_host
         template.PRIVATE = settings.FILE_DOMAINS['private']['dir'].rstrip('/')
         template.SHARED = settings.FILE_DOMAINS['shared']['dir'].rstrip('/')
@@ -262,7 +269,7 @@ class ServiceResource(APIResource):
                     f.write(namespace_template.yaml.encode())
 
                 kubernetes_client.apply_yaml(namespace_yaml)
-                kubernetes_client.create_docker_registry_secret(self.user.namespace, settings.DOCKER_REGISTRY, 'admin@%s' % settings.INGRESS_DOMAIN)
+                kubernetes_client.create_docker_registry_secret(self.user.namespace, settings.DOCKER_REGISTRY, 'admin@%s' % ingress_host)
 
             if len(kubernetes_client.get_datasets(self.user.namespace)):
                 kubernetes_client.add_namespace_label(self.user.namespace, "monitor-pods-datasets")
@@ -296,7 +303,7 @@ class ServiceResource(APIResource):
         service_template = template.format()
         service_template['values'] = template.values
         return {'name': name,
-                'url': 'http://%s-%s.%s' % (name, self.user.username, settings.INGRESS_DOMAIN),
+                'url': '%s://%s-%s.%s' % (ingress_url.scheme, name, self.user.username, ingress_host),
                 # 'created': creation_timestamp,
                 'actions': True,
                 'template': service_template}
