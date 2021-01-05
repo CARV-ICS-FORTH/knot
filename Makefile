@@ -50,31 +50,32 @@ $(DOCKER_DESKTOP_DIR)/localtest.me.key $(DOCKER_DESKTOP_DIR)/localtest.me.crt:
 	openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout $(DOCKER_DESKTOP_DIR)/localtest.me.key -out $(DOCKER_DESKTOP_DIR)/localtest.me.crt -subj "/CN=*.localtest.me/CN=localtest.me/O=localtest.me"
 
 export INGRESS_SECRET
-$(DOCKER_DESKTOP_DIR)/ingress-nginx.yaml: $(DOCKER_DESKTOP_DIR)/localtest.me.key $(DOCKER_DESKTOP_DIR)/localtest.me.crt
-	# Get the ingress parts
-	curl https://raw.githubusercontent.com/kubernetes/ingress-nginx/nginx-0.30.0/deploy/static/mandatory.yaml > $(DOCKER_DESKTOP_DIR)/ingress-nginx.yaml
-	echo "---" >> $(DOCKER_DESKTOP_DIR)/ingress-nginx.yaml
-	curl https://raw.githubusercontent.com/kubernetes/ingress-nginx/nginx-0.30.0/deploy/static/provider/baremetal/service-nodeport.yaml >> $(DOCKER_DESKTOP_DIR)/ingress-nginx.yaml
-	echo "$$INGRESS_SECRET" >> $(DOCKER_DESKTOP_DIR)/ingress-nginx.yaml
+$(DOCKER_DESKTOP_DIR)/ingress-certificate.yaml: $(DOCKER_DESKTOP_DIR)/localtest.me.key $(DOCKER_DESKTOP_DIR)/localtest.me.crt
+	echo "$$INGRESS_SECRET" >> $(DOCKER_DESKTOP_DIR)/ingress-certificate.yaml
 	# Add the certificates
 	CERT=$$(cat $(DOCKER_DESKTOP_DIR)/localtest.me.crt | base64); \
 	KEY=$$(cat $(DOCKER_DESKTOP_DIR)/localtest.me.key | base64); \
-	sed -i '' "s/CERT/$$CERT/" $(DOCKER_DESKTOP_DIR)/ingress-nginx.yaml; \
-	sed -i '' "s/KEY/$$KEY/" $(DOCKER_DESKTOP_DIR)/ingress-nginx.yaml
-	lf=$$'\n'; \
-	sed -i '' "/- \/nginx-ingress-controller/ s/$$/\\$$lf            - --default-ssl-certificate=\$$(POD_NAMESPACE)\/ssl-certificate/" deploy/docker-desktop/ingress-nginx.yaml
-	# Change the service to LoadBalancer so the port is accessible at localhost
-	sed -i '' "s/NodePort/LoadBalancer/" $(DOCKER_DESKTOP_DIR)/ingress-nginx.yaml
+	sed -i '' "s/CERT/$$CERT/" $(DOCKER_DESKTOP_DIR)/ingress-certificate.yaml; \
+	sed -i '' "s/KEY/$$KEY/" $(DOCKER_DESKTOP_DIR)/ingress-certificate.yaml
 
-prepare-docker-desktop: $(DOCKER_DESKTOP_DIR)/ingress-nginx.yaml deploy-crds deploy-rbac
-	kubectl apply -f $(DOCKER_DESKTOP_DIR)/ingress-nginx.yaml
+prepare-docker-desktop: $(DOCKER_DESKTOP_DIR)/ingress-certificate.yaml deploy-crds deploy-rbac
+	if [[ `helm version --short` != v3* ]]; then echo "Can not find Helm 3 installed"; exit; fi
+	kubectl create namespace ingress-nginx || true
+	kubectl apply -f $(DOCKER_DESKTOP_DIR)/ingress-certificate.yaml
+	helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
+	helm repo update
+	helm install ingress ingress-nginx/ingress-nginx --version 2.16.0 --namespace ingress-nginx \
+    --set controller.extraArgs.default-ssl-certificate=ingress-nginx/ssl-certificate \
+    --set controller.admissionWebhooks.enabled=false
 	kubectl apply -f $(DOCKER_DESKTOP_DIR)/docker-registry-pvc.yaml
 	kubectl apply -f $(DOCKER_DESKTOP_DIR)/docker-registry.yaml
 
 unprepare-docker-desktop:
-	kubectl delete -f $(DOCKER_DESKTOP_DIR)/ingress-nginx.yaml
-	kubectl delete -f $(DOCKER_DESKTOP_DIR)/docker-registry-pvc.yaml
 	kubectl delete -f $(DOCKER_DESKTOP_DIR)/docker-registry.yaml
+	kubectl delete -f $(DOCKER_DESKTOP_DIR)/docker-registry-pvc.yaml
+	helm uninstall ingress --namespace ingress-nginx
+	kubectl delete -f $(DOCKER_DESKTOP_DIR)/ingress-certificate.yaml
+	kubectl delete namespace ingress-nginx
 
 deploy-docker-desktop: prepare-docker-desktop
 	# Directories needed for files

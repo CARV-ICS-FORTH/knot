@@ -82,7 +82,7 @@ To remove Karvdash, run `make undeploy`, which will remove the service and admis
 
 To work on Karvdash, you need a local Kubernetes environment, with a running ingress controller and a local Docker registry (as you would on a bare metal setup).
 
-Especially for [Docker Desktop](https://www.docker.com/products/docker-desktop) for macOS ([versions 2.2.x.x-2.3.x.x](https://docs.docker.com/docker-for-mac/release-notes/) use Kubernetes 1.15.5), these are all provided with `make deploy-docker-desktop`. This will setup an SSL-enabled ingress controller answering to https://localtest.me (provided by [localtest.me](https://readme.localtest.me)), start a private Docker registry (without SSL), and deploy Karvdash.
+Especially for [Docker Desktop](https://www.docker.com/products/docker-desktop) for macOS ([versions 2.2.x.x-2.3.x.x](https://docs.docker.com/docker-for-mac/release-notes/) use Kubernetes 1.15.5), these are all provided with `make deploy-docker-desktop`. This will setup an SSL-enabled ingress controller answering to https://localtest.me (provided by [localtest.me](https://readme.localtest.me)), start a private Docker registry (without SSL), and deploy Karvdash. You also need to have [Helm](https://helm.sh) installed (version 3).
 
 Note that some versions of Docker Desktop [do not enforce RBAC rules](https://github.com/docker/for-mac/issues/3694), so there is no namespace isolation. Enable it by running `kubectl delete clusterrolebinding docker-for-desktop-binding`. You then need to explicitly set permissions for the `default` service account in the `default` namespace, with `kubectl create clusterrolebinding default-cluster-admin --clusterrole=cluster-admin --serviceaccount=default:default`.
 
