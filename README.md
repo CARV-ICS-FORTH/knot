@@ -68,7 +68,6 @@ Depending on your setup, you may want to create a custom version of `karvdash.ya
 | `KARVDASH_DASHBOARD_THEME`           | The theme of the dashboard. Choose between "evolve" and "CARV" (default is `evolve`). |
 | `KARVDASH_ISSUES_URL`                | If set, an option to "Report an issue" is shown in the user menu.                     |
 | `KARVDASH_INGRESS_DOMAIN`            | The domain used (default is `http://localtest.me`).                                   |
-| `KARVDASH_SERVICE_REDIRECT_SSL`      | Set to anything to redirect all services to SSL (default is disabled).                |
 | `KARVDASH_DOCKER_REGISTRY`           | The URL of the Docker registry (default is `http://127.0.0.1:5000`).                  |
 | `KARVDASH_DOCKER_REGISTRY_NO_VERIFY` | Set to anything to skip Docker registry SSL verification (default is to verify).      |
 | `KARVDASH_DATASETS_AVAILABLE`        | Set to anything to enable dataset management (default is disabled).                   |

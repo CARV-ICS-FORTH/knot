@@ -115,7 +115,7 @@ def inject_ingress_auth(yaml_data, secret, realm, redirect_ssl=False):
             part['metadata']['annotations']['nginx.ingress.kubernetes.io/auth-secret'] = secret
             part['metadata']['annotations']['nginx.ingress.kubernetes.io/auth-realm'] = realm
             if redirect_ssl:
-                part['metadata']['annotations']['nginx.ingress.kubernetes.io/force-ssl-redirect'] = '"true"'
+                part['metadata']['annotations']['nginx.ingress.kubernetes.io/force-ssl-redirect'] = 'true'
 
 def inject_datasets(yaml_data, datasets):
     def add_datasets_to_metadata(template):

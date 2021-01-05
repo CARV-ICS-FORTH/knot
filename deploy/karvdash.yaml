@@ -89,8 +89,6 @@ spec:
           value: "${KARVDASH_ISSUES_URL}"
         - name: KARVDASH_INGRESS_DOMAIN
           value: ${KARVDASH_INGRESS_DOMAIN}
-        - name: KARVDASH_SERVICE_REDIRECT_SSL
-          value: "1"
         - name: KARVDASH_DOCKER_REGISTRY
           value: ${KARVDASH_DOCKER_REGISTRY}
         - name: KARVDASH_DOCKER_REGISTRY_NO_VERIFY

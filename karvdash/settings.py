@@ -204,7 +204,6 @@ DOCKER_REGISTRY_NO_VERIFY = True if os.getenv('KARVDASH_DOCKER_REGISTRY_NO_VERIF
 SYSTEM_TEMPLATE_DIR = os.path.join(BASE_DIR, 'templates')
 SERVICE_TEMPLATE_DIR = os.getenv('KARVDASH_SERVICE_TEMPLATE_DIR', os.path.join(BASE_DIR, 'db', 'templates'))
 SERVICE_DATABASE_DIR = os.getenv('KARVDASH_SERVICE_DATABASE_DIR', os.path.join(BASE_DIR, 'db', 'services'))
-SERVICE_REDIRECT_SSL = True if os.getenv('KARVDASH_SERVICE_REDIRECT_SSL', '') else False
 
 
 # Password file export
@@ -222,6 +221,7 @@ API_BASE_URL = os.getenv('KARVDASH_API_BASE_URL')
 INGRESS_DOMAIN = os.getenv('KARVDASH_INGRESS_DOMAIN', 'http://localtest.me')
 
 # Backwards compatibility.
+SERVICE_REDIRECT_SSL = True if os.getenv('KARVDASH_SERVICE_REDIRECT_SSL', '') else False
 if not INGRESS_DOMAIN.startswith('http'):
     INGRESS_DOMAIN = ('https://' if SERVICE_REDIRECT_SSL else 'http://') + INGRESS_DOMAIN
 
