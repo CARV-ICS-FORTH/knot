@@ -94,6 +94,7 @@ deploy-docker-desktop: prepare-docker-desktop
 	export KARVDASH_PERSISTENT_STORAGE_DIR="$(PWD)/db"; \
 	export KARVDASH_PRIVATE_HOST_DIR="$(PWD)/private"; \
 	export KARVDASH_SHARED_HOST_DIR="$(PWD)/shared"; \
+	export KARVDASH_INGRESS_HOST=$$(echo $$KARVDASH_INGRESS_DOMAIN | sed -e 's,^.*://,,g'); \
 	envsubst < $(DEPLOY_DIR)/karvdash.yaml | kubectl apply -f -
 
 undeploy-docker-desktop: unprepare-docker-desktop undeploy
@@ -132,6 +133,7 @@ deploy: deploy-crds deploy-rbac
 	export KARVDASH_DOCKER_REGISTRY_NO_VERIFY=$${KARVDASH_DOCKER_REGISTRY_NO_VERIFY:=""}; \
 	export KARVDASH_DATASETS_AVAILABLE=$${KARVDASH_DATASETS_AVAILABLE:=""}; \
 	export KARVDASH_ALLOWED_HOSTPATH_DIRS=$${KARVDASH_ALLOWED_HOSTPATH_DIRS:=""}; \
+	export KARVDASH_INGRESS_HOST=$$(echo $$KARVDASH_INGRESS_DOMAIN | sed -e 's,^.*://,,g'); \
 	envsubst < $(DEPLOY_DIR)/karvdash.yaml | kubectl apply -f -
 
 undeploy:
