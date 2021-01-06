@@ -11,9 +11,34 @@ SERVER_NAME=karvdash.$NAMESPACE.svc
 CERTS_DIR=/db/certs
 if [ ! -d $CERTS_DIR ]; then
     mkdir -p $CERTS_DIR
-    openssl genrsa -out $CERTS_DIR/server.key 2048
     openssl req -nodes -new -x509 -days 3650 -keyout $CERTS_DIR/ca.key -out $CERTS_DIR/ca.crt -subj "/CN=karvdash CA"
-    openssl req -new -key $CERTS_DIR/server.key -subj "/CN=$SERVER_NAME" | openssl x509 -req -CA $CERTS_DIR/ca.crt -CAkey $CERTS_DIR/ca.key -set_serial 01 -days 3650 -out $CERTS_DIR/server.crt
+    openssl genrsa -out $CERTS_DIR/server.key 2048
+    cat >$CERTS_DIR/csr.conf <<EOF
+[req]
+default_bits = 2048
+prompt = no
+default_md = sha256
+req_extensions = req_ext
+distinguished_name = dn
+
+[dn]
+CN = $SERVER_NAME
+
+[req_ext]
+subjectAltName = @alt_names
+
+[alt_names]
+DNS.1 = $SERVER_NAME
+
+[v3_ext]
+authorityKeyIdentifier=keyid,issuer:always
+basicConstraints=CA:FALSE
+keyUsage=keyEncipherment,dataEncipherment
+extendedKeyUsage=serverAuth,clientAuth
+subjectAltName=@alt_names
+EOF
+    openssl req -new -key $CERTS_DIR/server.key -config $CERTS_DIR/csr.conf | openssl x509 -req -CA $CERTS_DIR/ca.crt -CAkey $CERTS_DIR/ca.key -set_serial 01 -days 3650 -extensions v3_ext -extfile $CERTS_DIR/csr.conf -out $CERTS_DIR/server.crt
+    rm $CERTS_DIR/csr.conf
 fi
 
 CA_BUNDLE=`cat $CERTS_DIR/ca.crt | base64 -w 0`
