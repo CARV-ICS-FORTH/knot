@@ -57,7 +57,7 @@ prepare-docker-desktop: $(DOCKER_DESKTOP_DIR)/localtest.me.key $(DOCKER_DESKTOP_
 unprepare-docker-desktop:
 	helm uninstall registry --namespace default
 	helm uninstall ingress --namespace default
-	kubectl delete secret tls ssl-certificate
+	kubectl delete secret ssl-certificate
 
 deploy-docker-desktop: prepare-docker-desktop
 	# Directories needed for files
