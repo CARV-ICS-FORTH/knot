@@ -7,7 +7,6 @@ client/*.egg-info/
 client/config.ini
 deploy/docker-desktop/localtest.me.crt
 deploy/docker-desktop/localtest.me.key
-deploy/docker-desktop/ingress-certificate.yaml
 docs/_build/
 venv/
 db/

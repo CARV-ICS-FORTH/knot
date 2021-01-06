@@ -29,18 +29,6 @@ ZEPPELIN_GPU_IMAGE_TAG=$(REGISTRY_NAME)/karvdash-zeppelin-gpu:$(ZEPPELIN_VERSION
 DEPLOY_DIR=deploy
 DOCKER_DESKTOP_DIR=$(DEPLOY_DIR)/docker-desktop
 
-define INGRESS_SECRET
-apiVersion: v1
-kind: Secret
-type: kubernetes.io/tls
-metadata:
-  name: ssl-certificate
-  namespace: ingress-nginx
-data:
-  tls.crt: CERT
-  tls.key: KEY
-endef
-
 .PHONY: all prepare-docker-desktop unprepare-docker-desktop deploy-docker-desktop undeploy-docker-desktop deploy-crds undeploy-crds deploy-rbac undeploy-rbac deploy undeploy service-containers service-containers-push containers containers-push
 
 all: containers
@@ -49,33 +37,27 @@ $(DOCKER_DESKTOP_DIR)/localtest.me.key $(DOCKER_DESKTOP_DIR)/localtest.me.crt:
 	mkdir -p $(DOCKER_DESKTOP_DIR)
 	openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout $(DOCKER_DESKTOP_DIR)/localtest.me.key -out $(DOCKER_DESKTOP_DIR)/localtest.me.crt -subj "/CN=*.localtest.me/CN=localtest.me/O=localtest.me"
 
-export INGRESS_SECRET
-$(DOCKER_DESKTOP_DIR)/ingress-certificate.yaml: $(DOCKER_DESKTOP_DIR)/localtest.me.key $(DOCKER_DESKTOP_DIR)/localtest.me.crt
-	echo "$$INGRESS_SECRET" >> $(DOCKER_DESKTOP_DIR)/ingress-certificate.yaml
-	# Add the certificates
-	CERT=$$(cat $(DOCKER_DESKTOP_DIR)/localtest.me.crt | base64); \
-	KEY=$$(cat $(DOCKER_DESKTOP_DIR)/localtest.me.key | base64); \
-	sed -i '' "s/CERT/$$CERT/" $(DOCKER_DESKTOP_DIR)/ingress-certificate.yaml; \
-	sed -i '' "s/KEY/$$KEY/" $(DOCKER_DESKTOP_DIR)/ingress-certificate.yaml
-
-prepare-docker-desktop: $(DOCKER_DESKTOP_DIR)/ingress-certificate.yaml deploy-crds deploy-rbac
+prepare-docker-desktop: $(DOCKER_DESKTOP_DIR)/localtest.me.key $(DOCKER_DESKTOP_DIR)/localtest.me.crt deploy-crds deploy-rbac
 	if [[ `helm version --short` != v3* ]]; then echo "Can not find Helm 3 installed"; exit; fi
-	kubectl create namespace ingress-nginx || true
-	kubectl apply -f $(DOCKER_DESKTOP_DIR)/ingress-certificate.yaml
 	helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
 	helm repo update
-	helm install ingress ingress-nginx/ingress-nginx --version 2.16.0 --namespace ingress-nginx \
+	kubectl create secret tls ssl-certificate \
+	--cert=$(DOCKER_DESKTOP_DIR)/localtest.me.crt \
+	--key=$(DOCKER_DESKTOP_DIR)/localtest.me.key
+	helm install ingress ingress-nginx/ingress-nginx --version 2.16.0 --namespace default \
     --set controller.extraArgs.default-ssl-certificate=ingress-nginx/ssl-certificate \
     --set controller.admissionWebhooks.enabled=false
-	kubectl apply -f $(DOCKER_DESKTOP_DIR)/docker-registry-pvc.yaml
-	kubectl apply -f $(DOCKER_DESKTOP_DIR)/docker-registry.yaml
+	helm repo add twuni https://helm.twun.io
+	helm repo update
+	helm install registry twuni/docker-registry --version 1.10.0 --namespace default \
+	--set persistence.enabled=true \
+	--set persistence.deleteEnabled=true \
+	--set service.type=LoadBalancer
 
 unprepare-docker-desktop:
-	kubectl delete -f $(DOCKER_DESKTOP_DIR)/docker-registry.yaml
-	kubectl delete -f $(DOCKER_DESKTOP_DIR)/docker-registry-pvc.yaml
-	helm uninstall ingress --namespace ingress-nginx
-	kubectl delete -f $(DOCKER_DESKTOP_DIR)/ingress-certificate.yaml
-	kubectl delete namespace ingress-nginx
+	helm uninstall registry --namespace default
+	helm uninstall ingress --namespace default
+	kubectl delete secret tls ssl-certificate
 
 deploy-docker-desktop: prepare-docker-desktop
 	# Directories needed for files
