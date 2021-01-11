@@ -1,9 +1,20 @@
-FROM python:3.7
+FROM python:3.7.9-slim
 
 ENV PYTHONUNBUFFERED 1
 
 COPY . /app
 WORKDIR /app
+
+RUN apt-get update && \
+    apt-get install -y make curl && \
+    apt-get clean \
+    && rm -rf \
+        /var/lib/apt/lists/* \
+        /tmp/* \
+        /var/tmp/* \
+        /usr/share/man \
+        /usr/share/doc \
+        /usr/share/doc-base
 
 RUN pip install -r requirements.txt && \
     python manage.py collectstatic
@@ -16,16 +27,6 @@ RUN pip install -r docs/requirements.txt && \
 ARG KUBECTL_VERSION=v1.15.10
 RUN curl -o /usr/local/bin/kubectl https://storage.googleapis.com/kubernetes-release/release/${KUBECTL_VERSION}/bin/linux/amd64/kubectl && \
     chmod +x /usr/local/bin/kubectl
-RUN apt-get update && \
-    apt-get install -y docker.io && \
-    apt-get clean \
-    && rm -rf \
-        /var/lib/apt/lists/* \
-        /tmp/* \
-        /var/tmp/* \
-        /usr/share/man \
-        /usr/share/doc \
-        /usr/share/doc-base
 
 VOLUME /db
 VOLUME /private

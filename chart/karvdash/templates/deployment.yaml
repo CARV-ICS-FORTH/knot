@@ -17,7 +17,7 @@ spec:
         app: {{ .Release.Name }}
     spec:
       containers:
-      - image: nginx:1.19.3
+      - image: nginx:1.19.6-alpine
         name: webhook-proxy
         ports:
         - containerPort: 443
