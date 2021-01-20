@@ -235,12 +235,12 @@ class ServiceResource(APIResource):
         template.NAME = name
         template.HOSTNAME = '%s-%s.%s' % (name, self.user.username, ingress_host)
         template.REGISTRY = DockerClient(settings.DOCKER_REGISTRY, settings.DOCKER_REGISTRY_NO_VERIFY).registry_host
-        template.PRIVATE = settings.FILE_DOMAINS['private']['dir'].rstrip('/')
-        template.SHARED = settings.FILE_DOMAINS['shared']['dir'].rstrip('/')
+        template.PRIVATE = self.user.file_domains['private'].mount_dir
+        template.SHARED = self.user.file_domains['shared'].mount_dir
 
         # Inject data folders.
         # if settings.DEBUG:
-        #     template.inject_hostpath_volumes(self.user.volumes, add_api_settings=True)
+        #     template.inject_hostpath_volumes(self.user.file_domains, add_api_settings=True)
         #     template.inject_datasets(kubernetes_client.get_datasets(self.user.namespace))
 
         # Add template label and values.

@@ -79,8 +79,7 @@ deploy-docker-desktop: prepare-docker-desktop
 	--set karvdash.ingressURL="https://localtest.me" \
  	--set karvdash.dockerRegistry="http://$$IP_ADDRESS:5000" \
 	--set karvdash.persistentStorageDir="$(PWD)/db" \
-	--set karvdash.privateHostDir="$(PWD)/private" \
-	--set karvdash.sharedHostDir="$(PWD)/shared"
+	--set karvdash.filesURL="file://$(PWD)"
 
 undeploy-crds:
 	kubectl delete -f $(CHART_DIR)/crds/argo-crd.yaml

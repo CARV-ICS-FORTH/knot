@@ -36,9 +36,7 @@ karvdash:
   dockerRegistryNoVerify:
   # Set to anything to enable dataset management.
   datasetsAvailable:
-  # REQUIRED: The host path for the private file domain.
-  privateHostDir:
-  # REQUIRED: The host path for the shared file domain.
-  sharedHostDir:
-  # Other host paths to allow attaching to containers (separate with ":).
+  # REQUIRED: The base URL for the private and shared file domains.
+  filesURL:
+  # Other host paths to allow attaching to containers (separate with ":").
   allowedHostPathDirs:

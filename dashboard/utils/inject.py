@@ -14,21 +14,21 @@
 
 import json
 
+from urllib.parse import urlparse
 
-def inject_hostpath_volumes(yaml_data, volumes, add_api_settings=False):
+
+def inject_hostpath_volumes(yaml_data, file_domains, add_api_settings=False):
     def add_volumes_to_spec(spec):
         # Add volumes.
         if 'volumes' not in spec:
             spec['volumes'] = []
         existing_names = [v['name'] for v in spec['volumes']]
-        for name, variables in volumes.items():
-            if not variables['dir'] or not variables['host_dir']:
-                continue
-            volume_name = 'karvdash-volume-%s' % name
+        for file_domain in file_domains.values():
+            volume_name = 'karvdash-volume-%s' % file_domain.name
             if volume_name in existing_names:
                 continue
             spec['volumes'].append({'name': volume_name,
-                                    'hostPath': {'path': variables['host_dir']}})
+                                    'hostPath': {'path': urlparse(file_domain.url).path}})
         if add_api_settings and 'karvdash-api-volume' not in existing_names:
             spec['volumes'].append({'name': 'karvdash-api-volume',
                                     'configMap': {'name': 'karvdash-api',
@@ -40,14 +40,12 @@ def inject_hostpath_volumes(yaml_data, volumes, add_api_settings=False):
             if 'volumeMounts' not in container:
                 container['volumeMounts'] = []
             existing_names = [v['name'] for v in container['volumeMounts']]
-            for name, variables in volumes.items():
-                if not variables['dir'] or not variables['host_dir']:
-                    continue
-                volume_name = 'karvdash-volume-%s' % name
+            for file_domain in file_domains.values():
+                volume_name = 'karvdash-volume-%s' % file_domain.name
                 if volume_name in existing_names:
                     continue
                 container['volumeMounts'].append({'name': volume_name,
-                                                  'mountPath': variables['dir']})
+                                                  'mountPath': file_domain.mount_dir})
             if add_api_settings and 'karvdash-api-volume' not in existing_names:
                 container['volumeMounts'].append({'name': 'karvdash-api-volume',
                                                   'mountPath': '/var/lib/karvdash'})
@@ -66,8 +64,8 @@ def inject_hostpath_volumes(yaml_data, volumes, add_api_settings=False):
             continue
         add_volumes_to_spec(spec)
 
-def validate_hostpath_volumes(yaml_data, volumes, other_allowed_paths=[]):
-    allowed_paths = [variables['host_dir'] for name, variables in volumes.items() if 'host_dir' in variables]
+def validate_hostpath_volumes(yaml_data, file_domains, other_allowed_paths=[]):
+    allowed_paths = [urlparse(file_domain.url).path for file_domain in file_domains.values()]
     allowed_paths += other_allowed_paths
 
     for part in yaml_data:

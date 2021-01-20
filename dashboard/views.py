@@ -15,7 +15,6 @@
 import os
 import shutil
 import restless
-import zipfile
 import re
 
 from django.shortcuts import render, redirect, reverse
@@ -524,31 +523,25 @@ def dataset_download(request, name):
 
 @login_required
 def files(request, path='/'):
+    # Get user file domains.
+    file_domains = request.user.file_domains
+
     # Normalize given path and split.
     path = os.path.normpath(path)
     path = path.lstrip('/')
     if path == '':
-        path = request.session.get('files_path', list(settings.FILE_DOMAINS.keys())[0]) # First is the default.
+        path = request.session.get('files_path', list(file_domains.keys())[0]) # First is the default.
     path_components = [p for p in path.split('/') if p]
 
     # Figure out the real path we are working on.
-    for domain, variables in settings.FILE_DOMAINS.items():
-        if path_components[0] == domain:
-            if variables.get('mode') == 'shared':
-                real_path = os.path.join(variables['dir'], '/'.join(path_components[1:]))
-            else:
-                user_path = os.path.join(variables['dir'], request.user.username)
-                if not os.path.exists(user_path):
-                    os.makedirs(user_path)
-
-                real_path = os.path.join(user_path, '/'.join(path_components[1:]))
-
-            request.session['files_path'] = path
-            break
-    else:
+    if path_components[0] not in file_domains.keys():
         messages.error(request, 'Invalid path.')
         request.session.pop('files_path', None)
         return redirect('files')
+
+    request.session['files_path'] = path # Save current path.
+    domain = path_components[0]
+    path_worker = file_domains[domain].path_worker(path_components[1:])
 
     # Handle changes.
     if request.method == 'POST':
@@ -558,27 +551,21 @@ def files(request, path='/'):
             form = AddFolderForm(request.POST)
             if form.is_valid():
                 name = form.cleaned_data['name']
-                real_name = os.path.join(real_path, name)
-                if os.path.exists(real_name):
+                if path_worker.exists(name):
                     messages.error(request, 'Can not add "%s". An item with the same name already exists.' % name)
                 else:
-                    os.mkdir(real_name)
+                    path_worker.mkdir(name)
                     messages.success(request, 'Folder "%s" created.' % name)
             else:
                 # XXX Show form errors in messages.
                 pass
         elif request.POST['action'] == 'Download':
             name = request.POST['name']
-            zip_path = os.path.normpath(os.path.join(real_path, name))
-            if not zip_path.startswith(real_path) or not os.path.isdir(os.path.join(real_path, name)):
+            if not path_worker.isdir(name):
                 messages.error(request, 'Can not download "%s".' % name)
             else:
                 response = HttpResponse(content_type='application/zip')
-                with zipfile.ZipFile(response, 'w') as zip_file:
-                    for root, dirs, files in os.walk(zip_path):
-                        for file in files:
-                            zip_add_file = os.path.join(root, file)
-                            zip_file.write(zip_add_file, zip_add_file[len(os.path.dirname(zip_path)):])
+                path_worker.download(name, response)
                 response['Content-Disposition'] = 'attachment; filename="%s.zip"' % re.sub(r'[^A-Za-z0-9 \-_]+', '', name)
                 return response
         elif request.POST['action'] == 'Add':
@@ -586,16 +573,11 @@ def files(request, path='/'):
             files = request.FILES.getlist('file_field')
             if form.is_valid():
                 for f in files:
-                    real_name = os.path.join(real_path, f.name)
-                    if os.path.exists(real_name):
+                    if path_worker.exists(f.name):
                         messages.error(request, 'Can not add "%s". An item with the same name already exists.' % f.name)
                         break
                 else:
-                    for f in files:
-                        real_name = os.path.join(real_path, f.name)
-                        with open(real_name, 'wb') as dest:
-                            for chunk in f.chunks():
-                                dest.write(chunk)
+                    path_worker.upload(files)
                     messages.success(request, 'Item%s %s added.' % ('s' if len(files) > 1 else '', ', '.join(['"%s"' % f.name for f in files])))
             else:
                 # XXX Show form errors in messages.
@@ -603,15 +585,14 @@ def files(request, path='/'):
         elif request.POST['action'] == 'Delete':
             name = request.POST.get('filename', None)
             if name:
-                real_name = os.path.join(real_path, name)
-                if not os.path.exists(real_name):
+                if not path_worker.exists(name):
                     messages.error(request, 'Item "%s" not found in folder.' % name)
                 else:
                     try:
-                        if os.path.isfile(real_name):
-                            os.remove(real_name)
+                        if path_worker.isfile(name):
+                            path_worker.remove(name)
                         else:
-                            os.rmdir(real_name)
+                            path_worker.rmdir(name)
                     except Exception as e: # noqa: F841
                         # messages.error(request, 'Failed to delete "%s": %s.' % (name, str(e)))
                         messages.error(request, 'Failed to delete "%s". Probably not permitted or directory not empty.' % name)
@@ -621,13 +602,13 @@ def files(request, path='/'):
             form = AddImageFromFileForm(request.POST)
             name = request.POST.get('filename', None)
             if form.is_valid() and name:
-                real_name = os.path.join(real_path, name)
                 name = form.cleaned_data['name']
                 tag = form.cleaned_data['tag']
                 try:
                     docker_client = DockerClient(settings.DOCKER_REGISTRY, settings.DOCKER_REGISTRY_NO_VERIFY)
-                    with open(real_name, 'rb') as f:
-                        docker_client.add_image(f, name, tag)
+                    f = path_worker.open(name, 'rb')
+                    docker_client.add_image(f, name, tag)
+                    f.close()
                 except Exception as e:
                     messages.error(request, 'Failed to add image: %s.' % str(e))
                 else:
@@ -637,10 +618,10 @@ def files(request, path='/'):
         elif request.POST['action'] == 'Add template':
             name = request.POST.get('filename', None)
             if name:
-                real_name = os.path.join(real_path, name)
                 data = {}
-                with open(real_name, 'rb') as f:
-                    data['data'] = f.read()
+                f = path_worker.open(name, 'rb')
+                data['data'] = f.read()
+                f.close()
 
                 template_resource = TemplateResource()
                 template_resource.request = request
@@ -660,10 +641,12 @@ def files(request, path='/'):
         return redirect('files', path)
 
     # Respond appropriately if the path is not a directory.
-    if os.path.isfile(real_path):
+    if path_worker.isfile():
         request.session['files_path'] = os.path.dirname(path) # Save path to folder.
-        return FileResponse(open(real_path, 'rb'), as_attachment=True, filename=os.path.basename(real_path))
-    if not os.path.isdir(real_path):
+        parent_path_worker = file_domains[path_components[0]].path_worker(path_components[1:-1])
+        name = path_components[-1]
+        return FileResponse(parent_path_worker.open(name, 'rb'), as_attachment=True, filename=name)
+    if not path_worker.isdir():
         request.session.pop('files_path', None)
         # messages.error(request, 'Invalid path.')
         return redirect('files')
@@ -678,19 +661,18 @@ def files(request, path='/'):
 
     # Fill in the contents.
     contents = []
-    for file_name in os.listdir(real_path):
-        file_path = os.path.join(real_path, file_name)
-        if os.path.isdir(file_path):
+    for file_name in path_worker.listdir():
+        if path_worker.isdir(file_name):
             file_type = 'dir'
-        elif os.path.isfile(file_path):
+        elif path_worker.isfile(file_name):
             file_type = 'file'
         else:
             continue
-        mtime = os.path.getmtime(file_path)
+        mtime = path_worker.getmtime(file_name)
         contents.append({'name': file_name,
                          'modified': datetime.fromtimestamp(mtime),
                          'type': file_type,
-                         'size': os.path.getsize(file_path) if file_type != 'dir' else 0,
+                         'size': path_worker.getsize(file_name) if file_type != 'dir' else 0,
                          'url': reverse('files', args=[os.path.join(path, file_name)])})
 
     # Sort them up.

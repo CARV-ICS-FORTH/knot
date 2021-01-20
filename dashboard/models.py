@@ -21,6 +21,8 @@ from django.contrib.auth.signals import user_logged_in
 from django.dispatch import receiver
 from django.conf import settings
 
+from .utils.file_domains import PrivateFileDomain, SharedFileDomain
+
 
 class User(AuthUser):
     class Meta:
@@ -43,20 +45,9 @@ class User(AuthUser):
         return 'auth=%s:$%s\n' % (self.username, self.password)
 
     @property
-    def volumes(self):
-        volumes = {}
-        for domain, variables in settings.FILE_DOMAINS.items():
-            if not variables['dir'] or not variables['host_dir']:
-                continue
-            if variables.get('mode') == 'shared':
-                user_path = variables['host_dir']
-            else:
-                user_path = os.path.join(variables['host_dir'], self.username)
-            if not os.path.exists(user_path):
-                os.makedirs(user_path)
-            volumes[domain] = variables.copy()
-            volumes[domain]['host_dir'] = user_path
-        return volumes
+    def file_domains(self):
+        return {'private': PrivateFileDomain(settings.FILES_URL, settings.FILES_MOUNT_DIR, self.username),
+                'shared': SharedFileDomain(settings.FILES_URL, settings.FILES_MOUNT_DIR)}
 
     @property
     def api_token(self):

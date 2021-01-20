@@ -42,7 +42,7 @@ def mutate(request):
     except:
         return HttpResponseBadRequest()
 
-    inject_hostpath_volumes([service], user.volumes, add_api_settings=True)
+    inject_hostpath_volumes([service], user.file_domains, add_api_settings=True)
     inject_datasets([service], KubernetesClient().get_datasets(namespace))
     patch = jsonpatch.JsonPatch.from_diff(data['request']['object'], service)
     encoded_patch = base64.b64encode(patch.to_string().encode('utf-8')).decode('utf-8')
@@ -69,5 +69,5 @@ def validate(request):
         return HttpResponseBadRequest()
 
     return JsonResponse({'response': {'uid': uid,
-                                      'allowed': validate_hostpath_volumes([service], user.volumes, other_allowed_paths=settings.ALLOWED_HOSTPATH_DIRS),
+                                      'allowed': validate_hostpath_volumes([service], user.file_domains, other_allowed_paths=settings.ALLOWED_HOSTPATH_DIRS),
                                       'status': {'message': 'Checking for unauthorized hostPath volumes'}}})

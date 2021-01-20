@@ -1,3 +1,4 @@
+{{- $filesURL := (required "You must set karvdash.filesURL to the base URL for the private and shared file domains" .Values.karvdash.filesURL) | urlParse }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -62,10 +63,8 @@ spec:
           value: {{ .Values.karvdash.datasetsAvailable | quote }}
         - name: KARVDASH_SERVICE_DOMAIN
           value: {{ printf "%s.%s.svc" .Release.Name .Release.Namespace | quote }}
-        - name: KARVDASH_PRIVATE_HOST_DIR
-          value: {{ .Values.karvdash.privateHostDir | quote }}
-        - name: KARVDASH_SHARED_HOST_DIR
-          value: {{ .Values.karvdash.sharedHostDir | quote }}
+        - name: KARVDASH_FILES_URL
+          value: {{ .Values.karvdash.filesURL | quote }}
         - name: KARVDASH_ALLOWED_HOSTPATH_DIRS
           value: {{ .Values.karvdash.allowedHostPathDirs | quote }}
         ports:
@@ -76,10 +75,12 @@ spec:
           mountPath: /var/run/docker.sock
         - name: {{ .Release.Name }}-persistent-storage
           mountPath: /db
+        {{- if eq $filesURL.scheme "file" }}
         - name: {{ .Release.Name }}-private-volume
           mountPath: /private
         - name: {{ .Release.Name }}-shared-volume
           mountPath: /shared
+        {{- end }}
       volumes:
       - name: {{ .Release.Name }}-webhook-secret
         secret:
@@ -94,9 +95,11 @@ spec:
       - name: {{ .Release.Name }}-persistent-storage
         hostPath:
           path: {{ required "You must set karvdash.persistentStorageDir to the host path for persistent storage (database, running services repository, template library)" .Values.karvdash.persistentStorageDir | quote }}
+      {{- if eq $filesURL.scheme "file" }}
       - name: {{ .Release.Name }}-private-volume
         hostPath:
-          path: {{ required "You must set karvdash.privateHostDir to the host path for the private file domain" .Values.karvdash.privateHostDir | quote }}
+          path: {{ printf "%s/private" $filesURL.path | clean | quote }}
       - name: {{ .Release.Name }}-shared-volume
         hostPath:
-          path: {{ required "You must set karvdash.sharedHostDir to the host path for the shared file domain" .Values.karvdash.sharedHostDir | quote }}
+          path: {{ printf "%s/shared" $filesURL.path | clean | quote }}
+      {{- end }}

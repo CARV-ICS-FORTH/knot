@@ -184,13 +184,8 @@ MESSAGE_TAGS = {
 
 # File management domains
 
-private_default_dir = os.path.join(BASE_DIR, 'private')
-shared_default_dir = os.path.join(BASE_DIR, 'shared')
-FILE_DOMAINS = {'private': {'dir': os.getenv('KARVDASH_PRIVATE_DIR', private_default_dir),
-                            'host_dir': os.getenv('KARVDASH_PRIVATE_HOST_DIR', private_default_dir)},
-                'shared': {'dir': os.getenv('KARVDASH_SHARED_DIR', shared_default_dir),
-                           'host_dir': os.getenv('KARVDASH_SHARED_HOST_DIR', shared_default_dir),
-                           'mode': 'shared'}}
+FILES_URL = os.getenv('KARVDASH_FILES_URL', 'file://%s' % BASE_DIR)
+FILES_MOUNT_DIR = os.getenv('KARVDASH_FILES_MOUNT_DIR', BASE_DIR)
 
 
 # Docker registry endpoint

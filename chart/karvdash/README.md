@@ -25,8 +25,7 @@ helm install karvdash karvdash/karvdash --namespace default \
     --set karvdash.ingressURL=https://example.com \
     --set karvdash.dockerRegistry=http://127.0.0.1:5000 \
     --set karvdash.persistentStorageDir=/mnt/nfs/karvdash \
-    --set karvdash.privateHostDir=/mnt/nfs/private \
-    --set karvdash.sharedHostDir=/mnt/nfs/shared
+    --set karvdash.filesURL=file:///mnt/nfs
 ```
 
 Some of the variables set above are required. The table below lists all available options:
@@ -49,8 +48,7 @@ Some of the variables set above are required. The table below lists all availabl
 | `karvdash.dockerRegistry`         |          | The URL of the Docker registry.                                        | `http://127.0.0.1:5000` |
 | `karvdash.dockerRegistryNoVerify` |          | Set to anything to skip Docker registry SSL verification.              |                         |
 | `karvdash.datasetsAvailable`      |          | Set to anything to enable dataset management.                          |                         |
-| `karvdash.privateHostDir`         | &check;  | The host path for the private file domain.                             |                         |
-| `karvdash.sharedHostDir`          | &check;  | The host path for the shared file domain.                              |                         |
+| `karvdash.filesURL`               | &check;  | The base URL for the private and shared file domains.                  |                         |
 | `karvdash.allowedHostPathDirs`    |          | Other host paths to allow attaching to containers (separate with `:`). |                         |
 
 
