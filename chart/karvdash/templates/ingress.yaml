@@ -1,0 +1,22 @@
+{{- $ingressURL := (required "You must set karvdash.ingressURL to the ingress URL used" .Values.karvdash.ingressURL) }}
+apiVersion: networking.k8s.io/v1beta1
+kind: Ingress
+metadata:
+  name: {{ .Release.Name }}
+  labels:
+    app: {{ .Release.Name }}
+    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+  annotations:
+    {{- if eq ($ingressURL | urlParse).scheme "https" }}
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    {{- end }}
+    nginx.ingress.kubernetes.io/proxy-body-size: {{ .Values.ingress.bodySize }}
+spec:
+  rules:
+    - host: {{ (split ":" ($ingressURL | urlParse).host)._0 }}
+      http:
+        paths:
+          - path: /
+            backend:
+              serviceName: {{ .Release.Name }}
+              servicePort: 80

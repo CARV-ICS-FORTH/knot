@@ -1,10 +1,11 @@
+{{- if .Values.rbac.create }}
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  annotations:
-    rbac.authorization.kubernetes.io/autoupdate: "true"
+  name: {{ .Release.Name }}-discover-base-url
   labels:
-    kubernetes.io/bootstrapping: rbac-defaults
+    app: {{ .Release.Name }}
+    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
   name: discover-base-url
 rules:
 - nonResourceURLs:
@@ -15,12 +16,16 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: discover-base-url
+  name: {{ .Release.Name }}-discover-base-url
+  labels:
+    app: {{ .Release.Name }}
+    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: discover-base-url
+  name: {{ .Release.Name }}-discover-base-url
 subjects:
 - apiGroup: rbac.authorization.k8s.io
   kind: Group
   name: system:authenticated
+{{- end }}

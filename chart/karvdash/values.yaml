@@ -1,0 +1,44 @@
+image:
+  namespace: carvicsforth
+  tag: 1.9.0
+
+# Include access-control rules for API and namespace discovery.
+rbac:
+  create: true
+
+ingress:
+  # The maximum allowed request size for the ingress.
+  bodySize: 4096m
+
+karvdash:
+  # REQUIRED: The host path for persistent storage (database, running services repository, template library).
+  persistentStorageDir:
+
+  # Secret for Django. Use a random string of 50 characters (a default will be generated if empty).
+  djangoSecret:
+  # Set to anything to enable, empty to disable.
+  djangoDebug:
+  # The default admin password.
+  adminPassword: admin
+  # If set, the path to export the htpasswd file in.
+  htpasswdExportDir:
+  # The title of the dashboard.
+  dashboardTitle: Dashboard
+  # The theme of the dashboard. Choose between "evolve" and "CARV".
+  dashboardTheme: evolve
+  # If set, an option to "Report an issue" is shown in the user menu.
+  issuesURL:
+  # REQUIRED: The ingress URL used.
+  ingressURL:
+  # The URL of the Docker registry.
+  dockerRegistry: http://127.0.0.1:5000
+  # Set to anything to skip Docker registry SSL verification.
+  dockerRegistryNoVerify:
+  # Set to anything to enable dataset management.
+  datasetsAvailable:
+  # REQUIRED: The host path for the private file domain.
+  privateHostDir:
+  # REQUIRED: The host path for the shared file domain.
+  sharedHostDir:
+  # Other host paths to allow attaching to containers (separate with ":).
+  allowedHostPathDirs:

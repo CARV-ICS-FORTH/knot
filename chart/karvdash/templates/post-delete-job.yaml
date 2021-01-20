@@ -1,0 +1,18 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ .Release.Name }}-post-delete
+  labels:
+    app: {{ .Release.Name }}
+    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+  annotations:
+    "helm.sh/hook": post-delete
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+spec:
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: post-delete-job
+        image: {{ printf "%s/karvdash:%s" .Values.image.namespace .Values.image.tag }}
+        command: ["/usr/local/bin/kubectl", "delete", "secret", "{{ .Release.Name }}-webhook"]

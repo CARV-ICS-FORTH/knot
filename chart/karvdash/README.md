@@ -1,22 +1,8 @@
-# Karvdash
+# Karvdash Helm Chart
 
-Karvdash (Kubernetes CARV dashboard) is a dashboard service for facilitating data science on [Kubernetes](https://kubernetes.io). It supplies the landing page for working on a Kubernetes cluster, manages users, launches notebooks, and wires up relevant storage to the appropriate paths inside running containers.
+[Karvdash](https://github.com/CARV-ICS-FORTH/karvdash) (Kubernetes CARV dashboard) is a dashboard service for facilitating data science on [Kubernetes](https://kubernetes.io). It supplies the landing page for working on a Kubernetes cluster, manages users, launches notebooks, and wires up relevant storage to the appropriate paths inside running containers.
 
-Check out the user guide and API documentation in [docs](https://github.com/CARV-ICS-FORTH/karvdash/tree/master/docs) (also available in Karvdash under "Documentation" at the user menu). Karvdash is written in [Python](https://www.python.org) using [Django](https://www.djangoproject.com).
-
-![Karvdash services screen](https://github.com/CARV-ICS-FORTH/karvdash/raw/master/docs/images/services-screen.png)
-
-## Compatibility
-
-We use Kubernetes 1.15.x-1.19.x to develop, test, and run Karvdash.
-
-Karvdash includes service templates for [Zeppelin](https://zeppelin.apache.org) 0.9.0, [Argo](https://argoproj.github.io/argo/) (both [Argo Workflows](https://github.com/argoproj/argo) 2.10.1 and [Argo Events](https://github.com/argoproj/argo-events) 1.0.0), and other applications.
-
-The Zeppelin template uses a Karvdash-specific Docker image which adds `kubectl` 1.15.10, the `argo` utility (at the same version as the Argo service template), `karvdashctl` to manage Karvdash services from a notebook, as well as [Spark](http://spark.apache.org) 2.4.5 with [Hadoop](https://hadoop.apache.org) 2.7.
-
-The Zeppelin "with GPU support" template uses the above image with [CUDA](https://developer.nvidia.com/cuda-toolkit) 10.1 and [TensorFlow](http://www.tensorflow.org) 2.2.1 preinstalled, as well as the necessary directives to place the resulting container in a node with a GPU.
-
-If your application requirements differ, you will need to create custom Docker images and service templates.
+Check out the [compatibility](https://github.com/CARV-ICS-FORTH/karvdash/tree/master/README.md) notes before deploying.
 
 ## Deployment
 
@@ -73,63 +59,3 @@ The required directory variables should be set to some folder inside the node-wi
 The host path for persistent storage is used to store the database, running services repository, and template library. Create a `templates` directory inside `karvdash.persistentStorageDir` to add new service templates or override defaults (the ones in [templates](https://github.com/CARV-ICS-FORTH/karvdash/tree/master/templates)). Templates placed there will be available as read-only to all users.
 
 To remove Karvdash, uninstall using `helm uninstall karvdash`, which will remove the service, admission webhooks, and RBAC rules, but not associated CRDs. You can use the YAML files in [crds](https://github.com/CARV-ICS-FORTH/karvdash/tree/master/chart/karvdash/crds) to remove them.
-
-## Development
-
-To work on Karvdash, you need a local Kubernetes environment, with a running ingress controller, local Docker registry, and cert-manager (as you would on a bare metal setup).
-
-Especially for [Docker Desktop](https://www.docker.com/products/docker-desktop) for macOS (tested with [versions 2.2.x.x-3.0.x](https://docs.docker.com/docker-for-mac/release-notes/) which use Kubernetes 1.15.5-1.19.3), these are all provided with `make deploy-docker-desktop`. This will setup an SSL-enabled ingress controller answering to https://localtest.me (provided by [localtest.me](https://readme.localtest.me)), start a private Docker registry (without SSL), install cert-manager, and deploy Karvdash. You need to have [Helm](https://helm.sh) installed (version 3).
-
-Note that some versions of Docker Desktop [do not enforce RBAC rules](https://github.com/docker/for-mac/issues/3694), so there is no namespace isolation. Enable it by running `kubectl delete clusterrolebinding docker-for-desktop-binding`. You then need to explicitly set permissions for the `default` service account in the `default` namespace, with `kubectl create clusterrolebinding default-cluster-admin --clusterrole=cluster-admin --serviceaccount=default:default`.
-
-You can also install all the requirements with `make prepare-docker-desktop` and then run Karvdash locally (note that when running Karvdash outside Kubernetes, there is no mutating admission webhook to attach file domains and datasets to service containers).
-
-First, create the Python environment:
-```bash
-python3 -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
-```
-
-Create default directories for private and shared data:
-```bash
-mkdir private
-mkdir shared
-```
-
-Prepare the application:
-```bash
-./manage.py migrate
-./manage.py createadmin --noinput --username admin --password admin --email admin@example.com --preserve
-```
-
-And start it:
-```bash
-./manage.py runserver
-```
-
-Point your browser to http://localtest.me:8000 and login as "admin".
-
-## Building images
-
-Docker images for Karvdash are [available](https://hub.docker.com/r/carvicsforth/karvdash). To build your own, run:
-```bash
-make container
-```
-
-Change the version by editing `VERSION`. The image uses `kubectl` 1.15.10 by default, but this can be changed by setting the `KUBECTL_VERSION` variable before running `make`. You can also set your Docker account in `REGISTRY_NAME`.
-
-To upload to Docker Hub:
-```bash
-make container-push
-```
-
-To build and push additional service containers (custom Zeppelin-based containers):
-```bash
-make service-containers
-make service-containers-push
-```
-
-## Acknowledgements
-
-This project has received funding from the European Union’s Horizon 2020 research and innovation programme under grant agreement No 825061 (EVOLVE - [website](https://www.evolve-h2020.eu>), [CORDIS](https://cordis.europa.eu/project/id/825061)).

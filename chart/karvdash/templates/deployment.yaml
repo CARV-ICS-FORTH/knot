@@ -1,0 +1,102 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}
+  labels:
+    app: {{ .Release.Name }}
+    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+spec:
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: {{ .Release.Name }}
+    spec:
+      containers:
+      - image: nginx:1.19.3
+        name: webhook-proxy
+        ports:
+        - containerPort: 443
+          name: https
+        volumeMounts:
+        - name: {{ .Release.Name }}-webhook-config
+          mountPath: /etc/nginx/conf.d/default.conf
+          subPath: default.conf
+        - name: {{ .Release.Name }}-webhook-secret
+          mountPath: /etc/ssl/keys
+          readOnly: true
+      - image: {{ printf "%s/karvdash:%s" .Values.image.namespace .Values.image.tag }}
+        name: karvdash
+        env:
+        - name: DJANGO_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Release.Name }}-secret
+              key: django-secret
+        - name: DJANGO_DEBUG
+          value: {{ .Values.karvdash.djangoDebug | quote }}
+        - name: KARVDASH_ADMIN_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Release.Name }}-secret
+              key: admin-password
+        - name: KARVDASH_HTPASSWD_EXPORT_DIR
+          value: {{ .Values.karvdash.htpasswdExportDir | quote }}
+        - name: KARVDASH_DASHBOARD_TITLE
+          value: {{ .Values.karvdash.dashboardTitle | quote}}
+        - name: KARVDASH_DASHBOARD_THEME
+          value: {{ .Values.karvdash.dashboardTheme | quote}}
+        - name: KARVDASH_ISSUES_URL
+          value: {{ .Values.karvdash.issuesURL | quote }}
+        - name: KARVDASH_INGRESS_URL
+          value: {{ required "You must set karvdash.ingressURL to the ingress URL used" .Values.karvdash.ingressURL | quote}}
+        - name: KARVDASH_DOCKER_REGISTRY
+          value: {{ .Values.karvdash.dockerRegistry | quote}}
+        - name: KARVDASH_DOCKER_REGISTRY_NO_VERIFY
+          value: {{ .Values.karvdash.dockerRegistryNoVerify | quote }}
+        - name: KARVDASH_DATASETS_AVAILABLE
+          value: {{ .Values.karvdash.datasetsAvailable | quote }}
+        - name: KARVDASH_SERVICE_DOMAIN
+          value: {{ printf "%s.%s.svc" .Release.Name .Release.Namespace | quote }}
+        - name: KARVDASH_PRIVATE_HOST_DIR
+          value: {{ .Values.karvdash.privateHostDir | quote }}
+        - name: KARVDASH_SHARED_HOST_DIR
+          value: {{ .Values.karvdash.sharedHostDir | quote }}
+        - name: KARVDASH_ALLOWED_HOSTPATH_DIRS
+          value: {{ .Values.karvdash.allowedHostPathDirs | quote }}
+        ports:
+        - containerPort: 80
+          name: http
+        volumeMounts:
+        - name: docker-socket
+          mountPath: /var/run/docker.sock
+        - name: {{ .Release.Name }}-persistent-storage
+          mountPath: /db
+        - name: {{ .Release.Name }}-private-volume
+          mountPath: /private
+        - name: {{ .Release.Name }}-shared-volume
+          mountPath: /shared
+      volumes:
+      - name: {{ .Release.Name }}-webhook-secret
+        secret:
+          secretName: {{ .Release.Name }}-webhook
+      - name: {{ .Release.Name }}-webhook-config
+        configMap:
+          name: {{ .Release.Name }}-webhook
+          defaultMode: 0644
+      - name: docker-socket
+        hostPath:
+          path: /var/run/docker.sock
+      - name: {{ .Release.Name }}-persistent-storage
+        hostPath:
+          path: {{ required "You must set karvdash.persistentStorageDir to the host path for persistent storage (database, running services repository, template library)" .Values.karvdash.persistentStorageDir | quote }}
+      - name: {{ .Release.Name }}-private-volume
+        hostPath:
+          path: {{ required "You must set karvdash.privateHostDir to the host path for the private file domain" .Values.karvdash.privateHostDir | quote }}
+      - name: {{ .Release.Name }}-shared-volume
+        hostPath:
+          path: {{ required "You must set karvdash.sharedHostDir to the host path for the shared file domain" .Values.karvdash.sharedHostDir | quote }}

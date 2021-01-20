@@ -163,7 +163,7 @@ class ServiceResource(APIResource):
             if file_name.endswith('.yaml'):
                 service_database.append(file_name[:-5])
 
-        ingress_url = urlparse(settings.INGRESS_DOMAIN)
+        ingress_url = urlparse(settings.INGRESS_URL)
         ingress_host = '%s:%s' % (ingress_url.hostname, ingress_url.port) if ingress_url.port else ingress_url.hostname
 
         contents = []
@@ -227,7 +227,7 @@ class ServiceResource(APIResource):
         while name in names:
             name = form.cleaned_data['NAME'] + '-' + ''.join([random.choice(string.ascii_lowercase) for i in range(4)])
 
-        ingress_url = urlparse(settings.INGRESS_DOMAIN)
+        ingress_url = urlparse(settings.INGRESS_URL)
         ingress_host = '%s:%s' % (ingress_url.hostname, ingress_url.port) if ingress_url.port else ingress_url.hostname
 
         # Set namespace, name, hostname, registry, and storage paths.
@@ -276,17 +276,15 @@ class ServiceResource(APIResource):
             else:
                 kubernetes_client.delete_namespace_label(self.user.namespace, "monitor-pods-datasets")
 
-            api_base_url = settings.API_BASE_URL
-            if not api_base_url:
-                if os.getenv('KARVDASH_PORT'): # Probably running in Kubernetes
-                    api_base_url = 'http://karvdash.default.svc/api'
-                else:
-                    service_host = socket.gethostbyname(socket.gethostname())
-                    service_port = self.request.META['SERVER_PORT']
-                    api_base_url = 'http://%s:%s/api' % (service_host, service_port)
+            service_domain = settings.SERVICE_DOMAIN
+            if not service_domain:
+                # If running in Kubernetes this should be set.
+                service_host = socket.gethostbyname(socket.gethostname())
+                service_port = self.request.META['SERVER_PORT']
+                service_domain = '%s:%s' % (service_host, service_port)
             api_template = Template(TOKEN_CONFIGMAP_TEMPLATE)
             api_template.NAME = 'karvdash-api'
-            api_template.BASE_URL = api_base_url
+            api_template.BASE_URL = 'http://%s/api' % service_domain
             api_template.TOKEN = self.user.api_token.token # Get or create
 
             api_yaml = os.path.join(settings.SERVICE_DATABASE_DIR, '%s-api.yaml' % self.user.username)
