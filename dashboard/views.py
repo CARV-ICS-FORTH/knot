@@ -269,19 +269,6 @@ def images(request):
                     messages.success(request, 'Image "%s:%s" added.' % (name, tag))
             else:
                 messages.error(request, 'Failed to add image. Probably invalid characters in name or tag.')
-        elif request.POST['action'] == 'Collect':
-            if not request.user.is_staff:
-                messages.error(request, 'Invalid action.')
-            else:
-                try:
-                    command = '/bin/registry garbage-collect --delete-untagged=true /etc/docker/registry/config.yml'.split(' ')
-                    KubernetesClient().exec_command_in_pod(namespace='default',
-                                                           label_selector='app=docker-registry',
-                                                           command=command)
-                except Exception as e:
-                    messages.error(request, 'Failed to garbage collect: %s.' % str(e))
-                else:
-                    messages.success(request, 'Garbage collection ran in the registry.')
         else:
             messages.error(request, 'Invalid action.')
 
