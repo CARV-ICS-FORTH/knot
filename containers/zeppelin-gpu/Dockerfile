@@ -40,7 +40,7 @@ ENV NVIDIA_VISIBLE_DEVICES all
 ENV NVIDIA_DRIVER_CAPABILITIES compute,utility
 ENV NVIDIA_REQUIRE_CUDA "cuda>=10.1 brand=tesla,driver>=384,driver<385 brand=tesla,driver>=396,driver<397 brand=tesla,driver>=410,driver<411"
 
-### NVIDIA part from TensorFlow (https://github.com/tensorflow/tensorflow/blob/v2.2.1/tensorflow/tools/dockerfiles/partials/ubuntu/nvidia.partial.Dockerfile)
+### NVIDIA part from TensorFlow (https://github.com/tensorflow/tensorflow/blob/v2.3.2/tensorflow/tools/dockerfiles/partials/ubuntu/nvidia.partial.Dockerfile)
 
 ARG ARCH=
 ARG CUDA=10.1
@@ -90,7 +90,7 @@ RUN ln -s /usr/local/cuda/lib64/stubs/libcuda.so /usr/local/cuda/lib64/stubs/lib
     && echo "/usr/local/cuda/lib64/stubs" > /etc/ld.so.conf.d/z-cuda-stubs.conf \
     && ldconfig
 
-### TensorFlow part from TensorFlow (https://github.com/tensorflow/tensorflow/blob/v2.2.1/tensorflow/tools/dockerfiles/partials/tensorflow.partial.Dockerfile)
+### TensorFlow part from TensorFlow (https://github.com/tensorflow/tensorflow/blob/v2.3.2/tensorflow/tools/dockerfiles/partials/tensorflow.partial.Dockerfile)
 
 # Options:
 #   tensorflow
@@ -100,5 +100,5 @@ RUN ln -s /usr/local/cuda/lib64/stubs/libcuda.so /usr/local/cuda/lib64/stubs/lib
 # Set --build-arg TF_PACKAGE_VERSION=1.11.0rc0 to install a specific version.
 # Installs the latest version by default.
 ARG TF_PACKAGE=tensorflow
-ARG TF_PACKAGE_VERSION=2.2.1
+ARG TF_PACKAGE_VERSION=2.3.2
 RUN python3 -m pip install --no-cache-dir ${TF_PACKAGE}${TF_PACKAGE_VERSION:+==${TF_PACKAGE_VERSION}}

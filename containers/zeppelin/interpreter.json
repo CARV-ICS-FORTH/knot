@@ -2113,6 +2113,109 @@
         "isUserImpersonate": false
       }
     },
+    "evolve": {
+      "id": "evolve",
+      "name": "evolve",
+      "group": "python",
+      "properties": {
+        "zeppelin.python": {
+          "name": "zeppelin.python",
+          "value": "python",
+          "type": "string",
+          "description": "Python binary executable path. It is set to python by default.(assume python is in your $PATH)"
+        },
+        "zeppelin.python.maxResult": {
+          "name": "zeppelin.python.maxResult",
+          "value": "1000",
+          "type": "number",
+          "description": "Max number of dataframe rows to display."
+        },
+        "zeppelin.python.useIPython": {
+          "name": "zeppelin.python.useIPython",
+          "value": true,
+          "type": "checkbox",
+          "description": "Whether use IPython when it is available in `%python`"
+        },
+        "zeppelin.ipython.launch.timeout": {
+          "name": "zeppelin.ipython.launch.timeout",
+          "value": "30000",
+          "type": "number",
+          "description": "Time out for ipython launch"
+        },
+        "zeppelin.ipython.grpc.message_size": {
+          "name": "zeppelin.ipython.grpc.message_size",
+          "value": "33554432",
+          "type": "number",
+          "description": "grpc message size, default is 32M"
+        }
+      },
+      "status": "READY",
+      "interpreterGroup": [
+        {
+          "name": "python",
+          "class": "org.apache.zeppelin.python.PythonInterpreter",
+          "defaultInterpreter": true,
+          "editor": {
+            "language": "python",
+            "editOnDblClick": false,
+            "completionSupport": true
+          }
+        },
+        {
+          "name": "ipython",
+          "class": "org.apache.zeppelin.python.IPythonInterpreter",
+          "defaultInterpreter": false,
+          "editor": {
+            "language": "python",
+            "editOnDblClick": false,
+            "completionKey": "TAB",
+            "completionSupport": true
+          }
+        },
+        {
+          "name": "sql",
+          "class": "org.apache.zeppelin.python.PythonInterpreterPandasSql",
+          "defaultInterpreter": false,
+          "editor": {
+            "language": "sql",
+            "editOnDblClick": false,
+            "completionKey": "TAB",
+            "completionSupport": false
+          }
+        },
+        {
+          "name": "conda",
+          "class": "org.apache.zeppelin.python.PythonCondaInterpreter",
+          "defaultInterpreter": false,
+          "editor": {
+            "language": "sh",
+            "editOnDblClick": false,
+            "completionSupport": false
+          }
+        },
+        {
+          "name": "docker",
+          "class": "org.apache.zeppelin.python.PythonDockerInterpreter",
+          "defaultInterpreter": false,
+          "editor": {
+            "language": "sh",
+            "editOnDblClick": false,
+            "completionSupport": false
+          }
+        }
+      ],
+      "dependencies": [],
+      "option": {
+        "remote": true,
+        "port": -1,
+        "perNote": "shared",
+        "perUser": "shared",
+        "isExistingProcess": false,
+        "setPermission": false,
+        "owners": [],
+        "isUserImpersonate": false
+      }
+    },
     "livy": {
       "id": "livy",
       "name": "livy",

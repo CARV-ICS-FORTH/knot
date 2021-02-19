@@ -20,6 +20,10 @@ COPY client /root/client/
 RUN (cd /root/client && ./setup.py install) && \
     rm -rf /root/client
 
+RUN git clone https://bitbucket.org/sunlightio/evolve_python_library.git && \
+    (cd evolve_python_library && git checkout 4eab32f && python setup.py install) && \
+    rm -rf evolve_python_library
+
 COPY containers/zeppelin/interpreter.json /zeppelin/conf/
 COPY containers/zeppelin/start.sh /zeppelin/
 
