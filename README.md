@@ -8,13 +8,13 @@ Check out the user guide and API documentation in [docs](https://github.com/CARV
 
 ## Compatibility
 
-We use Kubernetes 1.15.x-1.19.x to develop, test, and run Karvdash.
+We use Kubernetes 1.19.x to develop, test, and run Karvdash.
 
 Karvdash includes service templates for [Zeppelin](https://zeppelin.apache.org) 0.9.0, [Argo](https://argoproj.github.io/argo/) (both [Argo Workflows](https://github.com/argoproj/argo) 2.10.1 and [Argo Events](https://github.com/argoproj/argo-events) 1.0.0), and other applications.
 
-The Zeppelin template uses a Karvdash-specific Docker image which adds `kubectl` 1.15.10, the `argo` utility (at the same version as the Argo service template), `karvdashctl` to manage Karvdash services from a notebook, as well as [Spark](http://spark.apache.org) 2.4.5 with [Hadoop](https://hadoop.apache.org) 2.7.
+The Zeppelin template uses a Karvdash-specific Docker image which adds `kubectl` 1.19.8, the `argo` utility (at the same version as the Argo service template), `karvdashctl` to manage Karvdash services from a notebook, as well as [Spark](http://spark.apache.org) 2.4.5 with [Hadoop](https://hadoop.apache.org) 2.7.
 
-The Zeppelin "with GPU support" template uses the above image with [CUDA](https://developer.nvidia.com/cuda-toolkit) 10.1 and [TensorFlow](http://www.tensorflow.org) 2.2.1 preinstalled, as well as the necessary directives to place the resulting container in a node with a GPU.
+The Zeppelin "with GPU support" template uses the above image with [CUDA](https://developer.nvidia.com/cuda-toolkit) 10.1 and [TensorFlow](http://www.tensorflow.org) 2.3.2 preinstalled, as well as the necessary directives to place the resulting container in a node with a GPU.
 
 If your application requirements differ, you will need to create custom Docker images and service templates.
 
@@ -76,7 +76,7 @@ To remove Karvdash, uninstall using `helm uninstall karvdash`, which will remove
 
 To work on Karvdash, you need a local Kubernetes environment, with a running ingress controller, local Docker registry, and cert-manager (as you would on a bare metal setup).
 
-Especially for [Docker Desktop](https://www.docker.com/products/docker-desktop) for macOS (tested with [versions 2.2.x.x-3.0.x](https://docs.docker.com/docker-for-mac/release-notes/) which use Kubernetes 1.15.5-1.19.3), these are all provided with `make deploy-docker-desktop`. This will setup an SSL-enabled ingress controller answering to https://localtest.me (provided by [localtest.me](https://readme.localtest.me)), start a private Docker registry (without SSL), install cert-manager, and deploy Karvdash. You need to have [Helm](https://helm.sh) installed (version 3).
+Especially for [Docker Desktop](https://www.docker.com/products/docker-desktop) for macOS (tested with [versions >= 2.5.x.x](https://docs.docker.com/docker-for-mac/release-notes/) which use Kubernetes 1.19.3), these are all provided with `make deploy-docker-desktop`. This will setup an SSL-enabled ingress controller answering to https://localtest.me (provided by [localtest.me](https://readme.localtest.me)), start a private Docker registry (without SSL), install cert-manager, and deploy Karvdash. You need to have [Helm](https://helm.sh) installed (version 3).
 
 Note that some versions of Docker Desktop [do not enforce RBAC rules](https://github.com/docker/for-mac/issues/3694), so there is no namespace isolation. Enable it by running `kubectl delete clusterrolebinding docker-for-desktop-binding`. You then need to explicitly set permissions for the `default` service account in the `default` namespace, with `kubectl create clusterrolebinding default-cluster-admin --clusterrole=cluster-admin --serviceaccount=default:default`.
 
@@ -115,7 +115,7 @@ Docker images for Karvdash are [available](https://hub.docker.com/r/carvicsforth
 make container
 ```
 
-Change the version by editing `VERSION`. The image uses `kubectl` 1.15.10 by default, but this can be changed by setting the `KUBECTL_VERSION` variable before running `make`. You can also set your Docker account in `REGISTRY_NAME`.
+Change the version by editing `VERSION`. The image uses `kubectl` 1.19.8 by default, but this can be changed by setting the `KUBECTL_VERSION` variable before running `make`. You can also set your Docker account in `REGISTRY_NAME`.
 
 To upload to Docker Hub:
 ```bash

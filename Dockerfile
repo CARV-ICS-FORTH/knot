@@ -24,7 +24,7 @@ RUN pip install -r docs/requirements.txt && \
     mv docs/_build/html static/docs && \
     rm -rf docs/_build
 
-ARG KUBECTL_VERSION=v1.15.10
+ARG KUBECTL_VERSION=v1.19.8
 RUN curl -o /usr/local/bin/kubectl https://storage.googleapis.com/kubernetes-release/release/${KUBECTL_VERSION}/bin/linux/amd64/kubectl && \
     chmod +x /usr/local/bin/kubectl
 

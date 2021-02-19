@@ -15,13 +15,13 @@
 SHELL=/bin/bash
 
 REGISTRY_NAME?=carvicsforth
-KUBECTL_VERSION?=v1.15.10
+KUBECTL_VERSION?=v1.19.8
 
 KARVDASH_VERSION=$(shell cat VERSION)
 KARVDASH_IMAGE_TAG=$(REGISTRY_NAME)/karvdash:$(KARVDASH_VERSION)
 
 # This should match the version used in Zeppelin templates (we use <Zeppelin version>.<build>).
-ZEPPELIN_VERSION=0.9.0.4
+ZEPPELIN_VERSION=0.9.0.5
 ZEPPELIN_IMAGE_TAG=$(REGISTRY_NAME)/karvdash-zeppelin:$(ZEPPELIN_VERSION)
 ZEPPELIN_GPU_IMAGE_TAG=$(REGISTRY_NAME)/karvdash-zeppelin-gpu:$(ZEPPELIN_VERSION)
 
