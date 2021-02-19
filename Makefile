@@ -50,7 +50,7 @@ prepare-docker-desktop: $(DEPLOY_DIR)/localtest.me.key $(DEPLOY_DIR)/localtest.m
 	--cert=$(DEPLOY_DIR)/localtest.me.crt \
 	--key=$(DEPLOY_DIR)/localtest.me.key
 	helm list -q | grep ingress || \
-	helm install ingress ingress-nginx/ingress-nginx --version 2.16.0 --namespace default \
+	helm install ingress ingress-nginx/ingress-nginx --version 3.19.0 --namespace default \
     --set controller.extraArgs.default-ssl-certificate=default/ssl-certificate \
     --set controller.admissionWebhooks.enabled=false
 	helm list -q | grep registry || \
