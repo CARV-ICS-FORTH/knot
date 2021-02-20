@@ -6,7 +6,6 @@ metadata:
   labels:
     app: {{ .Release.Name }}
     chart: {{ .Chart.Name }}-{{ .Chart.Version }}
-  name: discover-base-url
 rules:
 - nonResourceURLs:
   - /
