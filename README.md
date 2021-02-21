@@ -12,7 +12,7 @@ We use Kubernetes 1.19.x to develop, test, and run Karvdash.
 
 Karvdash includes service templates for [Zeppelin](https://zeppelin.apache.org) 0.9.0, [Argo](https://argoproj.github.io/argo/) (both [Argo Workflows](https://github.com/argoproj/argo) 2.10.1 and [Argo Events](https://github.com/argoproj/argo-events) 1.0.0), and other applications.
 
-The Zeppelin template uses a Karvdash-specific Docker image which adds `kubectl` 1.19.8, the `argo` utility (at the same version as the Argo service template), `karvdashctl` to manage Karvdash services from a notebook, as well as [Spark](http://spark.apache.org) 2.4.5 with [Hadoop](https://hadoop.apache.org) 2.7.
+The Zeppelin template uses a Karvdash-specific Docker image which adds `kubectl` 1.19.8, the `argo` utility (at the same version as the Argo service template), `karvdashctl` to manage Karvdash services from a notebook, [Spark](http://spark.apache.org) 2.4.5 with [Hadoop](https://hadoop.apache.org) 2.7, as well as the [evolve](https://bitbucket.org/sunlightio/evolve_python_library/) Python library from [Sunlight.io](https://sunlight.io), that allows building Argo workflows in Python.
 
 The Zeppelin "with GPU support" template uses the above image with [CUDA](https://developer.nvidia.com/cuda-toolkit) 10.1 and [TensorFlow](http://www.tensorflow.org) 2.3.2 preinstalled, as well as the necessary directives to place the resulting container in a node with a GPU.
 
@@ -29,7 +29,11 @@ To install, you need a running Kubernetes environment with the following feature
 * A shared filesystem mounted at the same path across all Kubernetes nodes, like NFS, [Gluster](https://www.gluster.org), or similar.
 * Optionally the [Dataset Lifecycle Framework](https://github.com/IBM/dataset-lifecycle-framework) deployed, in which case Karvdash can be used to configure datasets (the DLF should monitor all namespaces).
 
-Also, make sure that the `default` service account in the `default` namespace (used by Karvdash), has administrator-level access to all namespaces, with `kubectl create clusterrolebinding default-cluster-admin --clusterrole=cluster-admin --serviceaccount=default:default`.
+Also, make sure that the `default` service account in the `default` namespace (used by Karvdash), has administrator-level access to all namespaces, with:
+
+```bash
+kubectl create clusterrolebinding default-cluster-admin --clusterrole=cluster-admin --serviceaccount=default:default
+```
 
 To deploy, first add the repo and then install. For example:
 
