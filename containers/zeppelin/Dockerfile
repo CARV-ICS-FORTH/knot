@@ -20,9 +20,11 @@ COPY client /root/client/
 RUN (cd /root/client && ./setup.py install) && \
     rm -rf /root/client
 
-RUN git clone https://bitbucket.org/sunlightio/evolve_python_library.git && \
-    (cd evolve_python_library && git checkout 4eab32f && python setup.py install) && \
-    rm -rf evolve_python_library
+ARG EVOLVE_LIBRARY_COMMIT=4eab32f87b33
+RUN curl -sLO https://bitbucket.org/sunlightio/evolve_python_library/get/${EVOLVE_LIBRARY_COMMIT}.tar.gz && \
+    tar -zxvf ${EVOLVE_LIBRARY_COMMIT}.tar.gz && \
+    (cd sunlightio-evolve_python_library-${EVOLVE_LIBRARY_COMMIT} && python setup.py install) && \
+    rm -rf ${EVOLVE_LIBRARY_COMMIT}.tar.gz sunlightio-evolve_python_library-${EVOLVE_LIBRARY_COMMIT}
 
 COPY containers/zeppelin/interpreter.json /zeppelin/conf/
 COPY containers/zeppelin/start.sh /zeppelin/
