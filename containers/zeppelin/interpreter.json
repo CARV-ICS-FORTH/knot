@@ -182,17 +182,17 @@
           "type": "password",
           "description": "The JDBC user password"
         },
-        "default.completer.ttlInSeconds": {
-          "name": "default.completer.ttlInSeconds",
-          "value": "120",
-          "type": "number",
-          "description": "Time to live sql completer in seconds (-1 to update everytime, 0 to disable update)"
-        },
         "default.driver": {
           "name": "default.driver",
           "value": "org.postgresql.Driver",
           "type": "string",
           "description": "JDBC Driver Name"
+        },
+        "default.completer.ttlInSeconds": {
+          "name": "default.completer.ttlInSeconds",
+          "value": "120",
+          "type": "number",
+          "description": "Time to live sql completer in seconds (-1 to update everytime, 0 to disable update)"
         },
         "default.completer.schemaFilters": {
           "name": "default.completer.schemaFilters",
@@ -212,12 +212,6 @@
           "type": "textarea",
           "description": "Runs before each run of the paragraph, in the same connection"
         },
-        "default.splitQueries": {
-          "name": "default.splitQueries",
-          "value": false,
-          "type": "checkbox",
-          "description": "Each query is executed apart and returns the result"
-        },
         "common.max_count": {
           "name": "common.max_count",
           "value": "1000",
@@ -229,6 +223,12 @@
           "value": "",
           "type": "string",
           "description": "If auth type is needed, Example: KERBEROS"
+        },
+        "zeppelin.jdbc.auth.kerberos.proxy.enable": {
+          "name": "zeppelin.jdbc.auth.kerberos.proxy.enable",
+          "value": "true",
+          "type": "checkbox",
+          "description": "When auth type is Kerberos, enable/disable Kerberos proxy with the login user to get the connection. Default value is true."
         },
         "zeppelin.jdbc.concurrent.use": {
           "name": "zeppelin.jdbc.concurrent.use",
@@ -271,6 +271,12 @@
           "value": "1000",
           "type": "number",
           "description": "Maximum number of rows fetched from the query."
+        },
+        "zeppelin.jdbc.hive.timeout.threshold": {
+          "name": "zeppelin.jdbc.hive.timeout.threshold",
+          "value": "60000",
+          "type": "number",
+          "description": "Timeout for hive job timeout"
         }
       },
       "status": "READY",
@@ -283,6 +289,59 @@
             "language": "sql",
             "editOnDblClick": false,
             "completionSupport": true
+          }
+        }
+      ],
+      "dependencies": [],
+      "option": {
+        "remote": true,
+        "port": -1,
+        "isExistingProcess": false,
+        "setPermission": false,
+        "owners": [],
+        "isUserImpersonate": false
+      }
+    },
+    "influxdb": {
+      "id": "influxdb",
+      "name": "influxdb",
+      "group": "influxdb",
+      "properties": {
+        "influxdb.url": {
+          "name": "influxdb.url",
+          "value": "http://localhost:9999",
+          "type": "string",
+          "description": "The URL for InfluxDB 2.X API"
+        },
+        "influxdb.token": {
+          "name": "influxdb.token",
+          "value": "my-token",
+          "type": "password",
+          "description": "InfluxDB auth token"
+        },
+        "influxdb.org": {
+          "name": "influxdb.org",
+          "value": "my-org",
+          "type": "string",
+          "description": "InfluxDB org name"
+        },
+        "influxdb.logLevel": {
+          "name": "influxdb.logLevel",
+          "value": "NONE",
+          "type": "string",
+          "description": "InfluxDB http client library verbosity level (NONE, BASIC, HEADERS, BODY)"
+        }
+      },
+      "status": "READY",
+      "interpreterGroup": [
+        {
+          "name": "influxdb",
+          "class": "org.apache.zeppelin.influxdb.InfluxDBInterpreter",
+          "defaultInterpreter": false,
+          "editor": {
+            "language": "sql",
+            "editOnDblClick": false,
+            "completionSupport": false
           }
         }
       ],
@@ -433,6 +492,52 @@
         "isUserImpersonate": false
       }
     },
+    "file": {
+      "id": "file",
+      "name": "file",
+      "group": "file",
+      "properties": {
+        "hdfs.url": {
+          "name": "hdfs.url",
+          "value": "http://localhost:50070/webhdfs/v1/",
+          "type": "url",
+          "description": "The URL for WebHDFS"
+        },
+        "hdfs.user": {
+          "name": "hdfs.user",
+          "value": "hdfs",
+          "type": "string",
+          "description": "The WebHDFS user"
+        },
+        "hdfs.maxlength": {
+          "name": "hdfs.maxlength",
+          "value": "1000",
+          "type": "number",
+          "description": "Maximum number of lines of results fetched"
+        }
+      },
+      "status": "READY",
+      "interpreterGroup": [
+        {
+          "name": "hdfs",
+          "class": "org.apache.zeppelin.file.HDFSFileInterpreter",
+          "defaultInterpreter": false,
+          "editor": {
+            "editOnDblClick": false,
+            "completionSupport": true
+          }
+        }
+      ],
+      "dependencies": [],
+      "option": {
+        "remote": true,
+        "port": -1,
+        "isExistingProcess": false,
+        "setPermission": false,
+        "owners": [],
+        "isUserImpersonate": false
+      }
+    },
     "java": {
       "id": "java",
       "name": "java",
@@ -489,35 +594,59 @@
         "isUserImpersonate": false
       }
     },
-    "file": {
-      "id": "file",
-      "name": "file",
-      "group": "file",
+    "elasticsearch": {
+      "id": "elasticsearch",
+      "name": "elasticsearch",
+      "group": "elasticsearch",
       "properties": {
-        "hdfs.url": {
-          "name": "hdfs.url",
-          "value": "http://localhost:50070/webhdfs/v1/",
-          "type": "url",
-          "description": "The URL for WebHDFS"
-        },
-        "hdfs.user": {
-          "name": "hdfs.user",
-          "value": "hdfs",
+        "elasticsearch.host": {
+          "name": "elasticsearch.host",
+          "value": "localhost",
           "type": "string",
-          "description": "The WebHDFS user"
+          "description": "The host for Elasticsearch"
         },
-        "hdfs.maxlength": {
-          "name": "hdfs.maxlength",
-          "value": "1000",
+        "elasticsearch.port": {
+          "name": "elasticsearch.port",
+          "value": "9300",
           "type": "number",
-          "description": "Maximum number of lines of results fetched"
+          "description": "The port for Elasticsearch"
+        },
+        "elasticsearch.client.type": {
+          "name": "elasticsearch.client.type",
+          "value": "transport",
+          "type": "string",
+          "description": "The type of client for Elasticsearch (transport or http)"
+        },
+        "elasticsearch.cluster.name": {
+          "name": "elasticsearch.cluster.name",
+          "value": "elasticsearch",
+          "type": "string",
+          "description": "The cluster name for Elasticsearch"
+        },
+        "elasticsearch.result.size": {
+          "name": "elasticsearch.result.size",
+          "value": "10",
+          "type": "number",
+          "description": "The size of the result set of a search query"
+        },
+        "elasticsearch.basicauth.username": {
+          "name": "elasticsearch.basicauth.username",
+          "value": "",
+          "type": "string",
+          "description": "Username for a basic authentication"
+        },
+        "elasticsearch.basicauth.password": {
+          "name": "elasticsearch.basicauth.password",
+          "value": "",
+          "type": "password",
+          "description": "Password for a basic authentication"
         }
       },
       "status": "READY",
       "interpreterGroup": [
         {
-          "name": "hdfs",
-          "class": "org.apache.zeppelin.file.HDFSFileInterpreter",
+          "name": "elasticsearch",
+          "class": "org.apache.zeppelin.elasticsearch.ElasticsearchInterpreter",
           "defaultInterpreter": false,
           "editor": {
             "editOnDblClick": false,
@@ -823,63 +952,77 @@
         "isUserImpersonate": false
       }
     },
-    "elasticsearch": {
-      "id": "elasticsearch",
-      "name": "elasticsearch",
-      "group": "elasticsearch",
+    "sh": {
+      "id": "sh",
+      "name": "sh",
+      "group": "sh",
       "properties": {
-        "elasticsearch.host": {
-          "name": "elasticsearch.host",
-          "value": "localhost",
-          "type": "string",
-          "description": "The host for Elasticsearch"
-        },
-        "elasticsearch.port": {
-          "name": "elasticsearch.port",
-          "value": "9300",
+        "shell.command.timeout.millisecs": {
+          "name": "shell.command.timeout.millisecs",
+          "value": "600000",
           "type": "number",
-          "description": "The port for Elasticsearch"
+          "description": "Shell command time out in millisecs. Default \u003d 600000"
         },
-        "elasticsearch.client.type": {
-          "name": "elasticsearch.client.type",
-          "value": "transport",
-          "type": "string",
-          "description": "The type of client for Elasticsearch (transport or http)"
+        "shell.working.directory.user.home": {
+          "name": "shell.working.directory.user.home",
+          "value": false,
+          "type": "checkbox",
+          "description": "If this set to true, the shell\u0027s working directory will be set to user home"
         },
-        "elasticsearch.cluster.name": {
-          "name": "elasticsearch.cluster.name",
-          "value": "elasticsearch",
-          "type": "string",
-          "description": "The cluster name for Elasticsearch"
-        },
-        "elasticsearch.result.size": {
-          "name": "elasticsearch.result.size",
-          "value": "10",
-          "type": "number",
-          "description": "The size of the result set of a search query"
-        },
-        "elasticsearch.basicauth.username": {
-          "name": "elasticsearch.basicauth.username",
+        "zeppelin.shell.auth.type": {
+          "name": "zeppelin.shell.auth.type",
           "value": "",
           "type": "string",
-          "description": "Username for a basic authentication"
+          "description": "If auth type is needed, Example: KERBEROS"
         },
-        "elasticsearch.basicauth.password": {
-          "name": "elasticsearch.basicauth.password",
+        "zeppelin.shell.keytab.location": {
+          "name": "zeppelin.shell.keytab.location",
           "value": "",
-          "type": "password",
-          "description": "Password for a basic authentication"
+          "type": "string",
+          "description": "Kerberos keytab location"
+        },
+        "zeppelin.shell.principal": {
+          "name": "zeppelin.shell.principal",
+          "value": "",
+          "type": "string",
+          "description": "Kerberos principal"
+        },
+        "zeppelin.shell.interpolation": {
+          "name": "zeppelin.shell.interpolation",
+          "value": false,
+          "type": "checkbox",
+          "description": "Enable ZeppelinContext variable interpolation into paragraph text"
+        },
+        "zeppelin.terminal.ip.mapping": {
+          "name": "zeppelin.terminal.ip.mapping",
+          "value": "",
+          "type": "string",
+          "description": "Internal and external IP mapping of zeppelin server"
         }
       },
       "status": "READY",
       "interpreterGroup": [
         {
-          "name": "elasticsearch",
-          "class": "org.apache.zeppelin.elasticsearch.ElasticsearchInterpreter",
+          "name": "sh",
+          "class": "org.apache.zeppelin.shell.ShellInterpreter",
+          "defaultInterpreter": true,
+          "editor": {
+            "language": "sh",
+            "editOnDblClick": false,
+            "completionSupport": false
+          }
+        },
+        {
+          "name": "terminal",
+          "class": "org.apache.zeppelin.shell.TerminalInterpreter",
           "defaultInterpreter": false,
           "editor": {
+            "language": "sh",
             "editOnDblClick": false,
-            "completionSupport": true
+            "completionSupport": false
+          },
+          "config": {
+            "checkEmpty": false
           }
         }
       ],
@@ -904,15 +1047,21 @@
           "type": "string",
           "description": "Location of spark distribution"
         },
-        "master": {
-          "name": "master",
+        "spark.master": {
+          "name": "spark.master",
           "value": "local[*]",
           "type": "string",
           "description": "Spark master uri. local | yarn-client | yarn-cluster | spark master address of standalone mode, ex) spark://master_host:7077"
         },
+        "spark.submit.deployMode": {
+          "name": "spark.submit.deployMode",
+          "value": "",
+          "type": "string",
+          "description": "The deploy mode of Spark driver program, either \"client\" or \"cluster\", Which means to launch driver program locally (\"client\") or remotely (\"cluster\") on one of the nodes inside the cluster."
+        },
         "spark.app.name": {
           "name": "spark.app.name",
-          "value": "Zeppelin",
+          "value": "",
           "type": "string",
           "description": "The name of spark application."
         },
@@ -939,6 +1088,12 @@
           "value": "1g",
           "type": "string",
           "description": "Executor memory per worker instance. ex) 512m, 32g"
+        },
+        "spark.executor.instances": {
+          "name": "spark.executor.instances",
+          "value": "2",
+          "type": "number",
+          "description": "The number of executors for static allocation."
         },
         "spark.files": {
           "name": "spark.files",
@@ -986,7 +1141,7 @@
           "name": "zeppelin.spark.uiWebUrl",
           "value": "",
           "type": "string",
-          "description": "Override Spark UI default URL"
+          "description": "Override Spark UI default URL. In Kubernetes mode, value can be Jinja template string with 3 template variables \u0027PORT\u0027, \u0027SERVICE_NAME\u0027 and \u0027SERVICE_DOMAIN\u0027. (ex: http://{{PORT}}-{{SERVICE_NAME}}.{{SERVICE_DOMAIN}})"
         },
         "zeppelin.spark.ui.hidden": {
           "name": "zeppelin.spark.ui.hidden",
@@ -1014,7 +1169,7 @@
         },
         "zeppelin.spark.concurrentSQL": {
           "name": "zeppelin.spark.concurrentSQL",
-          "value": false,
+          "value": true,
           "type": "checkbox",
           "description": "Execute multiple SQL concurrently if set true."
         },
@@ -1026,7 +1181,7 @@
         },
         "zeppelin.spark.sql.stacktrace": {
           "name": "zeppelin.spark.sql.stacktrace",
-          "value": false,
+          "value": true,
           "type": "checkbox",
           "description": "Show full exception stacktrace for SQL queries if set to true."
         },
@@ -1091,7 +1246,7 @@
           "description": "The namespace that will be used for running the driver and executor pods"
         }
       },
-      "status": "DOWNLOADING_DEPENDENCIES",
+      "status": "READY",
       "interpreterGroup": [
         {
           "name": "spark",
@@ -1179,86 +1334,6 @@
             "editOnDblClick": false,
             "completionKey": "TAB",
             "completionSupport": false
-          }
-        }
-      ],
-      "dependencies": [],
-      "option": {
-        "remote": true,
-        "port": -1,
-        "perNote": "shared",
-        "perUser": "shared",
-        "isExistingProcess": false,
-        "setPermission": false,
-        "owners": [],
-        "isUserImpersonate": false
-      }
-    },
-    "sh": {
-      "id": "sh",
-      "name": "sh",
-      "group": "sh",
-      "properties": {
-        "shell.command.timeout.millisecs": {
-          "name": "shell.command.timeout.millisecs",
-          "value": "600000",
-          "type": "number",
-          "description": "Shell command time out in millisecs. Default \u003d 600000"
-        },
-        "shell.working.directory.user.home": {
-          "name": "shell.working.directory.user.home",
-          "value": false,
-          "type": "checkbox",
-          "description": "If this set to true, the shell\u0027s working directory will be set to user home"
-        },
-        "zeppelin.shell.auth.type": {
-          "name": "zeppelin.shell.auth.type",
-          "value": "",
-          "type": "string",
-          "description": "If auth type is needed, Example: KERBEROS"
-        },
-        "zeppelin.shell.keytab.location": {
-          "name": "zeppelin.shell.keytab.location",
-          "value": "",
-          "type": "string",
-          "description": "Kerberos keytab location"
-        },
-        "zeppelin.shell.principal": {
-          "name": "zeppelin.shell.principal",
-          "value": "",
-          "type": "string",
-          "description": "Kerberos principal"
-        },
-        "zeppelin.shell.interpolation": {
-          "name": "zeppelin.shell.interpolation",
-          "value": false,
-          "type": "checkbox",
-          "description": "Enable ZeppelinContext variable interpolation into paragraph text"
-        }
-      },
-      "status": "READY",
-      "interpreterGroup": [
-        {
-          "name": "sh",
-          "class": "org.apache.zeppelin.shell.ShellInterpreter",
-          "defaultInterpreter": true,
-          "editor": {
-            "language": "sh",
-            "editOnDblClick": false,
-            "completionSupport": false
-          }
-        },
-        {
-          "name": "terminal",
-          "class": "org.apache.zeppelin.shell.TerminalInterpreter",
-          "defaultInterpreter": false,
-          "editor": {
-            "language": "sh",
-            "editOnDblClick": false,
-            "completionSupport": false
-          },
-          "config": {
-            "checkEmpty": false
           }
         }
       ],
@@ -1889,7 +1964,7 @@
         },
         "flink.yarn.queue": {
           "name": "flink.yarn.queue",
-          "value": "",
+          "value": "default",
           "type": "string",
           "description": "Yarn queue name"
         },
@@ -1899,17 +1974,29 @@
           "type": "checkbox",
           "description": "Whether use yarn proxy url as flink weburl, e.g. http://localhost:8088/proxy/application_1583396598068_0004"
         },
+        "flink.webui.yarn.address": {
+          "name": "flink.webui.yarn.address",
+          "value": "",
+          "type": "string",
+          "description": "Set this value only when your yarn address is mapped to some other address, e.g. some cloud vender will map `http://resource-manager:8088` to `https://xxx-yarn.yy.cn/gateway/kkk/yarn`"
+        },
         "flink.udf.jars": {
           "name": "flink.udf.jars",
           "value": "",
           "type": "string",
-          "description": "Flink udf jars (comma separated), Zeppelin will register udfs in this jar for user automatically"
+          "description": "Flink udf jars (comma separated), Zeppelin will register udfs in this jar for user automatically, these udf jars could be either local files or hdfs files if you have hadoop installed, the udf name is the class name"
+        },
+        "flink.udf.jars.packages": {
+          "name": "flink.udf.jars.packages",
+          "value": "",
+          "type": "string",
+          "description": "Packages (comma separated) that would be searched for the udf defined in `flink.udf.jars`"
         },
         "flink.execution.jars": {
           "name": "flink.execution.jars",
           "value": "",
           "type": "string",
-          "description": "Additional user jars (comma separated)"
+          "description": "Additional user jars (comma separated), these jars could be either local files or hdfs files if you have hadoop installed"
         },
         "flink.execution.packages": {
           "name": "flink.execution.packages",
@@ -1934,6 +2021,12 @@
           "value": "2.3.4",
           "type": "string",
           "description": "Hive version that you would like to connect"
+        },
+        "zeppelin.flink.module.enableHive": {
+          "name": "zeppelin.flink.module.enableHive",
+          "value": false,
+          "type": "checkbox",
+          "description": "Whether enable hive module, hive udf take precedence over flink udf if hive module is enabled."
         },
         "zeppelin.flink.printREPLOutput": {
           "name": "zeppelin.flink.printREPLOutput",
@@ -1964,6 +2057,12 @@
           "value": true,
           "type": "checkbox",
           "description": "Whether cancel flink job when closing interpreter"
+        },
+        "zeppelin.flink.job.check_interval": {
+          "name": "zeppelin.flink.job.check_interval",
+          "value": "1000",
+          "type": "number",
+          "description": "Check interval (in milliseconds) to check flink job progress"
         },
         "zeppelin.flink.concurrentBatchSql.max": {
           "name": "zeppelin.flink.concurrentBatchSql.max",
@@ -2514,6 +2613,40 @@
         "isUserImpersonate": false
       }
     },
+    "groovy": {
+      "id": "groovy",
+      "name": "groovy",
+      "group": "groovy",
+      "properties": {
+        "GROOVY_CLASSES": {
+          "name": "GROOVY_CLASSES",
+          "value": "",
+          "type": "textarea",
+          "description": "The path for custom groovy classes location. If empty `./interpreter/groovy/classes`"
+        }
+      },
+      "status": "READY",
+      "interpreterGroup": [
+        {
+          "name": "groovy",
+          "class": "org.apache.zeppelin.groovy.GroovyInterpreter",
+          "defaultInterpreter": false,
+          "editor": {
+            "editOnDblClick": false,
+            "completionSupport": false
+          }
+        }
+      ],
+      "dependencies": [],
+      "option": {
+        "remote": true,
+        "port": -1,
+        "isExistingProcess": false,
+        "setPermission": false,
+        "owners": [],
+        "isUserImpersonate": false
+      }
+    },
     "neo4j": {
       "id": "neo4j",
       "name": "neo4j",
@@ -2524,6 +2657,18 @@
           "value": "bolt://localhost:7687",
           "type": "string",
           "description": "The Neo4j\u0027s BOLT url."
+        },
+        "neo4j.database": {
+          "name": "neo4j.database",
+          "value": "",
+          "type": "string",
+          "description": "The Neo4j target database, if empty use the dafault db."
+        },
+        "neo4j.multi.statement": {
+          "name": "neo4j.multi.statement",
+          "value": "true",
+          "type": "string",
+          "description": "Enables the multi statement management, if true it computes multiple queries separated by semicolon."
         },
         "neo4j.auth.type": {
           "name": "neo4j.auth.type",
@@ -2571,40 +2716,6 @@
         "isUserImpersonate": false
       }
     },
-    "groovy": {
-      "id": "groovy",
-      "name": "groovy",
-      "group": "groovy",
-      "properties": {
-        "GROOVY_CLASSES": {
-          "name": "GROOVY_CLASSES",
-          "value": "",
-          "type": "textarea",
-          "description": "The path for custom groovy classes location. If empty `./interpreter/groovy/classes`"
-        }
-      },
-      "status": "READY",
-      "interpreterGroup": [
-        {
-          "name": "groovy",
-          "class": "org.apache.zeppelin.groovy.GroovyInterpreter",
-          "defaultInterpreter": false,
-          "editor": {
-            "editOnDblClick": false,
-            "completionSupport": false
-          }
-        }
-      ],
-      "dependencies": [],
-      "option": {
-        "remote": true,
-        "port": -1,
-        "isExistingProcess": false,
-        "setPermission": false,
-        "owners": [],
-        "isUserImpersonate": false
-      }
-    },
     "cassandra": {
       "id": "cassandra",
       "name": "cassandra",
@@ -2624,9 +2735,9 @@
         },
         "cassandra.protocol.version": {
           "name": "cassandra.protocol.version",
-          "value": "4",
+          "value": "DEFAULT",
           "type": "string",
-          "description": "Cassandra protocol version. Default \u003d 4"
+          "description": "Cassandra protocol version. Default \u003d auto-detect"
         },
         "cassandra.cluster": {
           "name": "cassandra.cluster",
@@ -2662,25 +2773,25 @@
           "name": "cassandra.load.balancing.policy",
           "value": "DEFAULT",
           "type": "string",
-          "description": "Cassandra Load Balancing Policy. Default \u003d new TokenAwarePolicy(new DCAwareRoundRobinPolicy())"
+          "description": "Class name for Load Balancing Policy. Default \u003d DefaultLoadBalancingPolicy"
         },
         "cassandra.retry.policy": {
           "name": "cassandra.retry.policy",
           "value": "DEFAULT",
           "type": "string",
-          "description": "Cassandra Retry Policy. Default \u003d DefaultRetryPolicy.INSTANCE"
+          "description": "Class name for Retry Policy. Default \u003d DefaultRetryPolicy"
         },
         "cassandra.reconnection.policy": {
           "name": "cassandra.reconnection.policy",
           "value": "DEFAULT",
           "type": "string",
-          "description": "Cassandra Reconnection Policy. Default \u003d new ExponentialReconnectionPolicy(1000, 10 * 60 * 1000)"
+          "description": "Class name for Reconnection Policy. Default \u003d ExponentialReconnectionPolicy"
         },
         "cassandra.speculative.execution.policy": {
           "name": "cassandra.speculative.execution.policy",
           "value": "DEFAULT",
           "type": "string",
-          "description": "Cassandra Speculative Execution Policy. Default \u003d NoSpeculativeExecutionPolicy.INSTANCE"
+          "description": "Class name for Speculative Execution Policy. Default \u003d NoSpeculativeExecutionPolicy"
         },
         "cassandra.interpreter.parallelism": {
           "name": "cassandra.interpreter.parallelism",
@@ -2694,59 +2805,23 @@
           "type": "number",
           "description": "Cassandra max schema agreement wait in second.Default \u003d ProtocolOptions.DEFAULT_MAX_SCHEMA_AGREEMENT_WAIT_SECONDS"
         },
-        "cassandra.pooling.new.connection.threshold.local": {
-          "name": "cassandra.pooling.new.connection.threshold.local",
-          "value": "100",
-          "type": "number",
-          "description": "Cassandra new connection threshold local. Protocol V2 and below default \u003d 100 Protocol V3 and above default \u003d 800"
-        },
-        "cassandra.pooling.new.connection.threshold.remote": {
-          "name": "cassandra.pooling.new.connection.threshold.remote",
-          "value": "100",
-          "type": "number",
-          "description": "Cassandra new connection threshold remove. Protocol V2 and below default \u003d 100 Protocol V3 and above default \u003d 200"
-        },
-        "cassandra.pooling.core.connection.per.host.local": {
-          "name": "cassandra.pooling.core.connection.per.host.local",
-          "value": "2",
-          "type": "number",
-          "description": "Cassandra core connection per host local. Protocol V2 and below default \u003d 2 Protocol V3 and above default \u003d 1"
-        },
-        "cassandra.pooling.core.connection.per.host.remote": {
-          "name": "cassandra.pooling.core.connection.per.host.remote",
+        "cassandra.pooling.connection.per.host.local": {
+          "name": "cassandra.pooling.connection.per.host.local",
           "value": "1",
           "type": "number",
-          "description": "Cassandra core connection per host remove. Protocol V2 and below default \u003d 1 Protocol V3 and above default \u003d 1"
+          "description": "Cassandra connections per host local. Protocol V3 and above default \u003d 1"
         },
-        "cassandra.pooling.max.connection.per.host.local": {
-          "name": "cassandra.pooling.max.connection.per.host.local",
-          "value": "8",
+        "cassandra.pooling.connection.per.host.remote": {
+          "name": "cassandra.pooling.connection.per.host.remote",
+          "value": "1",
           "type": "number",
-          "description": "Cassandra max connection per host local. Protocol V2 and below default \u003d 8 Protocol V3 and above default \u003d 1"
+          "description": "Cassandra connections per host remote. Protocol V3 and above default \u003d 1"
         },
-        "cassandra.pooling.max.connection.per.host.remote": {
-          "name": "cassandra.pooling.max.connection.per.host.remote",
-          "value": "2",
-          "type": "number",
-          "description": "Cassandra max connection per host remote. Protocol V2 and below default \u003d 2 Protocol V3 and above default \u003d 1"
-        },
-        "cassandra.pooling.max.request.per.connection.local": {
-          "name": "cassandra.pooling.max.request.per.connection.local",
+        "cassandra.pooling.max.request.per.connection": {
+          "name": "cassandra.pooling.max.request.per.connection",
           "value": "1024",
           "type": "number",
-          "description": "Cassandra max request per connection local. Protocol V2 and below default \u003d 128 Protocol V3 and above default \u003d 1024"
-        },
-        "cassandra.pooling.max.request.per.connection.remote": {
-          "name": "cassandra.pooling.max.request.per.connection.remote",
-          "value": "256",
-          "type": "number",
-          "description": "Cassandra max request per connection remote. Protocol V2 and below default \u003d 128 Protocol V3 and above default \u003d 256"
-        },
-        "cassandra.pooling.idle.timeout.seconds": {
-          "name": "cassandra.pooling.idle.timeout.seconds",
-          "value": "120",
-          "type": "number",
-          "description": "Cassandra idle time out in seconds. Default \u003d 120"
+          "description": "Cassandra max requests per connection. Protocol V3 and above default \u003d 1024"
         },
         "cassandra.pooling.pool.timeout.millisecs": {
           "name": "cassandra.pooling.pool.timeout.millisecs",
@@ -2813,6 +2888,60 @@
           "value": "none",
           "type": "password",
           "description": "Cassandra truststore password. Default \u003d none"
+        },
+        "cassandra.format.output": {
+          "name": "cassandra.format.output",
+          "value": "human",
+          "type": "string",
+          "description": "Output format: human-readable, or strict CQL. Default \u003d human"
+        },
+        "cassandra.format.locale": {
+          "name": "cassandra.format.locale",
+          "value": "en_US",
+          "type": "string",
+          "description": "Locale for formatting of output data. Default \u003d en_US"
+        },
+        "cassandra.format.timezone": {
+          "name": "cassandra.format.timezone",
+          "value": "UTC",
+          "type": "string",
+          "description": "Timezone for output of time/date-related values. Default \u003d UTC"
+        },
+        "cassandra.format.timestamp": {
+          "name": "cassandra.format.timestamp",
+          "value": "yyyy-MM-dd\u0027T\u0027HH:mm:ss.SSSXXX",
+          "type": "string",
+          "description": "Format string for timestamp columns"
+        },
+        "cassandra.format.date": {
+          "name": "cassandra.format.date",
+          "value": "yyyy-MM-dd",
+          "type": "string",
+          "description": "Format string for date columns"
+        },
+        "cassandra.format.time": {
+          "name": "cassandra.format.time",
+          "value": "HH:mm:ss.SSS",
+          "type": "string",
+          "description": "Format string for time columns"
+        },
+        "cassandra.format.float_precision": {
+          "name": "cassandra.format.float_precision",
+          "value": "5",
+          "type": "number",
+          "description": "Precision for formatting of float values"
+        },
+        "cassandra.format.double_precision": {
+          "name": "cassandra.format.double_precision",
+          "value": "12",
+          "type": "number",
+          "description": "Precision for formatting of double values"
+        },
+        "cassandra.format.decimal_precision": {
+          "name": "cassandra.format.decimal_precision",
+          "value": "-1",
+          "type": "number",
+          "description": "Precision for formatting of decimal values (by default, show everything)"
         }
       },
       "status": "READY",
@@ -2966,6 +3095,8 @@
       "id": "central",
       "type": "default",
       "url": "https://repo1.maven.org/maven2/",
+      "host": "repo1.maven.org",
+      "protocol": "https",
       "releasePolicy": {
         "enabled": true,
         "updatePolicy": "daily",
@@ -2982,7 +3113,9 @@
     {
       "id": "local",
       "type": "default",
-      "url": "file:///zeppelin/.m2/repository",
+      "url": "file:///root/.m2/repository",
+      "host": "",
+      "protocol": "file",
       "releasePolicy": {
         "enabled": true,
         "updatePolicy": "daily",

@@ -26,9 +26,9 @@ RUN curl -sLO https://bitbucket.org/sunlightio/evolve_python_library/get/${EVOLV
     (cd sunlightio-evolve_python_library-${EVOLVE_LIBRARY_COMMIT} && python setup.py install) && \
     rm -rf ${EVOLVE_LIBRARY_COMMIT}.tar.gz sunlightio-evolve_python_library-${EVOLVE_LIBRARY_COMMIT}
 
-COPY containers/zeppelin/interpreter.json /zeppelin/conf/
-COPY containers/zeppelin/start.sh /zeppelin/
+COPY containers/zeppelin/interpreter.json /opt/zeppelin/conf/
+COPY containers/zeppelin/start.sh /opt/zeppelin/
 
 ENV KARVDASH_NAMESPACE=
 
-CMD ["/zeppelin/start.sh"]
+CMD ["/opt/zeppelin/start.sh"]
