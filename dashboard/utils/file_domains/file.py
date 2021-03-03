@@ -16,6 +16,7 @@ import os
 import zipfile
 
 from urllib.parse import urlparse
+from datetime import datetime
 
 
 class FileDomainPathWorker(object):
@@ -42,14 +43,21 @@ class FileDomainPathWorker(object):
     def open(self, name, mode):
         return open(os.path.join(self.real_path, name), mode)
 
-    def getmtime(self, name):
-        return os.path.getmtime(os.path.join(self.real_path, name))
-
-    def getsize(self, name):
-        return os.path.getsize(os.path.join(self.real_path, name))
-
     def listdir(self):
-        return os.listdir(self.real_path)
+        listing = []
+        real_path = self.real_path
+        for name in os.listdir(self.real_path):
+            if self.isdir(name):
+                file_type = 'dir'
+            elif self.isfile(name):
+                file_type = 'file'
+            else:
+                continue
+            listing.add[{'name': name,
+                         'modified': datetime.fromtimestamp(os.path.getmtime(os.path.join(real_path, name))),
+                         'type': file_type,
+                         'size': os.path.getsize(os.path.join(real_path, name)) if file_type != 'dir' else 0}]
+        return listing
 
     def mkdir(self, name):
         os.mkdir(os.path.join(self.real_path, name))
@@ -97,7 +105,7 @@ class FileDomain(object):
 
     @property
     def user_dir(self):
-        ''' The user-specific path for the domain (for dashboard use). '''
+        ''' The user-specific path for the domain (for internal use). '''
         raise NotImplementedError
 
     @property

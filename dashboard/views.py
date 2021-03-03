@@ -25,7 +25,6 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import SetPasswordForm, PasswordChangeForm
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib import messages
-from datetime import datetime
 
 from .models import User
 from .forms import SignUpForm, EditUserForm, AddServiceForm, CreateServiceForm, AddTemplateForm, AddImageForm, AddDatasetForm, CreateDatasetForm, AddFolderForm, AddFilesForm, AddImageFromFileForm
@@ -425,7 +424,6 @@ def datasets(request):
     try:
         contents = dataset_resource.list()
     except:
-        raise
         messages.error(request, 'Can not connect to Kubernetes.')
 
     # Sort them up.
@@ -589,17 +587,17 @@ def files(request, path='/'):
             form = AddImageFromFileForm(request.POST)
             name = request.POST.get('filename', None)
             if form.is_valid() and name:
-                name = form.cleaned_data['name']
-                tag = form.cleaned_data['tag']
+                image_name = form.cleaned_data['name']
+                image_tag = form.cleaned_data['tag']
                 try:
                     docker_client = DockerClient(settings.DOCKER_REGISTRY, settings.DOCKER_REGISTRY_NO_VERIFY)
                     f = path_worker.open(name, 'rb')
-                    docker_client.add_image(f, name, tag)
+                    docker_client.add_image(f, image_name, image_tag)
                     f.close()
                 except Exception as e:
                     messages.error(request, 'Failed to add image: %s.' % str(e))
                 else:
-                    messages.success(request, 'Image "%s:%s" added.' % (name, tag))
+                    messages.success(request, 'Image "%s:%s" added.' % (image_name, image_tag))
             else:
                 messages.error(request, 'Failed to add image. Probably invalid characters in name or tag.')
         elif request.POST['action'] == 'Add template':
@@ -647,20 +645,9 @@ def files(request, path='/'):
                       'url': reverse('files', args=[os.path.join(*path_components[:i + 2])]) if i != (len(path_components) - 2) else None})
 
     # Fill in the contents.
-    contents = []
-    for file_name in path_worker.listdir():
-        if path_worker.isdir(file_name):
-            file_type = 'dir'
-        elif path_worker.isfile(file_name):
-            file_type = 'file'
-        else:
-            continue
-        mtime = path_worker.getmtime(file_name)
-        contents.append({'name': file_name,
-                         'modified': datetime.fromtimestamp(mtime),
-                         'type': file_type,
-                         'size': path_worker.getsize(file_name) if file_type != 'dir' else 0,
-                         'url': reverse('files', args=[os.path.join(path, file_name)])})
+    contents = path_worker.listdir()
+    for c in contents:
+        c.update({'url': reverse('files', args=[os.path.join(path, c['name'])])})
 
     # Sort them up.
     sort_by = request.GET.get('sort_by')

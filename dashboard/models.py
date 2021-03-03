@@ -20,8 +20,10 @@ from django.contrib.auth.models import User as AuthUser
 from django.contrib.auth.signals import user_logged_in
 from django.dispatch import receiver
 from django.conf import settings
+from urllib.parse import urlparse
 
-from .utils.file_domains import PrivateFileDomain, SharedFileDomain
+from .utils.file_domains.file import PrivateFileDomain, SharedFileDomain
+from .utils.file_domains.s3 import PrivateS3Domain, SharedS3Domain
 
 
 class User(AuthUser):
@@ -46,8 +48,14 @@ class User(AuthUser):
 
     @property
     def file_domains(self):
-        return {'private': PrivateFileDomain(settings.FILES_URL, settings.FILES_MOUNT_DIR, self.username),
-                'shared': SharedFileDomain(settings.FILES_URL, settings.FILES_MOUNT_DIR)}
+        files_url = urlparse(settings.FILES_URL)
+        if files_url.scheme == 'file':
+            return {'private': PrivateFileDomain(settings.FILES_URL, settings.FILES_MOUNT_DIR, self.username),
+                    'shared': SharedFileDomain(settings.FILES_URL, settings.FILES_MOUNT_DIR)}
+        if files_url.scheme in ('s3', 's3s', 'aws'):
+            return {'private': PrivateS3Domain(settings.FILES_URL, settings.FILES_MOUNT_DIR, self.username),
+                    'shared': SharedS3Domain(settings.FILES_URL, settings.FILES_MOUNT_DIR)}
+        raise ValueError('Unsupported URL for files')
 
     @property
     def api_token(self):
