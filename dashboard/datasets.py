@@ -24,6 +24,7 @@ spec:
     accessKeyID: $ACCESSKEYID
     secretAccessKey: $SECRETACCESSKEY
     bucket: $BUCKET
+    region: ""
 ---
 kind: Template
 name: S3 (local)
@@ -75,6 +76,61 @@ variables:
   default: ""
 - name: SECRETACCESSKEY
   label: Secret Access Key
+  default: ""
+- name: BUCKET
+  default: ""
+- name: REGION
+  default: ""
+  help: Optional
+'''
+
+SECRET_S3_SECRET_TEMPLATE = '''
+apiVersion: v1
+kind: Secret
+metadata:
+  name: $NAME
+stringData:
+  accessKeyID: $ACCESSKEYID
+  secretAccessKey: $SECRETACCESSKEY
+---
+kind: Template
+name: S3 secret
+description: Secret for remote S3 endpoint
+variables:
+- name: NAME
+  default: secret
+- name: ACCESSKEYID
+  label: Access Key ID
+  default: ""
+- name: SECRETACCESSKEY
+  label: Secret Access Key
+  default: ""
+'''
+
+SECRET_S3_DATASET_TEMPLATE = '''
+apiVersion: com.ie.ibm.hpsys/v1alpha1
+kind: Dataset
+metadata:
+  name: $NAME
+spec:
+  local:
+    type: "COS"
+    endpoint: $ENDPOINT
+    secret-name: $SECRETNAME
+    bucket: $BUCKET
+    region: $REGION
+---
+kind: Template
+name: S3 (secret)
+description: Dataset for remote S3 endpoint with predefined secret
+variables:
+- name: NAME
+  default: dataset
+- name: ENDPOINT
+  default: "https://s3.amazonaws.com"
+  help: S3 service endpoint URL
+- name: SECRETNAME
+  label: Name of secret containing the Access Key ID and Secret Access Key
   default: ""
 - name: BUCKET
   default: ""

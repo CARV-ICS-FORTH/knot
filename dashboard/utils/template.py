@@ -16,7 +16,7 @@ import os
 import string
 import yaml
 
-from .inject import inject_hostpath_volumes, inject_service_details, inject_ingress_auth, inject_datasets
+from .inject import inject_volumes, inject_service_details, inject_ingress_auth
 
 
 class Template(object):
@@ -62,17 +62,14 @@ class Template(object):
             return
         super().__setattr__(name, value)
 
-    def inject_hostpath_volumes(self, volumes, add_api_settings=False):
-        inject_hostpath_volumes(self._template, volumes, add_api_settings=add_api_settings)
+    def inject_volumes(self, volumes, add_api_settings=False):
+        inject_volumes(self._template, volumes, add_api_settings=add_api_settings)
 
     def inject_service_details(self, template=None):
         inject_service_details(self._template, template=template, values=self._values)
 
     def inject_ingress_auth(self, secret, realm, redirect_ssl=False):
         inject_ingress_auth(self._template, secret, realm, redirect_ssl=redirect_ssl)
-
-    def inject_datasets(self, datasets):
-        inject_datasets(self._template, datasets)
 
     @property
     def data(self):

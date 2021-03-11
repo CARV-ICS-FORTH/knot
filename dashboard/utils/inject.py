@@ -17,18 +17,21 @@ import json
 from urllib.parse import urlparse
 
 
-def inject_hostpath_volumes(yaml_data, file_domains, add_api_settings=False):
+def inject_volumes(yaml_data, file_domains, add_api_settings=False):
     def add_volumes_to_spec(spec):
         # Add volumes.
         if 'volumes' not in spec:
             spec['volumes'] = []
         existing_names = [v['name'] for v in spec['volumes']]
         for file_domain in file_domains.values():
-            volume_name = 'karvdash-volume-%s' % file_domain.name
-            if volume_name in existing_names:
+            if file_domain.volume_name in existing_names:
                 continue
-            spec['volumes'].append({'name': volume_name,
-                                    'hostPath': {'path': urlparse(file_domain.url).path}})
+            if file_domain.url.startswith('file://'):
+                spec['volumes'].append({'name': file_domain.volume_name,
+                                        'hostPath': {'path': urlparse(file_domain.url).path}})
+            else:
+                spec['volumes'].append({'name': file_domain.volume_name,
+                                        'persistentVolumeClaim': {'claimName': file_domain.volume_name}})
         if add_api_settings and 'karvdash-api-volume' not in existing_names:
             spec['volumes'].append({'name': 'karvdash-api-volume',
                                     'configMap': {'name': 'karvdash-api',
@@ -41,10 +44,9 @@ def inject_hostpath_volumes(yaml_data, file_domains, add_api_settings=False):
                 container['volumeMounts'] = []
             existing_names = [v['name'] for v in container['volumeMounts']]
             for file_domain in file_domains.values():
-                volume_name = 'karvdash-volume-%s' % file_domain.name
-                if volume_name in existing_names:
+                if file_domain.volume_name in existing_names:
                     continue
-                container['volumeMounts'].append({'name': volume_name,
+                container['volumeMounts'].append({'name': file_domain.volume_name,
                                                   'mountPath': file_domain.mount_dir})
             if add_api_settings and 'karvdash-api-volume' not in existing_names:
                 container['volumeMounts'].append({'name': 'karvdash-api-volume',
@@ -114,25 +116,3 @@ def inject_ingress_auth(yaml_data, secret, realm, redirect_ssl=False):
             part['metadata']['annotations']['nginx.ingress.kubernetes.io/auth-realm'] = realm
             if redirect_ssl:
                 part['metadata']['annotations']['nginx.ingress.kubernetes.io/force-ssl-redirect'] = 'true'
-
-def inject_datasets(yaml_data, datasets):
-    def add_datasets_to_metadata(template):
-        if 'metadata' not in template:
-            template['metadata'] = {}
-        if 'labels' not in template['metadata']:
-            template['metadata']['labels'] = {}
-        for i, dataset in enumerate(datasets):
-            template['metadata']['labels']['dataset.%d.id' % i] = dataset['name']
-            template['metadata']['labels']['dataset.%d.useas' % i] = 'mount'
-
-    for part in yaml_data:
-        try:
-            if part['kind'] == 'Deployment':
-                template = part['spec']['template']
-            elif part['kind'] == 'Pod':
-                template = part
-            else:
-                continue
-        except:
-            continue
-        add_datasets_to_metadata(template)

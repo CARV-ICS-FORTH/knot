@@ -422,7 +422,10 @@ def datasets(request):
     # Fill in the contents.
     contents = []
     try:
-        contents = dataset_resource.list()
+        for dataset in dataset_resource.list():
+            contents.append({'name': dataset['name'],
+                             'type': dataset['type'],
+                             'endpoint': '%s/%s' % (dataset['endpoint'], dataset['bucket'])})
     except:
         messages.error(request, 'Can not connect to Kubernetes.')
 
@@ -498,7 +501,7 @@ def dataset_download(request, name):
         return redirect('datasets')
 
     # Get a dataset template and fill it in.
-    template = dataset_resource.dataset_template
+    template = dataset_resource.get_template(dataset['type'])
     for variable, value in dataset.items():
         setattr(template, variable.upper(), value)
 

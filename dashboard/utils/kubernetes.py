@@ -74,6 +74,9 @@ class KubernetesClient(object):
     def list_crds(self, group, version, namespace, plural):
         return self.custom_objects_client.list_namespaced_custom_object(group=group, version=version, namespace=namespace, plural=plural)['items']
 
+    def list_secrets(self, namespace):
+        return self.core_client.list_namespaced_secret(namespace=namespace).items
+
     def apply_yaml(self, yaml_file, namespace=None):
         command = 'kubectl apply -f %s' % yaml_file
         if namespace:
@@ -97,9 +100,9 @@ class KubernetesClient(object):
     def delete_secret(self, namespace, name):
         os.system('kubectl delete -n %s secret %s' % (namespace, name))
 
-    def update_secret(self, namespace, name, literal):
+    def update_secret(self, namespace, name, literals):
         self.delete_secret(namespace, name)
-        if os.system('kubectl create -n %s secret generic %s --from-literal=\'%s\'' % (namespace, name, literal)) < 0:
+        if os.system('kubectl create -n %s secret generic %s %s' % (namespace, name, ' '.join([('--from-literal=\'%s\'' % literal) for literal in literals]))) < 0:
             raise SystemError('Can not create secret')
 
     def create_docker_registry_secret(self, namespace, registry_url, email):
@@ -136,28 +139,3 @@ class KubernetesClient(object):
             self.core_client.patch_namespace(namespace, body)
         except:
             pass
-
-    def get_datasets(self, namespace):
-        contents = []
-        try:
-            for dataset in self.list_crds(group='com.ie.ibm.hpsys', version='v1alpha1', namespace=namespace, plural='datasets'):
-                try:
-                    dataset_type = dataset['spec']['local']['type']
-                except:
-                    continue
-                if dataset_type == 'COS':
-                    dataset_type = 'S3'
-                    endpoint = dataset['spec']['local']['endpoint'] + '/' + dataset['spec']['local']['bucket']
-                # elif dataset_type == 'HOST':
-                #     dataset_type = 'HostPath'
-                #     endpoint = dataset['spec']['local']['path']
-                else:
-                    continue
-
-                contents.append({'name': dataset['metadata']['name'],
-                                 'type': dataset_type,
-                                 'endpoint': endpoint})
-        except:
-            pass
-
-        return contents

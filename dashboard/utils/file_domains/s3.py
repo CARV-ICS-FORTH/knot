@@ -12,14 +12,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import boto3
-import botocore
-
 import os
 import zipfile
+import boto3
+import botocore
+import secrets
+import string
+import tempfile
+import json
+import yaml
 
 from urllib.parse import urlparse
-from datetime import datetime
+
+from ..kubernetes import KubernetesClient
+from ..template import Template
+from ...datasets import SECRET_S3_SECRET_TEMPLATE, SECRET_S3_DATASET_TEMPLATE
 
 
 class S3DomainPathWorker(object):
@@ -79,7 +86,6 @@ class S3DomainPathWorker(object):
 
     def open(self, name, mode):
         name = os.path.join(self.real_path, name).rstrip('/')
-        print('OPEN:', name)
         return self._domain.bucket.Object(name).get()['Body']
 
     def listdir(self):
@@ -139,27 +145,61 @@ class S3DomainPathWorker(object):
         self._domain.bucket.Object(name).delete()
 
 class S3Domain(object):
-    def __init__(self, url, mount_dir, username=None):
+    def __init__(self, url, mount_dir, user):
+        if not user:
+            raise ValueError('Empty user')
+
         self._url = urlparse(url)
-        if self._url.scheme not in ('s3', 's3s', 'aws'):
+        if self._url.scheme not in ('minio', 'minios', 'aws'):
             raise ValueError('Unsupported S3 domain URL')
         self._mount_dir = mount_dir
-        self._username = username
+        self._user = user
 
         self._bucket_prefix = self._url.path.lstrip('/').rstrip('-') or 'karvdash'
 
         # Start an S3 session.
         configuration = {'aws_access_key_id': self._url.username,
                          'aws_secret_access_key': self._url.password}
-        if self._url.scheme in ('s3', 's3s'):
-            configuration['endpoint_url'] = '%s://%s:%s' % ('http' if self._url.scheme == 's3' else 'https', self._url.hostname, self._url.port)
+        if self._url.scheme in ('minio', 'minios'):
+            configuration['endpoint_url'] = '%s://%s:%s' % ('http' if self._url.scheme == 'minio' else 'https',
+                                                            self._url.hostname,
+                                                            self._url.port)
             configuration['config'] = botocore.client.Config(signature_version='s3v4')
         elif self._url.scheme == 'aws':
             configuration['region_name'] = self._url.hostname
         self._s3 = boto3.resource('s3', **configuration)
-
-        # Create bucket if it does not exist.
         self._bucket = self._s3.Bucket(self.bucket_name)
+        self.create_bucket() # Creates bucket and secret.
+
+        # Create dataset.
+        kubernetes_client = KubernetesClient()
+        for dataset in kubernetes_client.list_crds(group='com.ie.ibm.hpsys', version='v1alpha1', namespace=self._user.namespace, plural='datasets'):
+            try:
+                if self.volume_name == dataset['metadata']['name']:
+                    return
+            except:
+                continue
+
+        template = Template(SECRET_S3_DATASET_TEMPLATE)
+        template.NAME = self.volume_name
+        template.ENDPOINT = '%s://%s:%s' % ('http' if self._url.scheme == 'minio' else 'https', self._url.hostname, self._url.port)
+        template.SECRETNAME = 'karvdash-minio'
+        template.BUCKET = self.bucket_name
+        template.REGION = '""'
+
+        template_yaml = yaml.load(template.yaml, Loader=yaml.FullLoader)
+        if 'labels' not in template_yaml['metadata']:
+            template_yaml['metadata']['labels'] = {}
+        template_yaml['metadata']['labels']['karvdash-hidden'] = 'true'
+
+        # try:
+        #     kubernetes_client.delete_crd(group='com.ie.ibm.hpsys', version='v1alpha1', namespace=self._user.namespace, plural='datasets', name=self.volume_name)
+        # except:
+        #     pass
+        kubernetes_client.apply_crd(group='com.ie.ibm.hpsys', version='v1alpha1', namespace=self._user.namespace, plural='datasets', yaml=template_yaml)
+
+    def create_bucket(self):
+        # Create bucket if it does not exist.
         if not self._bucket.creation_date:
             self._s3.create_bucket(Bucket=self.bucket_name)
 
@@ -171,6 +211,11 @@ class S3Domain(object):
     def name(self):
         ''' How to name the domain when mounting it ("private" or "shared"). '''
         raise NotImplementedError
+
+    @property
+    def volume_name(self):
+        ''' How to name the volume when mounting it. '''
+        return 'karvdash-volume-%s' % self.name
 
     @property
     def mount_dir(self):
@@ -185,17 +230,67 @@ class S3Domain(object):
     @property
     def url(self):
         ''' The URL of the domain to be mounted. '''
-        return 's3://%s/%s' % os.path.join(self._url.netloc, self.bucket_name)
+        return 's3://%s/%s' % (self._url.netloc, self.bucket_name)
 
     def path_worker(self, subpath_components):
         return S3DomainPathWorker(self, subpath_components)
 
 class PrivateS3Domain(S3Domain):
-    def __init__(self, url, mount_dir, username=None):
-        super().__init__(url, mount_dir, username)
+    def create_bucket(self):
+        # Create bucket and secret if either does not exist and apply policy.
+        secret_exists = False
+        kubernetes_client = KubernetesClient()
+        for secret in kubernetes_client.list_secrets(namespace=self._user.namespace):
+            name = secret.metadata.name
+            if name != 'karvdash-minio':
+                continue
+            secret_exists = True
+            break
 
-        if not self._username:
-            raise ValueError('Empty username')
+        if secret_exists and self._bucket.creation_date:
+            return
+
+        # Generate and save secret.
+        secret_access_key = ''.join(secrets.choice(string.ascii_letters + string.digits) for i in range(20))
+        # kubernetes_client.update_secret(self._user.namespace,
+        #                                 'karvdash-minio',
+        #                                 ['AWS_ACCESS_KEY_ID=%s' % self._user.username,
+        #                                  'AWS_SECRET_ACCESS_KEY=%s' % secret_access_key])
+        template = Template(SECRET_S3_SECRET_TEMPLATE)
+        template.NAME = 'karvdash-minio'
+        template.ACCESSKEYID = self._user.username
+        template.SECRETACCESSKEY = secret_access_key
+        with tempfile.NamedTemporaryFile() as f:
+            f.write(template.yaml.encode())
+            f.seek(0)
+            kubernetes_client.apply_yaml(f.name, namespace=self._user.namespace)
+
+        # Create user, policy, and bucket in MinIO.
+        if self._url.scheme in ('minio', 'minios'):
+            mc_credentials = 'MC_HOST_karvdash="%s"' % '%s://%s:%s@%s:%s' % ('http' if self._url.scheme == 'minio' else 'https',
+                                                                             self._url.username,
+                                                                             self._url.password,
+                                                                             self._url.hostname,
+                                                                             self._url.port)
+            mc_policy = {'Version': '2012-10-17',
+                         'Statement': [{'Action': ['s3:*'],
+                                        'Effect': 'Allow',
+                                        'Resource': ['arn:aws:s3:::%s/*' % self.bucket_name,
+                                                     'arn:aws:s3:::%s/*' % (self._bucket_prefix + '-shared')], # Add shared bucket policy here.
+                                        'Sid': ''}]}
+            with tempfile.NamedTemporaryFile() as f:
+                f.write(json.dumps(mc_policy).encode())
+                f.seek(0)
+                os.system('%s mc admin policy add karvdash %s %s' % (mc_credentials, self._user.username, f.name))
+            os.system('%s mc admin user add karvdash %s %s' % (mc_credentials, self._user.username, secret_access_key))
+            os.system('%s mc admin policy set karvdash %s user=%s' % (mc_credentials, self._user.username, self._user.username))
+        else:
+            raise ValueError('Unsupported S3 domain URL')
+
+        try:
+            self._s3.create_bucket(Bucket=self.bucket_name)
+        except self._s3.meta.client.exceptions.BucketAlreadyOwnedByYou:
+            pass
 
     @property
     def name(self):
@@ -207,7 +302,7 @@ class PrivateS3Domain(S3Domain):
 
     @property
     def bucket_name(self):
-        return self._bucket_prefix + '-private-' + self._username
+        return self._bucket_prefix + '-private-' + self._user.username
 
 class SharedS3Domain(S3Domain):
     @property

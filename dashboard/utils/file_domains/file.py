@@ -53,10 +53,10 @@ class FileDomainPathWorker(object):
                 file_type = 'file'
             else:
                 continue
-            listing.add[{'name': name,
-                         'modified': datetime.fromtimestamp(os.path.getmtime(os.path.join(real_path, name))),
-                         'type': file_type,
-                         'size': os.path.getsize(os.path.join(real_path, name)) if file_type != 'dir' else 0}]
+            listing.append({'name': name,
+                            'modified': datetime.fromtimestamp(os.path.getmtime(os.path.join(real_path, name))),
+                            'type': file_type,
+                            'size': os.path.getsize(os.path.join(real_path, name)) if file_type != 'dir' else 0})
         return listing
 
     def mkdir(self, name):
@@ -83,13 +83,18 @@ class FileDomainPathWorker(object):
         os.remove(os.path.join(self.real_path, name))
 
 class FileDomain(object):
-    def __init__(self, url, mount_dir, username=None):
+    def __init__(self, url, mount_dir, user):
+        if not user:
+            raise ValueError('Empty user')
+
         self._url = urlparse(url)
         if self._url.scheme != 'file':
             raise ValueError('Unsupported file domain URL')
         self._mount_dir = mount_dir
-        self._username = username
+        self._user = user
+        self.create_user_dir()
 
+    def create_user_dir(self):
         if not os.path.exists(self.user_dir):
             os.makedirs(self.user_dir)
 
@@ -97,6 +102,11 @@ class FileDomain(object):
     def name(self):
         ''' How to name the domain when mounting it ("private" or "shared"). '''
         raise NotImplementedError
+
+    @property
+    def volume_name(self):
+        ''' How to name the volume when mounting it. '''
+        return 'karvdash-volume-%s' % self.name
 
     @property
     def mount_dir(self):
@@ -117,12 +127,6 @@ class FileDomain(object):
         return FileDomainPathWorker(self, subpath_components)
 
 class PrivateFileDomain(FileDomain):
-    def __init__(self, url, mount_dir, username=None):
-        super().__init__(url, mount_dir, username)
-
-        if not self._username:
-            raise ValueError('Empty username')
-
     @property
     def name(self):
         return 'private'
@@ -133,11 +137,11 @@ class PrivateFileDomain(FileDomain):
 
     @property
     def user_dir(self):
-        return os.path.join(self._mount_dir, 'private', self._username)
+        return os.path.join(self._mount_dir, 'private', self._user.username)
 
     @property
     def url(self):
-        return 'file://%s' % os.path.join(self._url.path, 'private', self._username)
+        return 'file://%s' % os.path.join(self._url.path, 'private', self._user.username)
 
 class SharedFileDomain(FileDomain):
     @property

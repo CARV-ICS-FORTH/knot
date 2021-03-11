@@ -17,7 +17,6 @@ import random
 import string
 import json
 import yaml
-import socket
 import re
 import kubernetes
 
@@ -28,63 +27,12 @@ from urllib.parse import urlparse
 
 from .models import APIToken, User
 from .forms import CreateServiceForm, CreateDatasetForm
-from .datasets import LOCAL_S3_DATASET_TEMPLATE, REMOTE_S3_DATASET_TEMPLATE, HOSTPATH_DATASET_TEMPLATE
+from .datasets import LOCAL_S3_DATASET_TEMPLATE, REMOTE_S3_DATASET_TEMPLATE, HOSTPATH_DATASET_TEMPLATE # noqa: F401
 from .utils.template import Template, ServiceTemplate, FileTemplate
 from .utils.kubernetes import KubernetesClient
 from .utils.docker import DockerClient
 from .utils.base64 import base64_encode, base64_decode
 
-
-NAMESPACE_TEMPLATE = '''
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: $NAME
-  labels:
-    karvdash: enabled
----
-kind: RoleBinding
-apiVersion: rbac.authorization.k8s.io/v1
-metadata:
-  name: admin-binding
-  namespace: $NAME
-subjects:
-- kind: ServiceAccount
-  name: default
-  namespace: $NAME
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: ClusterRole
-  name: cluster-admin
----
-kind: Template
-name: Namespace
-variables:
-- name: NAME
-  default: user
-'''
-
-TOKEN_CONFIGMAP_TEMPLATE = '''
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: ${NAME}
-data:
-  config.ini: |
-    [Karvdash]
-    base_url = $BASE_URL
-    token = $TOKEN
----
-kind: Template
-name: TokenConfigMap
-variables:
-- name: NAME
-  default: user
-- name: BASE_URL
-  default: http://karvdash.default.svc/api
-- name: TOKEN
-  default: ""
-'''
 
 SERVICE_TEMPLATE_TEMPLATE = '''
 apiVersion: karvdash.carv.ics.forth.gr/v1
@@ -259,44 +207,8 @@ class ServiceResource(APIResource):
             f.write(template.yaml.encode())
 
         # Apply.
-        try:
-            if self.user.namespace not in [n.metadata.name for n in kubernetes_client.list_namespaces()]:
-                namespace_template = Template(NAMESPACE_TEMPLATE)
-                namespace_template.NAME = self.user.namespace
-
-                namespace_yaml = os.path.join(settings.SERVICE_DATABASE_DIR, '%s-namespace.yaml' % self.user.username)
-                with open(namespace_yaml, 'wb') as f:
-                    f.write(namespace_template.yaml.encode())
-
-                kubernetes_client.apply_yaml(namespace_yaml)
-                kubernetes_client.create_docker_registry_secret(self.user.namespace, settings.DOCKER_REGISTRY, 'admin@%s' % ingress_host)
-
-            if len(kubernetes_client.get_datasets(self.user.namespace)):
-                kubernetes_client.add_namespace_label(self.user.namespace, "monitor-pods-datasets")
-            else:
-                kubernetes_client.delete_namespace_label(self.user.namespace, "monitor-pods-datasets")
-
-            service_domain = settings.SERVICE_DOMAIN
-            if not service_domain:
-                # If running in Kubernetes this should be set.
-                service_host = socket.gethostbyname(socket.gethostname())
-                service_port = self.request.META['SERVER_PORT']
-                service_domain = '%s:%s' % (service_host, service_port)
-            api_template = Template(TOKEN_CONFIGMAP_TEMPLATE)
-            api_template.NAME = 'karvdash-api'
-            api_template.BASE_URL = 'http://%s/api' % service_domain
-            api_template.TOKEN = self.user.api_token.token # Get or create
-
-            api_yaml = os.path.join(settings.SERVICE_DATABASE_DIR, '%s-api.yaml' % self.user.username)
-            with open(api_yaml, 'wb') as f:
-                f.write(api_template.yaml.encode())
-
-            kubernetes_client.apply_yaml(api_yaml, namespace=self.user.namespace)
-
-            self.user.update_kubernetes_credentials(kubernetes_client=kubernetes_client)
-            kubernetes_client.apply_yaml(service_yaml, namespace=self.user.namespace)
-        except:
-            raise
+        self.user.update_kubernetes_credentials(kubernetes_client=kubernetes_client)
+        kubernetes_client.apply_yaml(service_yaml, namespace=self.user.namespace)
 
         service_template = template.format()
         service_template['values'] = template.values
@@ -451,6 +363,10 @@ class DatasetResource(APIResource):
         return [ServiceTemplate(LOCAL_S3_DATASET_TEMPLATE, identifier='s3-local'),
                 ServiceTemplate(REMOTE_S3_DATASET_TEMPLATE, identifier='s3-remote')]
 
+    def get_template(self, dataset_type):
+        dataset_templates = {'S3': Template(REMOTE_S3_DATASET_TEMPLATE)}
+        return dataset_templates[dataset_type]
+
     def get_dataset(self, name):
         for dataset in self.datasets:
             if dataset['name'] == name:
@@ -459,8 +375,36 @@ class DatasetResource(APIResource):
 
     @property
     def datasets(self):
+        contents = []
         kubernetes_client = KubernetesClient()
-        return kubernetes_client.get_datasets(self.user.namespace)
+        for dataset in kubernetes_client.list_crds(group='com.ie.ibm.hpsys', version='v1alpha1', namespace=self.user.namespace, plural='datasets'):
+            try:
+                if dataset['metadata']['labels']['karvdash-hidden'] == 'true':
+                    continue
+            except:
+                pass
+            try:
+                dataset_type = dataset['spec']['local']['type']
+                if dataset_type == 'COS':
+                    dataset_type = 'S3'
+                    endpoint = dataset['spec']['local']['endpoint']
+                    bucket = dataset['spec']['local']['bucket']
+                    region = dataset['spec']['local']['region']
+                # elif dataset_type == 'HOST':
+                #     dataset_type = 'HostPath'
+                #     endpoint = dataset['spec']['local']['path']
+                else:
+                    continue
+            except:
+                continue
+
+            contents.append({'name': dataset['metadata']['name'],
+                             'type': dataset_type,
+                             'endpoint': endpoint,
+                             'bucket': bucket,
+                             'region': region})
+
+        return contents
 
     def list(self):
         return self.datasets
