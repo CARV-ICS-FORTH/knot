@@ -188,8 +188,8 @@ class ServiceResource(APIResource):
 
         # Inject data folders.
         # if settings.DEBUG:
-        #     template.inject_hostpath_volumes(self.user.file_domains, add_api_settings=True)
-        #     template.inject_datasets(kubernetes_client.get_datasets(self.user.namespace))
+        #     template.inject_volumes(self.user.file_domains, add_api_settings=True)
+        #     template.inject_volumes(self.user.dataset_volumes)
 
         # Add template label and values.
         template.inject_service_details()
