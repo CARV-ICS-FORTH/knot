@@ -10,7 +10,7 @@ Check out the user guide and API documentation in [docs](https://github.com/CARV
 
 We use Kubernetes 1.19.x to develop, test, and run Karvdash.
 
-Karvdash includes service templates for [Zeppelin](https://zeppelin.apache.org) 0.9.0, [Argo](https://argoproj.github.io/argo/) (both [Argo Workflows](https://github.com/argoproj/argo) 2.10.1 and [Argo Events](https://github.com/argoproj/argo-events) 1.0.0), and other applications.
+Karvdash includes service templates for [Zeppelin](https://zeppelin.apache.org) 0.9.0, [Argo](https://argoproj.github.io/argo/) (both [Argo Workflows](https://github.com/argoproj/argo) 2.12.10 and [Argo Events](https://github.com/argoproj/argo-events) 1.2.3), and other applications.
 
 The Zeppelin template uses a Karvdash-specific Docker image which adds `kubectl` 1.19.8, the `argo` utility (at the same version as the Argo service template), `karvdashctl` to manage Karvdash services from a notebook, [Spark](http://spark.apache.org) 2.4.5 with [Hadoop](https://hadoop.apache.org) 2.7, as well as the [evolve](https://bitbucket.org/sunlightio/evolve_python_library/) Python library from [Sunlight.io](https://sunlight.io), that allows building Argo workflows in Python.
 

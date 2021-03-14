@@ -56,6 +56,7 @@ rules:
   verbs:
   - create
   - delete
+  - get
 - apiGroups:
   - argoproj.io
   resources:
@@ -138,6 +139,7 @@ rules:
   - secrets
   verbs:
   - get
+  - create
 - apiGroups:
   - ""
   resources:
@@ -152,15 +154,26 @@ rules:
 - apiGroups:
   - ""
   resources:
-  - secrets
+  - events
+  verbs:
+  - watch
+  - create
+  - patch
+- apiGroups:
+  - ""
+  resources:
+  - serviceaccounts
   verbs:
   - get
+  - list
 - apiGroups:
   - argoproj.io
   resources:
   - workflows
+  - workfloweventbindings
   - workflowtemplates
   - cronworkflows
+  - cronworkflows/finalizers
   verbs:
   - create
   - get
@@ -213,6 +226,19 @@ spec:
   selector:
     app: argo-server
 ---
+# apiVersion: v1
+# kind: Service
+# metadata:
+#   name: workflow-controller-metrics
+# spec:
+#   ports:
+#   - name: metrics
+#     port: 9090
+#     protocol: TCP
+#     targetPort: 9090
+#   selector:
+#     app: workflow-controller
+# ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -230,7 +256,7 @@ spec:
       - args:
         - server
         - --namespaced
-        image: argoproj/argocli:v2.10.1
+        image: argoproj/argocli:v2.12.10
         name: argo-server
         ports:
         - containerPort: 2746
@@ -242,9 +268,17 @@ spec:
             scheme: HTTP
           initialDelaySeconds: 10
           periodSeconds: 20
+        volumeMounts:
+        - mountPath: /tmp
+          name: tmp
       nodeSelector:
         kubernetes.io/os: linux
+      securityContext:
+        runAsNonRoot: true
       serviceAccountName: argo-server
+      volumes:
+      - emptyDir: {}
+        name: tmp
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -264,14 +298,25 @@ spec:
         - --configmap
         - workflow-controller-configmap
         - --executor-image
-        - argoproj/argoexec:v2.10.1
+        - argoproj/argoexec:v2.12.10
         - --namespaced
         command:
         - workflow-controller
-        image: argoproj/workflow-controller:v2.10.1
+        image: argoproj/workflow-controller:v2.12.10
+        livenessProbe:
+          httpGet:
+            path: /metrics
+            port: metrics
+          initialDelaySeconds: 30
+          periodSeconds: 30
         name: workflow-controller
+        ports:
+        - containerPort: 9090
+          name: metrics
       nodeSelector:
         kubernetes.io/os: linux
+      securityContext:
+        runAsNonRoot: true
       serviceAccountName: argo
 ---
 apiVersion: v1
@@ -392,7 +437,7 @@ spec:
           value: nats-streaming:0.17.0
         - name: NATS_METRICS_EXPORTER_IMAGE
           value: synadia/prometheus-nats-exporter:0.6.2
-        image: argoproj/eventbus-controller:v1.0.0
+        image: argoproj/eventbus-controller:v1.2.3
         imagePullPolicy: Always
         livenessProbe:
           httpGet:
@@ -407,6 +452,9 @@ spec:
             port: 8081
           initialDelaySeconds: 3
           periodSeconds: 3
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 9731
       serviceAccountName: argo-events-sa
 ---
 apiVersion: apps/v1
@@ -427,13 +475,13 @@ spec:
       - args:
         - --namespaced
         env:
+        - name: EVENTSOURCE_IMAGE
+          value: argoproj/eventsource:v1.2.3
         - name: NAMESPACE
           valueFrom:
             fieldRef:
               fieldPath: metadata.namespace
-        - name: EVENTSOURCE_IMAGE
-          value: argoproj/eventsource:v1.0.0
-        image: argoproj/eventsource-controller:v1.0.0
+        image: argoproj/eventsource-controller:v1.2.3
         imagePullPolicy: Always
         livenessProbe:
           httpGet:
@@ -448,6 +496,9 @@ spec:
             port: 8081
           initialDelaySeconds: 3
           periodSeconds: 3
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 9731
       serviceAccountName: argo-events-sa
 ---
 apiVersion: apps/v1
@@ -468,13 +519,13 @@ spec:
       - args:
         - --namespaced
         env:
+        - name: SENSOR_IMAGE
+          value: argoproj/sensor:v1.2.3
         - name: NAMESPACE
           valueFrom:
             fieldRef:
               fieldPath: metadata.namespace
-        - name: SENSOR_IMAGE
-          value: argoproj/sensor:v1.0.0
-        image: argoproj/sensor-controller:v1.0.0
+        image: argoproj/sensor-controller:v1.2.3
         livenessProbe:
           httpGet:
             path: /healthz
@@ -488,6 +539,9 @@ spec:
             port: 8081
           initialDelaySeconds: 3
           periodSeconds: 3
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 9731
       serviceAccountName: argo-events-sa
 ---
 kind: Template

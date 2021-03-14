@@ -7,7 +7,7 @@ ARG KUBECTL_VERSION=v1.19.8
 RUN curl -sSL -o /usr/local/bin/kubectl https://storage.googleapis.com/kubernetes-release/release/${KUBECTL_VERSION}/bin/linux/amd64/kubectl && \
     chmod +x /usr/local/bin/kubectl
 
-RUN curl -sSL -o /usr/local/bin/argo.gz https://github.com/argoproj/argo/releases/download/v2.10.1/argo-linux-amd64.gz && \
+RUN curl -sSL -o /usr/local/bin/argo.gz https://github.com/argoproj/argo/releases/download/v2.12.10/argo-linux-amd64.gz && \
     gunzip /usr/local/bin/argo.gz && \
     chmod +x /usr/local/bin/argo
 
