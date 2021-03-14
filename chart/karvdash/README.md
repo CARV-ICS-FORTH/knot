@@ -6,21 +6,26 @@ Check out the [compatibility](https://github.com/CARV-ICS-FORTH/karvdash/tree/ma
 
 ## Deployment
 
-Karvdash is deployed using Helm [Helm](https://helm.sh) (version 3).
+Karvdash is deployed using [Helm](https://helm.sh) (version 3).
 
 To install, you need a running Kubernetes environment with the following features:
-* An [ingress controller](https://kubernetes.github.io/ingress-nginx/) answering to a domain name and its wildcard (i.e. both `example.com` and `*.example.com` should both point to your server). You can use [xip.io](http://xip.io) if you don't have a DNS entry. We create the ingress using [this](https://artifacthub.io/packages/helm/ingress-nginx/ingress-nginx) Helm chart.
 * A private Docker registry. You can run one using the [official instructions](https://docs.docker.com/registry/deploying/), or use [this](https://artifacthub.io/packages/helm/twuni/docker-registry) Helm chart.
-* The [cert-manager](https://cert-manager.io) certificate management controller for Kubernetes. This is used for creating certificates automatically for the admission webhooks.
-* A shared filesystem mounted at the same path across all Kubernetes nodes, like NFS, [Gluster](https://www.gluster.org), or similar.
-* Optionally the [Dataset Lifecycle Framework](https://github.com/IBM/dataset-lifecycle-framework) deployed, in which case Karvdash can be used to configure datasets (the DLF should monitor all namespaces).
+* The [cert-manager](https://cert-manager.io) certificate management controller for Kubernetes. This is used for creating certificates automatically for the admission webhooks. We use [this](https://artifacthub.io/packages/helm/jetstack/cert-manager) Helm chart.
+* An [ingress controller](https://kubernetes.github.io/ingress-nginx/) answering to a domain name and its wildcard (i.e. both `example.com` and `*.example.com` should both point to your server). You can use [xip.io](http://xip.io) if you don't have a DNS entry. We use [this](https://artifacthub.io/packages/helm/ingress-nginx/ingress-nginx) Helm chart.
+* For persistent storage of Karvdash configuration, a shared filesystem mounted at the same path across all Kubernetes nodes, like NFS, [Gluster](https://www.gluster.org), or similar.
+* For files, either a shared filesystem like the one used for storing the configuration, or access to an S3 service based on [MinIO](https://min.io).
+* Optionally [Datashim](https://github.com/datashim-io/datashim), in which case Karvdash can be used to configure datasets (Datashim is required for files over S3).
 
-Also, make sure that the `default` service account in the `default` namespace (used by Karvdash), has administrator-level access to all namespaces, with `kubectl create clusterrolebinding default-cluster-admin --clusterrole=cluster-admin --serviceaccount=default:default`.
+Also, make sure that the `default` service account in the `default` namespace (used by Karvdash), has administrator-level access to all namespaces, with:
+
+```bash
+kubectl create clusterrolebinding default-cluster-admin --clusterrole=cluster-admin --serviceaccount=default:default
+```
 
 To deploy, first add the repo and then install. For example:
 
 ```bash
-helm repo add karvdash https://carv-ics-forth.github.io/karvdash
+helm repo add karvdash https://carv-ics-forth.github.io/karvdash/chart
 helm install karvdash karvdash/karvdash --namespace default \
     --set karvdash.ingressURL=https://example.com \
     --set karvdash.dockerRegistry=http://127.0.0.1:5000 \
@@ -51,9 +56,11 @@ Some of the variables set above are required. The table below lists all availabl
 | `karvdash.filesURL`               | &check;  | The base URL for the private and shared file domains.                  |                         |
 | `karvdash.allowedHostPathDirs`    |          | Other host paths to allow attaching to containers (separate with `:`). |                         |
 
+Set `karvdash.filesURL` to:
+* `file://<path>`, if using a node-wide, shared mountpoint for user files. Karvdash will create `private/<username>` and `shared` folders within.
+* `s3://<accessKeyID>:<secretAccessKey>@<host>:<port>/<prefix>`, to use MinIO for files. Karvdash will create `<prefix>-private-<userrname>` and `<prefix>-shared` buckets within.
 
-The required directory variables should be set to some folder inside the node-wide, shared mountpoint.
-
-The host path for persistent storage is used to store the database, running services repository, and template library. Create a `templates` directory inside `karvdash.persistentStorageDir` to add new service templates or override defaults (the ones in [templates](https://github.com/CARV-ICS-FORTH/karvdash/tree/master/templates)). Templates placed there will be available as read-only to all users.
+The host path for persistent storage is used to store the database, the running services repository, and the template library. Create a `templates` directory inside `karvdash.persistentStorageDir` to add new service templates or override defaults (the ones in [templates](https://github.com/CARV-ICS-FORTH/karvdash/tree/master/templates)). Templates placed there will be available as read-only to all users.
 
 To remove Karvdash, uninstall using `helm uninstall karvdash`, which will remove the service, admission webhooks, and RBAC rules, but not associated CRDs. You can use the YAML files in [crds](https://github.com/CARV-ICS-FORTH/karvdash/tree/master/chart/karvdash/crds) to remove them.
+

@@ -28,7 +28,7 @@ ZEPPELIN_GPU_IMAGE_TAG=$(REGISTRY_NAME)/karvdash-zeppelin-gpu:$(ZEPPELIN_VERSION
 DEPLOY_DIR=deploy
 CHART_DIR=./chart/karvdash
 
-.PHONY: all prepare-docker-desktop unprepare-docker-desktop deploy-docker-desktop undeploy-docker-desktop undeploy-crds service-containers service-containers-push container container-push
+.PHONY: all deploy-requirements undeploy-requirements deploy-crds undeploy-crds deploy-local undeploy-local prepare-develop service-containers service-containers-push container container-push
 
 all: container
 
@@ -36,7 +36,7 @@ $(DEPLOY_DIR)/localtest.me.key $(DEPLOY_DIR)/localtest.me.crt:
 	mkdir -p $(DEPLOY_DIR)
 	openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout $(DEPLOY_DIR)/localtest.me.key -out $(DEPLOY_DIR)/localtest.me.crt -subj "/CN=*.localtest.me/CN=localtest.me/O=localtest.me"
 
-prepare-docker-desktop: $(DEPLOY_DIR)/localtest.me.key $(DEPLOY_DIR)/localtest.me.crt
+deploy-requirements: $(DEPLOY_DIR)/localtest.me.key $(DEPLOY_DIR)/localtest.me.crt
 	if [[ `helm version --short` != v3* ]]; then echo "Can not find Helm 3 installed"; exit; fi
 	helm repo add twuni https://helm.twun.io
 	helm repo add jetstack https://charts.jetstack.io
@@ -68,7 +68,7 @@ prepare-docker-desktop: $(DEPLOY_DIR)/localtest.me.key $(DEPLOY_DIR)/localtest.m
 	kubectl apply -f https://raw.githubusercontent.com/IBM/dataset-lifecycle-framework/master/release-tools/manifests/dlf.yaml
 	kubectl wait --timeout=600s --for=condition=ready pods -l app.kubernetes.io/name=dlf -n dlf
 
-unprepare-docker-desktop:
+undeploy-requirements:
 	# Remove DLF
 	kubectl delete -f https://raw.githubusercontent.com/IBM/dataset-lifecycle-framework/master/release-tools/manifests/dlf.yaml
 	# Remove ingress
@@ -82,8 +82,16 @@ unprepare-docker-desktop:
 	helm uninstall registry --namespace registry
 	kubectl delete namespace registry
 
-deploy-docker-desktop: prepare-docker-desktop
-	# Directories needed for files
+deploy-crds:
+	kubectl apply -f $(CHART_DIR)/crds/karvdash-crd.yaml
+	kubectl apply -f $(CHART_DIR)/crds/argo-crd.yaml
+
+undeploy-crds:
+	kubectl delete -f $(CHART_DIR)/crds/argo-crd.yaml
+	kubectl delete -f $(CHART_DIR)/crds/karvdash-crd.yaml
+
+deploy-local: deploy-requirements
+	# Create default directories for private and shared data
 	mkdir -p private
 	mkdir -p shared
 	IP_ADDRESS=$$(ipconfig getifaddr en0 || ipconfig getifaddr en1); \
@@ -100,12 +108,21 @@ deploy-docker-desktop: prepare-docker-desktop
 	--set karvdash.persistentStorageDir="$(PWD)/db" \
 	--set karvdash.filesURL="file://$(PWD)"
 
-undeploy-crds:
-	kubectl delete -f $(CHART_DIR)/crds/argo-crd.yaml
-	kubectl delete -f $(CHART_DIR)/crds/karvdash-crd.yaml
-
-undeploy-docker-desktop: unprepare-docker-desktop undeploy-crds
+undeploy-local: undeploy-requirements undeploy-crds
 	helm uninstall karvdash --namespace default
+
+prepare-develop: deploy-crds
+	# Create default directories for private and shared data
+	mkdir -p private
+	mkdir -p shared
+	# Create the Python environment and prepare the application
+	if [[ ! -d venv ]]; then python3 -m venv venv; fi
+	if [[ -z "$${VIRTUAL_ENV}" ]]; then \
+		source venv/bin/activate; \
+		pip install -r requirements.txt; \
+		./manage.py migrate; \
+		./manage.py createadmin --noinput --username admin --password admin --email admin@example.com --preserve; \
+	fi
 
 service-containers:
 	docker build -f containers/zeppelin/Dockerfile --build-arg KUBECTL_VERSION=$(KUBECTL_VERSION) -t $(ZEPPELIN_IMAGE_TAG) .
