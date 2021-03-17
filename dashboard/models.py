@@ -119,35 +119,29 @@ class User(AuthUser):
 
         datasets = {}
         kubernetes_client = KubernetesClient()
-        for dataset in kubernetes_client.list_crds(group='com.ie.ibm.hpsys', version='v1alpha1', namespace=self.namespace, plural='datasets'):
-            try:
-                # Hidden datasets are included in file domains.
-                if dataset['metadata']['labels']['karvdash-hidden'] == 'true':
+        try:
+            for dataset in kubernetes_client.list_crds(group='com.ie.ibm.hpsys', version='v1alpha1', namespace=self.namespace, plural='datasets'):
+                try:
+                    # Hidden datasets are included in file domains.
+                    if dataset['metadata']['labels']['karvdash-hidden'] == 'true':
+                        continue
+                except:
+                    pass
+                try:
+                    dataset_type = dataset['spec']['local']['type']
+                    if dataset_type == 'COS':
+                        dataset_name = dataset['metadata']['name']
+                        datasets[dataset_name] = DatasetTuple(dataset_name, 'dataset://%s' % dataset_name, '/mnt/datasets/%s' % dataset_name)
+                    # elif dataset_type == 'HOST':
+                    #     pass
+                    else:
+                        continue
+                except:
                     continue
-            except:
-                pass
-            try:
-                dataset_type = dataset['spec']['local']['type']
-                if dataset_type == 'COS':
-                    dataset_name = dataset['metadata']['name']
-                    datasets[dataset_name] = DatasetTuple(dataset_name, 'dataset://%s' % dataset_name, '/mnt/datasets/%s' % dataset_name)
-                # elif dataset_type == 'HOST':
-                #     pass
-                else:
-                    continue
-            except:
-                continue
+        except:
+            pass
 
         return datasets
-
-        files_url = urlparse(settings.FILES_URL)
-        if files_url.scheme == 'file':
-            return {'private': PrivateFileDomain(settings.FILES_URL, settings.FILES_MOUNT_DIR, self),
-                    'shared': SharedFileDomain(settings.FILES_URL, settings.FILES_MOUNT_DIR, self)}
-        if files_url.scheme in ('minio', 'minios'):
-            return {'private': PrivateS3Domain(settings.FILES_URL, settings.FILES_MOUNT_DIR, self),
-                    'shared': SharedS3Domain(settings.FILES_URL, settings.FILES_MOUNT_DIR, self)}
-        raise ValueError('Unsupported URL for files')
 
     @property
     def api_token(self):
