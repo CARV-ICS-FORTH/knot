@@ -116,7 +116,7 @@ class ServiceResource(APIResource):
 
         contents = []
         ingresses = [i.metadata.name for i in kubernetes_client.list_ingresses(namespace=self.user.namespace)]
-        for service in kubernetes_client.list_services(namespace=self.user.namespace, label_selector=''):
+        for service in kubernetes_client.list_services(namespace=self.user.namespace, label_selector='karvdash-template'):
             name = service.metadata.name
             # ports = [str(p.port) for p in service.spec.ports if p.protocol == 'TCP']
             url = '%s://%s-%s.%s' % (ingress_url.scheme, name, self.user.username, ingress_host) if name in ingresses else None

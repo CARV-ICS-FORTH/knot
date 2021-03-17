@@ -103,6 +103,7 @@ def inject_service_details(yaml_data, template=None, values=None):
                 if 'annotations' not in part['metadata']:
                     part['metadata']['annotations'] = {}
                 part['metadata']['annotations']['karvdash-values'] = json.dumps(values)
+            return # Only mark the first service.
 
 def inject_ingress_auth(yaml_data, secret, realm, redirect_ssl=False):
     for part in yaml_data:
