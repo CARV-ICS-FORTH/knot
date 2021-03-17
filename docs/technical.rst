@@ -33,7 +33,7 @@ To convert a YAML deployment into a Karvdash service template:
 
 * Replace strings with variables where necessary.
 * Add a "Template" section with variable names, their default values and optional help text.
-* Make sure there is exactly one "Service" section named using the variable ``NAME``
+* Make sure there is exactly one "Service" section named using the variable ``NAME``. If the template contains multiple services, Karvdash will use the first one (you can skip previous services by labeling them with ``karvdash-hidden=true``).
 * Optionally have an "Ingress" section pointing to the service (the dashboard will provide a link to the hostname assigned to the ingress if there is one).
 
 The "Template" section should contain the following fields:

@@ -93,6 +93,11 @@ def validate_hostpath_volumes(yaml_data, file_domains, other_allowed_paths=[]):
 def inject_service_details(yaml_data, template=None, values=None):
     for part in yaml_data:
         if part.get('kind') == 'Service':
+            try:
+                if part['metadata']['labels']['karvdash-hidden'] == 'true':
+                    continue
+            except:
+                pass
             if 'metadata' not in part:
                 part['metadata'] = {}
             if template:
