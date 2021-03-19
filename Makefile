@@ -26,7 +26,7 @@ ZEPPELIN_IMAGE_TAG=$(REGISTRY_NAME)/karvdash-zeppelin:$(ZEPPELIN_VERSION)
 ZEPPELIN_GPU_IMAGE_TAG=$(REGISTRY_NAME)/karvdash-zeppelin-gpu:$(ZEPPELIN_VERSION)
 
 DEPLOY_DIR=deploy
-CHART_DIR=./chart/karvdash
+CHART_DIR=./chart
 
 .PHONY: all deploy-requirements undeploy-requirements deploy-crds undeploy-crds deploy-local undeploy-local prepare-develop service-containers service-containers-push container container-push
 
@@ -97,8 +97,7 @@ deploy-local: deploy-requirements
 	IP_ADDRESS=$$(ipconfig getifaddr en0 || ipconfig getifaddr en1); \
 	helm list -q | grep karvdash || \
 	helm install karvdash $(CHART_DIR) --namespace default \
-	--set image.namespace="$(REGISTRY_NAME)" \
-	--set image.tag="$(KARVDASH_VERSION)" \
+	--set image="$(KARVDASH_IMAGE_TAG)" \
 	--set karvdash.djangoSecret="JWFkJiU0KiF4cGYqJHdkM150NTYrI29kZTQ9QHleanVfdCtqOWYrMjBhanN0YV5nb2c=" \
 	--set karvdash.djangoDebug="1" \
 	--set karvdash.dashboardTitle="Karvdash on Docker Desktop" \

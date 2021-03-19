@@ -30,7 +30,7 @@ spec:
         - name: {{ .Release.Name }}-webhook-secret
           mountPath: /etc/ssl/keys
           readOnly: true
-      - image: {{ printf "%s/karvdash:%s" .Values.image.namespace .Values.image.tag }}
+      - image: {{- if .Values.image }} {{ .Values.image }} {{- else }} carvicsforth/karvdash:{{ .Chart.Version }} {{- end }}
         name: karvdash
         env:
         - name: DJANGO_SECRET

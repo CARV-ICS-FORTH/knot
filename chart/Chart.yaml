@@ -1,9 +1,8 @@
 apiVersion: v2
 name: karvdash
-description: Karvdash Helm chart
+description: Karvdash provides a complete software stack for performing data science on Kubernetes
 type: application
-version: 1.0.0
+version: 0
 kubeVersion: ">= 1.15.0"
 sources:
 - https://github.com/CARV-ICS-FORTH/karvdash
-appVersion: 1.9.0
