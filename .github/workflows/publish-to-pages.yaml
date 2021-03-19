@@ -1,8 +1,8 @@
 name: Publish to pages
 on:
   push:
-    branches:
-      - master
+    tags:
+      - '*'
 jobs:
   build:
     name: Publish to pages
