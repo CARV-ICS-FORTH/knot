@@ -11,8 +11,10 @@ ingress:
   bodySize: 4096m
 
 karvdash:
-  # REQUIRED: The host path for persistent storage (database, running services repository, template library).
-  persistentStorageDir:
+  # REQUIRED: If set, use this persistent volume claim for persistent storage (database, running services repository, template library).
+  persistentVolumeClaim:
+  # REQUIRED: The host path to use for persistent storage, when no existing claim is set.
+  persistentHostPath:
 
   # Secret for Django. Use a random string of 50 characters (a default will be generated if empty).
   djangoSecret:

@@ -73,7 +73,7 @@ spec:
         volumeMounts:
         - name: docker-socket
           mountPath: /var/run/docker.sock
-        - name: {{ .Release.Name }}-persistent-storage
+        - name: {{ .Release.Name }}-persistent-volume
           mountPath: /db
         {{- if eq $filesURL.scheme "file" }}
         - name: {{ .Release.Name }}-private-volume
@@ -92,9 +92,9 @@ spec:
       - name: docker-socket
         hostPath:
           path: /var/run/docker.sock
-      - name: {{ .Release.Name }}-persistent-storage
-        hostPath:
-          path: {{ required "You must set karvdash.persistentStorageDir to the host path for persistent storage (database, running services repository, template library)" .Values.karvdash.persistentStorageDir | quote }}
+      - name: {{ .Release.Name }}-persistent-volume
+        persistentVolumeClaim:
+          claimName: {{- if .Values.karvdash.persistentVolumeClaim }} {{ .Values.karvdash.persistentVolumeClaim }} {{- else }} {{ .Release.Name }}-pvc {{- end }}
       {{- if eq $filesURL.scheme "file" }}
       - name: {{ .Release.Name }}-private-volume
         hostPath:

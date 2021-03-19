@@ -44,14 +44,14 @@ deploy-requirements: $(DEPLOY_DIR)/localtest.me.key $(DEPLOY_DIR)/localtest.me.c
 	helm repo update
 	# Deploy registry
 	kubectl create namespace registry || true
-	helm list -q | grep registry || \
+	helm list -n registry -q | grep registry || \
 	helm install registry twuni/docker-registry --version 1.10.0 --namespace registry \
 	--set persistence.enabled=true \
 	--set persistence.deleteEnabled=true \
 	--set service.type=LoadBalancer
 	# Deploy cert-manager
 	kubectl create namespace cert-manager || true
-	helm list -q | grep cert-manager || \
+	helm list -n cert-manager -q | grep cert-manager || \
 	helm install cert-manager jetstack/cert-manager --version v1.1.0 --namespace cert-manager \
 	--set installCRDs=true
 	# Deploy ingress
@@ -60,7 +60,7 @@ deploy-requirements: $(DEPLOY_DIR)/localtest.me.key $(DEPLOY_DIR)/localtest.me.c
 	kubectl create secret tls ssl-certificate -n ingress-nginx \
 	--cert=$(DEPLOY_DIR)/localtest.me.crt \
 	--key=$(DEPLOY_DIR)/localtest.me.key
-	helm list -q | grep ingress || \
+	helm list -n ingress-nginx -q | grep ingress || \
 	helm install ingress ingress-nginx/ingress-nginx --version 3.19.0 --namespace ingress-nginx \
 	--set controller.extraArgs.default-ssl-certificate=ingress-nginx/ssl-certificate \
 	--set controller.admissionWebhooks.enabled=false
@@ -105,7 +105,7 @@ deploy-local: deploy-requirements
 	--set karvdash.ingressURL="https://localtest.me" \
 	--set karvdash.dockerRegistry="http://$$IP_ADDRESS:5000" \
 	--set karvdash.datasetsAvailable="1" \
-	--set karvdash.persistentStorageDir="$(PWD)/db" \
+	--set karvdash.persistentHostPath="$(PWD)/db" \
 	--set karvdash.filesURL="file://$(PWD)"
 
 undeploy-local: undeploy-requirements undeploy-crds
