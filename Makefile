@@ -21,7 +21,7 @@ KARVDASH_VERSION=$(shell cat VERSION)
 KARVDASH_IMAGE_TAG=$(REGISTRY_NAME)/karvdash:$(KARVDASH_VERSION)
 
 # This should match the version used in Zeppelin templates (we use <Zeppelin version>.<build>).
-ZEPPELIN_VERSION=0.9.0.5
+ZEPPELIN_VERSION=0.9.0.6
 ZEPPELIN_IMAGE_TAG=$(REGISTRY_NAME)/karvdash-zeppelin:$(ZEPPELIN_VERSION)
 ZEPPELIN_GPU_IMAGE_TAG=$(REGISTRY_NAME)/karvdash-zeppelin-gpu:$(ZEPPELIN_VERSION)
 
