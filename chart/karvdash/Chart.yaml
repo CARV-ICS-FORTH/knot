@@ -2,7 +2,7 @@ apiVersion: v2
 name: karvdash
 description: Karvdash provides a complete software stack for performing data science on Kubernetes
 type: application
-version: 0
+version: 0.0.0
 kubeVersion: ">= 1.15.0"
 sources:
 - https://github.com/CARV-ICS-FORTH/karvdash

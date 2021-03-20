@@ -28,7 +28,7 @@ ZEPPELIN_GPU_IMAGE_TAG=$(REGISTRY_NAME)/karvdash-zeppelin-gpu:$(ZEPPELIN_VERSION
 DEPLOY_DIR=deploy
 CHART_DIR=./chart
 
-.PHONY: all deploy-requirements undeploy-requirements deploy-crds undeploy-crds deploy-local undeploy-local prepare-develop service-containers service-containers-push container container-push
+.PHONY: all deploy-requirements undeploy-requirements deploy-crds undeploy-crds deploy-local undeploy-local prepare-develop service-containers service-containers-push container container-push release
 
 all: container
 
@@ -37,7 +37,7 @@ $(DEPLOY_DIR)/localtest.me.key $(DEPLOY_DIR)/localtest.me.crt:
 	openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout $(DEPLOY_DIR)/localtest.me.key -out $(DEPLOY_DIR)/localtest.me.crt -subj "/CN=*.localtest.me/CN=localtest.me/O=localtest.me"
 
 deploy-requirements: $(DEPLOY_DIR)/localtest.me.key $(DEPLOY_DIR)/localtest.me.crt
-	if [[ `helm version --short` != v3* ]]; then echo "Can not find Helm 3 installed"; exit; fi
+	if [[ `helm version --short` != v3* ]]; then echo "Can not find Helm 3 installed"; exit 1; fi
 	helm repo add twuni https://helm.twun.io
 	helm repo add jetstack https://charts.jetstack.io
 	helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
@@ -136,3 +136,12 @@ container:
 
 container-push:
 	docker push $(KARVDASH_IMAGE_TAG)
+
+release:
+	if [[ -z "$${VERSION}" ]]; then echo "VERSION is not set"; exit 1; fi
+	echo "${VERSION}" > VERSION
+	git add VERSION
+	git commit -m "Bump version"
+	git tag ${VERSION}
+	git push
+	git push origin ${VERSION}
