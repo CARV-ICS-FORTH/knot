@@ -1,15 +1,51 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
+  name: {{ .Release.Name }}-proxy
+  labels:
+    app: {{ .Release.Name }}
+    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+data:
+  default.conf: |
+    log_format custom '$http_x_forwarded_for - $sent_http_x_log_user [$time_local] "$request" '
+                      '$status $body_bytes_sent "$http_referer" "$http_user_agent"';
+
+    server {
+        listen 80;
+        server_name {{ .Release.Name }}.{{ .Release.Namespace }}.svc;
+
+        access_log /var/log/nginx/access.log custom;
+
+        location / {
+            proxy_set_header    Host $host;
+            proxy_set_header    X-Real-IP $remote_addr;
+            proxy_set_header    X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header    X-Forwarded-Proto $scheme;
+
+            proxy_pass          http://127.0.0.1:8000;
+            proxy_read_timeout  30;
+
+            proxy_redirect      http://127.0.0.1:8000 http://{{ .Release.Name }}.{{ .Release.Namespace }}.svc;
+        }
+    }
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
   name: {{ .Release.Name }}-webhook
   labels:
     app: {{ .Release.Name }}
     chart: {{ .Chart.Name }}-{{ .Chart.Version }}
 data:
   default.conf: |
+    log_format custom '$remote_addr - $sent_http_x_log_user [$time_local] "$request" '
+                      '$status $body_bytes_sent "$http_referer" "$http_user_agent"';
+
     server {
         listen 443 ssl;
         server_name {{ .Release.Name }}.{{ .Release.Namespace }}.svc;
+
+        access_log /var/log/nginx/access.log custom;
 
         ssl_certificate         /etc/ssl/keys/tls.crt;
         ssl_certificate_key     /etc/ssl/keys/tls.key;
@@ -25,10 +61,9 @@ data:
             proxy_set_header    X-Forwarded-For $proxy_add_x_forwarded_for;
             proxy_set_header    X-Forwarded-Proto $scheme;
 
-            # Fix the “It appears that your reverse proxy set up is broken" error.
-            proxy_pass          http://127.0.0.1:80;
+            proxy_pass          http://127.0.0.1:8000;
             proxy_read_timeout  30;
 
-            proxy_redirect      http://127.0.0.1:80 https://{{ .Release.Name }}.{{ .Release.Namespace }}.svc;
+            proxy_redirect      http://127.0.0.1:8000 https://{{ .Release.Name }}.{{ .Release.Namespace }}.svc;
         }
     }

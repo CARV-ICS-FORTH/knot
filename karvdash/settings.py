@@ -67,6 +67,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'impersonate.middleware.ImpersonateMiddleware',
+    'karvdash.middleware.AddLogUserHeaderMiddleware',
 ]
 
 ROOT_URLCONF = 'karvdash.urls'

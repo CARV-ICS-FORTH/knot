@@ -35,7 +35,7 @@ VOLUME /db
 VOLUME /private
 VOLUME /shared
 
-EXPOSE 80
+EXPOSE 8000
 
 ENV DJANGO_SECRET %ad&%4*!xpf*$wd3^t56+#ode4=@y^ju_t+j9f+20ajsta^gog
 ENV DJANGO_DEBUG 1

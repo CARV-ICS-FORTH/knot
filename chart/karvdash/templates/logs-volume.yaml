@@ -1,15 +1,15 @@
-{{- if not .Values.karvdash.persistentVolumeClaim }}
+{{- if and (not .Values.karvdash.logsVolumeClaim) .Values.karvdash.logsHostPath }}
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: {{ .Release.Name }}-pvc
+  name: {{ .Release.Name }}-logs-pvc
   labels:
     app: {{ .Release.Name }}
     chart: {{ .Chart.Name }}-{{ .Chart.Version }}
 spec:
-  storageClassName: karvdash
+  storageClassName: karvdash-logs
   accessModes:
-    - ReadWriteOnce
+    - ReadWriteMany
   resources:
     requests:
       storage: 10Gi
@@ -17,16 +17,16 @@ spec:
 apiVersion: v1
 kind: PersistentVolume
 metadata:
-  name: {{ .Release.Name }}-pv
+  name: {{ .Release.Name }}-logs-pv
   labels:
     app: {{ .Release.Name }}
     chart: {{ .Chart.Name }}-{{ .Chart.Version }}
 spec:
-  storageClassName: karvdash
+  storageClassName: karvdash-logs
   capacity:
     storage: 10Gi
   accessModes:
-    - ReadWriteOnce
+    - ReadWriteMany
   hostPath:
-    path: {{ required "You must set karvdash.persistentHostPath to the host path for persistent storage, since no existing claim is set" .Values.karvdash.persistentHostPath | quote }}
+    path: {{ .Values.karvdash.logsHostPath | quote }}
 {{- end }}

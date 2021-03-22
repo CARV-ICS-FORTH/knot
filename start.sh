@@ -8,4 +8,4 @@ export KARVDASH_FILES_MOUNT_DIR=/
 python manage.py migrate
 python manage.py createadmin --noinput --username admin --password $ADMIN_PASSWORD --email admin@example.com --preserve
 
-gunicorn -w 4 -b 0.0.0.0:80 karvdash.wsgi:application
+gunicorn -w 4 -b 0.0.0.0:8000 karvdash.wsgi:application

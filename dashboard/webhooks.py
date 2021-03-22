@@ -46,11 +46,13 @@ def mutate(request):
     patch = jsonpatch.JsonPatch.from_diff(data['request']['object'], service)
     encoded_patch = base64.b64encode(patch.to_string().encode('utf-8')).decode('utf-8')
 
-    return JsonResponse({'response': {'uid': uid,
-                                      'allowed': True,
-                                      'status': {'message': 'Adding Karvdash volumes and API settings'},
-                                      'patchType': 'JSONPatch',
-                                      'patch': encoded_patch}})
+    response = JsonResponse({'response': {'uid': uid,
+                                          'allowed': True,
+                                          'status': {'message': 'Adding Karvdash volumes and API settings'},
+                                          'patchType': 'JSONPatch',
+                                          'patch': encoded_patch}})
+    response['X-Log-User'] = user.username
+    return response
 
 @require_POST
 @csrf_exempt
@@ -67,6 +69,8 @@ def validate(request):
     except:
         return HttpResponseBadRequest()
 
-    return JsonResponse({'response': {'uid': uid,
-                                      'allowed': validate_hostpath_volumes([service], user.file_domains, other_allowed_paths=settings.ALLOWED_HOSTPATH_DIRS),
-                                      'status': {'message': 'Checking for unauthorized hostPath volumes'}}})
+    response = JsonResponse({'response': {'uid': uid,
+                                          'allowed': validate_hostpath_volumes([service], user.file_domains, other_allowed_paths=settings.ALLOWED_HOSTPATH_DIRS),
+                                          'status': {'message': 'Checking for unauthorized hostPath volumes'}}})
+    response['X-Log-User'] = user.username
+    return response

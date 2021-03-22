@@ -104,7 +104,7 @@ deploy-local: deploy-requirements
 	--set karvdash.ingressURL="https://localtest.me" \
 	--set karvdash.dockerRegistry="http://$$IP_ADDRESS:5000" \
 	--set karvdash.datasetsAvailable="1" \
-	--set karvdash.persistentHostPath="$(PWD)/db" \
+	--set karvdash.stateHostPath="$(PWD)/db" \
 	--set karvdash.filesURL="file://$(PWD)"
 
 undeploy-local: undeploy-requirements undeploy-crds
