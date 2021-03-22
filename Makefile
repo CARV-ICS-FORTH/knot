@@ -143,5 +143,6 @@ release:
 	git add VERSION
 	git commit -m "Bump version"
 	git tag ${VERSION}
-	git push
-	git push origin ${VERSION}
+	# make container && make container-push
+	# make service-containers && make service-containers-push
+	# git push && git push --tags
