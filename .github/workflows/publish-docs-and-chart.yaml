@@ -40,7 +40,7 @@ jobs:
           VERSION=$(cat ./VERSION)
           echo "VERSION=${VERSION##*v}" >> $GITHUB_ENV
       - name: Publish chart to GitHub Pages
-        if: ! contains(env.VERSION, 'b')
+        if: ${{ !contains(env.VERSION, 'b') }}
         uses: stefanprodan/helm-gh-pages@master
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
