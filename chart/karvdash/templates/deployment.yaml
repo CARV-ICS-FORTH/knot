@@ -55,7 +55,7 @@ spec:
           mountPath: /var/log/nginx
           subPath: webhook
         {{- end }}
-      - image: {{- if .Values.image }} {{ .Values.image }} {{- else }} carvicsforth/karvdash:{{ .Chart.Version }} {{- end }}
+      - image: {{- if .Values.image }} {{ .Values.image }} {{- else }} carvicsforth/karvdash:v{{ .Chart.Version }} {{- end }}
         name: karvdash
         env:
         - name: DJANGO_SECRET

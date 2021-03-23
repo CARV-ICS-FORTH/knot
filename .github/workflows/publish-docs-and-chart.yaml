@@ -1,5 +1,6 @@
 name: Publish docs and chart
 on:
+  workflow_dispatch:
   push:
     tags:
       - 'v*'
