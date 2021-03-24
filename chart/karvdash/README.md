@@ -54,7 +54,7 @@ Some of the variables set above are required. The table below lists all availabl
 
 Set `karvdash.filesURL` to:
 * `file://<path>`, if using a node-wide, shared mountpoint for user files. Karvdash will create `private/<username>` and `shared` folders within.
-* `s3://<accessKeyID>:<secretAccessKey>@<host>:<port>/<prefix>`, to use MinIO for files. Karvdash will create `<prefix>-private-<userrname>` and `<prefix>-shared` buckets within.
+* `minio://<accessKeyID>:<secretAccessKey>@<host>:<port>/<prefix>` or `minios://...`, to use MinIO for files (`minios` for MinIO over SSL). Karvdash will create `<prefix>-private-<userrname>` and `<prefix>-shared` buckets within.
 
 The state volume is used to store the database, the running services repository, and the template library. You can either use an existing peristent storage claim with `karvdash.stateVolumeClaim`, or set `karvdash.stateHostPath` to automatically create one (this must accessible by all nodes). Create a `templates` directory inside the state volume to add new service templates or override defaults (the ones in [templates](https://github.com/CARV-ICS-FORTH/karvdash/tree/master/templates)). Templates placed there will be available as read-only to all users.
 
