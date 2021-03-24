@@ -130,7 +130,7 @@ variables:
   default: "https://s3.amazonaws.com"
   help: S3 service endpoint URL
 - name: SECRETNAME
-  label: Name of secret containing the Access Key ID and Secret Access Key
+  label: Secret Containing the Access Key ID and Secret Access Key
   default: ""
 - name: BUCKET
   default: ""
@@ -139,24 +139,97 @@ variables:
   help: Optional
 '''
 
-HOSTPATH_DATASET_TEMPLATE = '''
+LOCAL_H3_DATASET_TEMPLATE = '''
 apiVersion: com.ie.ibm.hpsys/v1alpha1
 kind: Dataset
 metadata:
   name: $NAME
 spec:
   local:
-    type: "HOST"
-    path: $ENDPOINT
-    hostPathType: Directory
+    type: "H3"
+    storageUri: "redis://${REDIS}.${NAMESPACE}.svc"
+    bucket: $BUCKET
 ---
 kind: Template
-name: HostPath
-description: Dataset for local host path
+name: H3 (local)
+description: Dataset for H3 over running Redis-compatible service
+variables:
+- name: NAMESPACE
+  default: default
+- name: NAME
+  default: dataset
+- name: REDIS
+  label: Redis-compatible Service Name
+  default: ""
+  help: In current namespace and listening at port 6379
+- name: BUCKET
+  default: ""
+'''
+
+REMOTE_H3_DATASET_TEMPLATE = '''
+apiVersion: com.ie.ibm.hpsys/v1alpha1
+kind: Dataset
+metadata:
+  name: $NAME
+spec:
+  local:
+    type: "H3"
+    storageUri: $STORAGEURI
+    bucket: $BUCKET
+---
+kind: Template
+name: H3 (remote)
+description: Dataset for H3 over remote key-value service
 variables:
 - name: NAME
   default: dataset
-- name: ENDPOINT
-  default: "/tmp"
-  help: Existing local host path
+- name: STORAGEURI
+  label: H3 Storage URI
+  default: "redis://example.com"
+- name: BUCKET
+  default: ""
 '''
+
+ARCHIVE_DATASET_TEMPLATE = '''
+apiVersion: com.ie.ibm.hpsys/v1alpha1
+kind: Dataset
+metadata:
+  name: $NAME
+spec:
+  local:
+    type: "ARCHIVE"
+    url: $URL
+    format: "application/x-tar"
+---
+kind: Template
+name: Archive
+description: Dataset for remote archive
+variables:
+- name: NAME
+  default: dataset
+- name: URL
+  label: Archive URL
+  default: "http://example.com/archive.tar.gz"
+'''
+
+# HOSTPATH_DATASET_TEMPLATE = '''
+# apiVersion: com.ie.ibm.hpsys/v1alpha1
+# kind: Dataset
+# metadata:
+#   name: $NAME
+# spec:
+#   local:
+#     type: "HOST"
+#     path: $ENDPOINT
+#     hostPathType: Directory
+# ---
+# kind: Template
+# name: HostPath
+# description: Dataset for local host path
+# variables:
+# - name: NAME
+#   default: dataset
+# - name: ENDPOINT
+#   default: "/tmp"
+#   help: Existing local host path
+# '''

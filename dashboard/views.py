@@ -423,9 +423,20 @@ def datasets(request):
     contents = []
     try:
         for dataset in dataset_resource.list():
-            contents.append({'name': dataset['name'],
-                             'type': dataset['type'],
-                             'endpoint': '%s/%s' % (dataset['endpoint'], dataset['bucket'])})
+            try:
+                dataset_type = dataset['type']
+                if dataset_type == 'COS':
+                    dataset_type = 'S3'
+                    endpoint = '%s/%s' % (dataset['endpoint'], dataset['bucket'])
+                elif dataset_type == 'H3':
+                    endpoint = '%s/%s' % (dataset['storageUri'], dataset['bucket'])
+                elif dataset_type == 'ARCHIVE':
+                    endpoint = dataset['url']
+                contents.append({'name': dataset['name'],
+                                 'type': dataset_type,
+                                 'endpoint': endpoint})
+            except:
+                pass
     except:
         messages.error(request, 'Can not connect to Kubernetes.')
 
@@ -649,8 +660,8 @@ def files(request, path='/'):
 
     # Fill in the contents.
     contents = path_worker.listdir()
-    for c in contents:
-        c.update({'url': reverse('files', args=[os.path.join(path, c['name'])])})
+    for content in contents:
+        content.update({'url': reverse('files', args=[os.path.join(path, content['name'])])})
 
     # Sort them up.
     sort_by = request.GET.get('sort_by')

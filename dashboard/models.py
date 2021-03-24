@@ -129,11 +129,9 @@ class User(AuthUser):
                     pass
                 try:
                     dataset_type = dataset['spec']['local']['type']
-                    if dataset_type == 'COS':
+                    if dataset_type in ('COS', 'H3', 'ARCHIVE'):
                         dataset_name = dataset['metadata']['name']
                         datasets[dataset_name] = DatasetTuple(dataset_name, 'dataset://%s' % dataset_name, '/mnt/datasets/%s' % dataset_name)
-                    # elif dataset_type == 'HOST':
-                    #     pass
                     else:
                         continue
                 except:

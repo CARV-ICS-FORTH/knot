@@ -27,7 +27,7 @@ from urllib.parse import urlparse
 
 from .models import APIToken, User
 from .forms import CreateServiceForm, CreateDatasetForm
-from .datasets import LOCAL_S3_DATASET_TEMPLATE, REMOTE_S3_DATASET_TEMPLATE, HOSTPATH_DATASET_TEMPLATE # noqa: F401
+from .datasets import LOCAL_S3_DATASET_TEMPLATE, REMOTE_S3_DATASET_TEMPLATE, LOCAL_H3_DATASET_TEMPLATE, REMOTE_H3_DATASET_TEMPLATE, ARCHIVE_DATASET_TEMPLATE
 from .utils.template import Template, ServiceTemplate, FileTemplate
 from .utils.kubernetes import KubernetesClient
 from .utils.docker import DockerClient
@@ -357,14 +357,16 @@ class DatasetResource(APIResource):
 
     @property
     def dataset_templates(self):
-        # return [ServiceTemplate(LOCAL_S3_DATASET_TEMPLATE, identifier='s3-local'),
-        #         ServiceTemplate(REMOTE_S3_DATASET_TEMPLATE, identifier='s3-remote'),
-        #         ServiceTemplate(HOSTPATH_DATASET_TEMPLATE, identifier='hostpath')]
         return [ServiceTemplate(LOCAL_S3_DATASET_TEMPLATE, identifier='s3-local'),
-                ServiceTemplate(REMOTE_S3_DATASET_TEMPLATE, identifier='s3-remote')]
+                ServiceTemplate(REMOTE_S3_DATASET_TEMPLATE, identifier='s3-remote'),
+                ServiceTemplate(LOCAL_H3_DATASET_TEMPLATE, identifier='h3-local'),
+                ServiceTemplate(REMOTE_H3_DATASET_TEMPLATE, identifier='h3-remote'),
+                ServiceTemplate(ARCHIVE_DATASET_TEMPLATE, identifier='archive')]
 
     def get_template(self, dataset_type):
-        dataset_templates = {'S3': Template(REMOTE_S3_DATASET_TEMPLATE)}
+        dataset_templates = {'COS': Template(REMOTE_S3_DATASET_TEMPLATE),
+                             'H3': Template(REMOTE_H3_DATASET_TEMPLATE),
+                             'ARCHIVE': Template(ARCHIVE_DATASET_TEMPLATE)}
         return dataset_templates[dataset_type]
 
     def get_dataset(self, name):
@@ -385,24 +387,10 @@ class DatasetResource(APIResource):
                 pass
             try:
                 dataset_type = dataset['spec']['local']['type']
-                if dataset_type == 'COS':
-                    dataset_type = 'S3'
-                    endpoint = dataset['spec']['local']['endpoint']
-                    bucket = dataset['spec']['local']['bucket']
-                    region = dataset['spec']['local']['region']
-                # elif dataset_type == 'HOST':
-                #     dataset_type = 'HostPath'
-                #     endpoint = dataset['spec']['local']['path']
-                else:
-                    continue
+                if dataset_type in ('COS', 'H3', 'ARCHIVE'):
+                    contents.append({'name': dataset['metadata']['name'], **dataset['spec']['local']})
             except:
                 continue
-
-            contents.append({'name': dataset['metadata']['name'],
-                             'type': dataset_type,
-                             'endpoint': endpoint,
-                             'bucket': bucket,
-                             'region': region})
 
         return contents
 
