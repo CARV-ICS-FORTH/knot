@@ -29,6 +29,7 @@ To install, you need a running Kubernetes environment with the following feature
 * For storage of Karvdash state, an existing persistent volume claim, or a directory in a shared filesystem mounted at the same path across all Kubernetes nodes, like NFS, [Gluster](https://www.gluster.org), or similar.
 * For files, either a shared filesystem like the one used for storing the configuration, or access to an S3 service based on [MinIO](https://min.io).
 * Optionally [Datashim](https://github.com/datashim-io/datashim), in which case Karvdash can be used to configure datasets (Datashim is required for files over S3).
+* Optionally the [kube-prometheus-stack](https://github.com/prometheus-community/helm-charts/tree/main/charts/kube-prometheus-stack), for supporting the "Argo Metrics" template (a template that automatically creates a Prometheus/Grafana stack for collecting metrics from Argo). We use [this](https://artifacthub.io/packages/helm/prometheus-community/kube-prometheus-stack) Helm chart.
 
 To deploy, first add the repo and then install. For example:
 
