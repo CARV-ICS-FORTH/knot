@@ -2,6 +2,19 @@ apiVersion: v1
 entries:
   karvdash:
   - apiVersion: v2
+    created: "2021-04-14T10:59:53.350750644Z"
+    description: Karvdash provides a complete software stack for performing data science
+      on Kubernetes
+    digest: d4ee54dd71c5363f4b4749f2ce99f1ff68f31837a577c9862662f4a043b66b7b
+    kubeVersion: '>= 1.15.0'
+    name: karvdash
+    sources:
+    - https://github.com/CARV-ICS-FORTH/karvdash
+    type: application
+    urls:
+    - https://CARV-ICS-FORTH.github.io/karvdash/chart/karvdash-2.1.0.tgz
+    version: 2.1.0
+  - apiVersion: v2
     created: "2021-03-23T11:18:20.107824221Z"
     description: Karvdash provides a complete software stack for performing data science
       on Kubernetes
@@ -14,4 +27,4 @@ entries:
     urls:
     - https://CARV-ICS-FORTH.github.io/karvdash/chart/karvdash-2.0.0.tgz
     version: 2.0.0
-generated: "2021-03-23T11:18:20.105022721Z"
+generated: "2021-04-14T10:59:53.349847351Z"
