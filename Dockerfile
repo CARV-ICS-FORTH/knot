@@ -1,5 +1,7 @@
 FROM python:3.7.9-slim
 
+ARG TARGETARCH
+
 ENV PYTHONUNBUFFERED 1
 
 COPY . /app
