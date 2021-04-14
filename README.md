@@ -8,7 +8,7 @@ Check out the [user guide and API documentation](https://carv-ics-forth.github.i
 
 ## Compatibility
 
-We use Kubernetes 1.19.x to develop, test, and run Karvdash.
+We use Kubernetes 1.19.x to develop, test, and run Karvdash on both `amd64` and `arm64` architectures.
 
 Karvdash includes service templates for [Zeppelin](https://zeppelin.apache.org) 0.9.0, [Argo](https://argoproj.github.io) (both [Argo Workflows](https://github.com/argoproj/argo) 2.12.10 and [Argo Events](https://github.com/argoproj/argo-events) 1.2.3), and other applications.
 
@@ -17,6 +17,8 @@ The Zeppelin template uses a Karvdash-specific Docker image which adds `kubectl`
 The Zeppelin "with GPU support" template uses the above image with [CUDA](https://developer.nvidia.com/cuda-toolkit) 10.1 and [TensorFlow](http://www.tensorflow.org) 2.3.2 preinstalled, as well as the necessary directives to place the resulting container in a node with a GPU.
 
 If your application requirements differ, you will need to create custom Docker images and service templates.
+
+> :warning: **`arm64` support is experimental:** Zeppelin and some other services do not currently work on `arm64`.
 
 ## Deployment
 
@@ -94,22 +96,24 @@ kubectl create clusterrolebinding default-cluster-admin --clusterrole=cluster-ad
 
 ## Building images
 
-Docker images for Karvdash are [available](https://hub.docker.com/r/carvicsforth/karvdash). To build your own, run:
+Docker images for Karvdash are [available](https://hub.docker.com/r/carvicsforth/karvdash). To build your own locally, run:
 ```bash
 make container
 ```
 
-Change the version by editing `VERSION`. The image uses `kubectl` 1.19.8 by default, but this can be changed by setting the `KUBECTL_VERSION` variable before running `make`. You can also set your Docker account in `REGISTRY_NAME`.
+To change the version, edit `VERSION`. The image uses `kubectl` 1.19.8 by default, but this can be changed by setting the `KUBECTL_VERSION` variable before running `make`. You can also set your Docker account in `REGISTRY_NAME`.
 
 To test the container in a local Kubernetes environment, run the following and then point your browser to https://localtest.me (provided by [localtest.me](https://readme.localtest.me)):
 ```bash
 make deploy-local
 ```
 
-To upload to Docker Hub:
+To upload container images to Docker Hub, run:
 ```bash
 make container-push
 ```
+
+We use `buildx` to build the Karvdash container for multiple architectures (`linux/amd64` and `linux/arm64`).
 
 To build and push additional service containers (custom Zeppelin-based containers):
 ```bash

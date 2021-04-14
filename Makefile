@@ -127,7 +127,7 @@ service-containers:
 	docker build -f containers/zeppelin/Dockerfile --build-arg KUBECTL_VERSION=$(KUBECTL_VERSION) -t $(ZEPPELIN_IMAGE_TAG) .
 	docker build -f containers/zeppelin-gpu/Dockerfile --build-arg BASE=$(ZEPPELIN_IMAGE_TAG) -t $(ZEPPELIN_GPU_IMAGE_TAG) .
 
-service-containers-push:
+service-containers-push: service-containers
 	docker push $(ZEPPELIN_IMAGE_TAG)
 	docker push $(ZEPPELIN_GPU_IMAGE_TAG)
 
@@ -135,7 +135,7 @@ container:
 	docker build -f Dockerfile --build-arg KUBECTL_VERSION=$(KUBECTL_VERSION) -t $(KARVDASH_IMAGE_TAG) .
 
 container-push:
-	docker push $(KARVDASH_IMAGE_TAG)
+	docker buildx build --platform linux/amd64,linux/arm64 --push -f Dockerfile --build-arg KUBECTL_VERSION=$(KUBECTL_VERSION) -t $(KARVDASH_IMAGE_TAG) .
 
 release:
 	if [[ -z "$${VERSION}" ]]; then echo "VERSION is not set"; exit 1; fi
