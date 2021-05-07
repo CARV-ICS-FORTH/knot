@@ -22,7 +22,7 @@ To attach these data folders to service and application containers, Karvdash pro
 Remote datasets
 ---------------
 
-In addition to the "private" and "shared" data domains, Karvdash interfaces with the `Dataset Lifecycle Framework <https://github.com/IBM/dataset-lifecycle-framework>`_ to mount internal or external S3 buckets, and additional host-specific paths to running containers. Karvdash provides the frontend to configure datasets and then sets up the appropriate Kubernetes labels to enable DLF for the user's namespace and attach configured datasets to deployed pods. DLF mounts datasets in containers at ``/mnt/datasets/<name>``.
+In addition to the "private" and "shared" data domains, Karvdash interfaces with `Datashim <https://github.com/datashim-io/datashim>`_ to mount internal or external S3 and H3 buckets to running containers. Karvdash provides the frontend to configure datasets and then attaches the produced Persistent Volume Claims to deployed pods. Datasets are mounted in containers at ``/mnt/datasets/<name>``.
 
 Service templates
 -----------------
@@ -44,8 +44,9 @@ Field            Required  Description
 ``kind``         Yes       Set to ``Template``
 ``name``         Yes       The template name to show in the dashboard
 ``description``  No        A simple, short description
-``singleton``    No        If set, only one instance of the template can be running
+``singleton``    No        If set, only one instance of the template can be running (unset by default)
 ``auth``         No        If set, HTTP authentication should be added by the ingress (set by default)
+``datasets``     No        If set, dataset volumes will be mounted in pods (set by default)
 ``variables``    Yes       The template variables (``name`` and ``default`` required, ``help`` optional)
 ===============  ========  =============================================================================
 

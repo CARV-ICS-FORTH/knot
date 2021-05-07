@@ -59,12 +59,12 @@ Datasets are mounted in containers under ``/mnt/datasets/<name>``.
 
 To add a new dataset, click on the respective button on the right. You will be shown a list of available dataset types. Choose one and click "Add".
 
-The next screen is where you can define dataset configuration. You can optionally change the dataset name to one that is easier to remember (if a name is already taken, Karvdash will append random characters). Besides the name, each dataset type has different configuration options. Click "Add" again when done, and you will be taken back to the datasets list, which should contain your new dataset (a message on the top of the screen will verify that a new dataset has been added and provide its name).
+The next screen is where you can define the dataset configuration. You can optionally change the dataset name to one that is easier to remember (if a name is already taken, Karvdash will append random characters). Besides the name, each dataset type has different configuration options. Click "Add" again when done, and you will be taken back to the datasets list, which should contain your new dataset (a message on the top of the screen will verify that a new dataset has been added and provide its name).
 
 Files screen
 ------------
 
-The files screen is accessed by selecting "Files" from the menu on the left. You are presented with a list of folder and files in the respective domain. Change domain ("private" or "shared") by clicking on the corresponding buttons on the upper-right of the screen. The "private" domain contains private user files, while "shared" is common accross all users. Any user can add or remove files in "shared".
+The files screen is accessed by selecting "Files" from the menu on the left. You are presented with a list of folders and files in the respective domain. Change domain ("private" or "shared") by clicking on the corresponding buttons on the upper-right of the screen. The "private" domain contains private user files, while "shared" is common accross all users. Any user can add or remove files in "shared".
 
 Select a folder to navigate into that path (the current path is shown above the list), or a file to download it. Select the "Actions" button to download a folder as an archive or delete an object (non-empty folders can not be deleted). Respective actions are also available to upload compatible image files (ending in ``.tar``) and add templates (ending in ``.template.yaml``).
 

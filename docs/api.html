@@ -4,7 +4,7 @@
 <html class="writer-html5" lang="en" >
 <head>
   <meta charset="utf-8" />
-  <meta name="generator" content="Docutils 0.17: http://docutils.sourceforge.net/" />
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
@@ -408,20 +408,24 @@ the <code class="docutils literal notranslate"><span class="pre">list_services()
 <td><p>&lt;boolean&gt;</p></td>
 <td><p><code class="docutils literal notranslate"><span class="pre">True</span></code> if HTTP authentication should be added by the ingress</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">variables</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">datasets</span></code></p></td>
+<td><p>&lt;boolean&gt;</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">True</span></code> if dataset volumes should be mounted in pods</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">variables</span></code></p></td>
 <td><p>&lt;dictionary&gt;</p></td>
 <td><p>Template variables</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">values</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">values</span></code></p></td>
 <td><p>&lt;dictionary&gt;</p></td>
 <td><p>Instance values for template variables (included
 when template is returned as part of a service)</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">filename</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">filename</span></code></p></td>
 <td><p>&lt;string&gt;</p></td>
 <td><p>The template filename (included for system templates)</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">data</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">data</span></code></p></td>
 <td><p>&lt;string&gt;</p></td>
 <td><p>The actual template (included when requesting a single template)</p></td>
 </tr>

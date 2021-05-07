@@ -4,7 +4,7 @@
 <html class="writer-html5" lang="en" >
 <head>
   <meta charset="utf-8" />
-  <meta name="generator" content="Docutils 0.17: http://docutils.sourceforge.net/" />
+  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
@@ -186,7 +186,7 @@
 </section>
 <section id="remote-datasets">
 <h2>Remote datasets<a class="headerlink" href="#remote-datasets" title="Permalink to this headline">¶</a></h2>
-<p>In addition to the “private” and “shared” data domains, Karvdash interfaces with the <a class="reference external" href="https://github.com/IBM/dataset-lifecycle-framework">Dataset Lifecycle Framework</a> to mount internal or external S3 buckets, and additional host-specific paths to running containers. Karvdash provides the frontend to configure datasets and then sets up the appropriate Kubernetes labels to enable DLF for the user’s namespace and attach configured datasets to deployed pods. DLF mounts datasets in containers at <code class="docutils literal notranslate"><span class="pre">/mnt/datasets/&lt;name&gt;</span></code>.</p>
+<p>In addition to the “private” and “shared” data domains, Karvdash interfaces with <a class="reference external" href="https://github.com/datashim-io/datashim">Datashim</a> to mount internal or external S3 and H3 buckets to running containers. Karvdash provides the frontend to configure datasets and then attaches the produced Persistent Volume Claims to deployed pods. Datasets are mounted in containers at <code class="docutils literal notranslate"><span class="pre">/mnt/datasets/&lt;name&gt;</span></code>.</p>
 </section>
 <section id="service-templates">
 <h2>Service templates<a class="headerlink" href="#service-templates" title="Permalink to this headline">¶</a></h2>
@@ -224,13 +224,17 @@
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">singleton</span></code></p></td>
 <td><p>No</p></td>
-<td><p>If set, only one instance of the template can be running</p></td>
+<td><p>If set, only one instance of the template can be running (unset by default)</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">auth</span></code></p></td>
 <td><p>No</p></td>
 <td><p>If set, HTTP authentication should be added by the ingress (set by default)</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">variables</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">datasets</span></code></p></td>
+<td><p>No</p></td>
+<td><p>If set, dataset volumes will be mounted in pods (set by default)</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">variables</span></code></p></td>
 <td><p>Yes</p></td>
 <td><p>The template variables (<code class="docutils literal notranslate"><span class="pre">name</span></code> and <code class="docutils literal notranslate"><span class="pre">default</span></code> required, <code class="docutils literal notranslate"><span class="pre">help</span></code> optional)</p></td>
 </tr>
