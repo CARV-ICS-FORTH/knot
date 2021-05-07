@@ -79,6 +79,7 @@ kind: Template
 name: Kafka
 description: Distributed streaming platform
 singleton: yes
+datasets: no
 variables:
 - name: NAME
   default: kafka

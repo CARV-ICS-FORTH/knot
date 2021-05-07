@@ -35,6 +35,7 @@ spec:
 kind: Template
 name: Redis
 description: In-memory key-value store
+datasets: no
 variables:
 - name: NAME
   default: redis

@@ -186,17 +186,21 @@ class ServiceResource(APIResource):
         template.PRIVATE = self.user.file_domains['private'].mount_dir
         template.SHARED = self.user.file_domains['shared'].mount_dir
 
-        # Inject data folders.
-        # if settings.DEBUG:
-        #     template.inject_volumes(self.user.file_domains, add_api_settings=True)
-        #     template.inject_volumes(self.user.dataset_volumes)
-
         # Add template label and values.
         template.inject_service_details()
 
         # Add authentication.
         if template.auth:
             template.inject_ingress_auth('karvdash-auth', 'Authentication Required - %s' % settings.DASHBOARD_TITLE, redirect_ssl=(ingress_url.scheme == 'https'))
+
+        # Add no local datasets label.
+        if not template.datasets:
+            template.inject_no_datasets_label()
+
+        # Inject data folders.
+        # if settings.DEBUG:
+        #     template.inject_volumes(self.user.file_domains, add_api_settings=True)
+        #     template.inject_volumes(self.user.dataset_volumes, is_datasets=True)
 
         # Save yaml.
         service_database_path = os.path.join(settings.SERVICE_DATABASE_DIR, self.user.username)

@@ -1477,6 +1477,7 @@ kind: Template
 name: Argo Metrics
 description: Metrics from Argo into Prometheus/Grafana
 singleton: yes
+datasets: no
 variables:
 - name: NAMESPACE
   default: default

@@ -550,6 +550,7 @@ kind: Template
 name: Argo
 description: Workflow controller, including event-driven automation
 singleton: yes
+datasets: no
 variables:
 - name: NAME
   default: argo

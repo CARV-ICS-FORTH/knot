@@ -85,6 +85,7 @@ kind: Template
 name: ZooKeeper
 description: Distributed configuration service
 singleton: yes
+datasets: no
 variables:
 - name: NAME
   default: zookeeper

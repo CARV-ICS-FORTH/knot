@@ -42,7 +42,7 @@ def mutate(request):
         return HttpResponseBadRequest()
 
     inject_volumes([service], user.file_domains, add_api_settings=True)
-    inject_volumes([service], user.dataset_volumes)
+    inject_volumes([service], user.dataset_volumes, is_datasets=True)
     patch = jsonpatch.JsonPatch.from_diff(data['request']['object'], service)
     encoded_patch = base64.b64encode(patch.to_string().encode('utf-8')).decode('utf-8')
 

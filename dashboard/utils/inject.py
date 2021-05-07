@@ -17,8 +17,8 @@ import json
 from urllib.parse import urlparse
 
 
-def inject_volumes(yaml_data, file_domains, add_api_settings=False):
-    def add_volumes_to_spec(spec):
+def inject_volumes(yaml_data, file_domains, add_api_settings=False, is_datasets=False):
+    def add_volumes_to_spec(spec, no_datasets):
         # Add volumes.
         if 'volumes' not in spec:
             spec['volumes'] = []
@@ -53,18 +53,31 @@ def inject_volumes(yaml_data, file_domains, add_api_settings=False):
                                                   'mountPath': '/var/lib/karvdash'})
 
     for part in yaml_data:
+        no_datasets = False
         try:
             if part['kind'] == 'Deployment':
                 spec = part['spec']['template']['spec']
+                try:
+                    if part['spec']['template']['metadata']['labels']['karvdash-no-datasets'] == 'true':
+                        no_datasets = True
+                except:
+                    pass
             elif part['kind'] == 'Pod':
                 spec = part['spec']
+                try:
+                    if part['metadata']['labels']['karvdash-no-datasets'] == 'true':
+                        no_datasets = True
+                except:
+                    pass
             else:
                 continue
         except:
             continue
         if not spec or 'containers' not in spec:
             continue
-        add_volumes_to_spec(spec)
+        if no_datasets and is_datasets:
+            continue
+        add_volumes_to_spec(spec, no_datasets)
 
 def validate_hostpath_volumes(yaml_data, file_domains, other_allowed_paths=[]):
     allowed_paths = [urlparse(file_domain.url).path for file_domain in file_domains.values()]
@@ -122,3 +135,20 @@ def inject_ingress_auth(yaml_data, secret, realm, redirect_ssl=False):
             part['metadata']['annotations']['nginx.ingress.kubernetes.io/auth-realm'] = realm
             if redirect_ssl:
                 part['metadata']['annotations']['nginx.ingress.kubernetes.io/force-ssl-redirect'] = 'true'
+
+def inject_no_datasets_label(yaml_data):
+    for part in yaml_data:
+        try:
+            if part['kind'] == 'Deployment':
+                metadata_parent = part['spec']['template']
+            elif part['kind'] == 'Pod':
+                metadata_parent = part
+            else:
+                continue
+        except:
+            continue
+        if 'metadata' not in metadata_parent:
+            metadata_parent['metadata'] = {}
+        if 'labels' not in metadata_parent['metadata']:
+            metadata_parent['metadata']['labels'] = {}
+        metadata_parent['metadata']['labels']['karvdash-no-datasets'] = 'true'

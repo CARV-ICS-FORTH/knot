@@ -149,6 +149,7 @@ class API:
         ``description``  <string>          The template description as shown in the dashboard
         ``singleton``    <boolean>         ``True`` if only one instance can be running
         ``auth``         <boolean>         ``True`` if HTTP authentication should be added by the ingress
+        ``datasets``     <boolean>         ``True`` if dataset volumes should be mounted in pods
         ``variables``    <dictionary>      Template variables
         ``values``       <dictionary>      Instance values for template variables (included
                                            when template is returned as part of a service)

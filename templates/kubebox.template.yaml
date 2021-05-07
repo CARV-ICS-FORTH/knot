@@ -49,6 +49,7 @@ kind: Template
 name: Kubebox
 description: Terminal and web console
 singleton: yes
+datasets: no
 variables:
 - name: NAME
   default: kubebox

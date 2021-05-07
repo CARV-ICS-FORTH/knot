@@ -40,6 +40,7 @@ kind: Template
 name: PostgreSQL
 description: Database server
 singleton: yes
+datasets: no
 variables:
 - name: NAME
   default: postgresql

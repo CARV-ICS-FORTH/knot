@@ -16,7 +16,7 @@ import os
 import string
 import yaml
 
-from .inject import inject_volumes, inject_service_details, inject_ingress_auth
+from .inject import inject_volumes, inject_service_details, inject_ingress_auth, inject_no_datasets_label
 
 
 class Template(object):
@@ -26,6 +26,7 @@ class Template(object):
         self._description = ''
         self._singleton = False
         self._auth = True
+        self._datasets = False
         self._variables = None
         self._values = {}
 
@@ -36,6 +37,7 @@ class Template(object):
                 self._description = part.get('description', '')
                 self._singleton = part.get('singleton', False)
                 self._auth = part.get('auth', True)
+                self._datasets = part.get('datasets', True)
                 self._variables = part['variables']
             else:
                 self._template.append(part)
@@ -62,14 +64,17 @@ class Template(object):
             return
         super().__setattr__(name, value)
 
-    def inject_volumes(self, volumes, add_api_settings=False):
-        inject_volumes(self._template, volumes, add_api_settings=add_api_settings)
+    def inject_volumes(self, volumes, add_api_settings=False, is_datasets=False):
+        inject_volumes(self._template, volumes, add_api_settings=add_api_settings, is_datasets=is_datasets)
 
     def inject_service_details(self, template=None):
         inject_service_details(self._template, template=template, values=self._values)
 
     def inject_ingress_auth(self, secret, realm, redirect_ssl=False):
         inject_ingress_auth(self._template, secret, realm, redirect_ssl=redirect_ssl)
+
+    def inject_no_datasets_label(self):
+        inject_no_datasets_label(self._template)
 
     @property
     def data(self):
@@ -92,6 +97,10 @@ class Template(object):
         return self._auth
 
     @property
+    def datasets(self):
+        return self._datasets
+
+    @property
     def variables(self):
         return self._variables
 
@@ -108,6 +117,7 @@ class Template(object):
                   'description': self._description,
                   'singleton': self._singleton,
                   'auth': self._auth,
+                  'datasets': self._datasets,
                   'variables': self._variables}
         if include_data:
             result.update({'data': self._data})

@@ -51,6 +51,7 @@ name: Minio
 description: Amazon S3 compatible object storage server
 singleton: yes
 auth: no
+datasets: no
 variables:
 - name: NAME
   default: minio
