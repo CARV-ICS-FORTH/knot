@@ -186,6 +186,8 @@ def create_user_namespace(sender, user, request, **kwargs):
     namespace_template = Template(NAMESPACE_TEMPLATE)
     namespace_template.NAME = user.namespace
 
+    if not os.path.exists(settings.SERVICE_DATABASE_DIR):
+        os.makedirs(settings.SERVICE_DATABASE_DIR)
     namespace_yaml = os.path.join(settings.SERVICE_DATABASE_DIR, '%s-namespace.yaml' % user.username)
     with open(namespace_yaml, 'wb') as f:
         f.write(namespace_template.yaml.encode())
