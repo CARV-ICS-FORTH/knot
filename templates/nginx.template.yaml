@@ -1,0 +1,82 @@
+# nginx.template.yaml
+
+apiVersion: networking.k8s.io/v1beta1
+kind: Ingress
+metadata:
+  name: $NAME
+spec:
+  rules:
+  - host: $HOSTNAME
+    http:
+      paths:
+      - backend:
+          serviceName: $NAME
+          servicePort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: $NAME
+spec:
+  type: ClusterIP
+  ports:
+  - port: 80
+    name: nginx
+  selector:
+    app: $NAME
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nginx-config
+data:
+  default.conf: |
+    server {
+        listen       80;
+        server_name  localhost;
+        location / {
+            root   ${FOLDER};
+            index  index.html index.htm;
+        }
+    }
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: $NAME
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: $NAME
+  template:
+    metadata:
+      labels:
+        app: $NAME
+    spec:
+      containers:
+      - name: $NAME
+        image: nginx:1.19.10-alpine
+        ports:
+        - containerPort: 80
+        volumeMounts:
+        - name: nginx-config-volume
+          mountPath: /etc/nginx/conf.d/default.conf
+          subPath: default.conf
+      volumes:
+      - name: nginx-config-volume
+        configMap:
+          name: nginx-config
+          defaultMode: 0644
+---
+kind: Template
+name: Nginx
+description: Web server
+variables:
+- name: NAME
+  default: nginx
+- name: HOSTNAME
+  default: nginx.example.com
+- name: FOLDER
+  default: /private/html
+  help: Folder to serve
