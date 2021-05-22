@@ -1,0 +1,81 @@
+# jupyter.template.yaml
+
+apiVersion: networking.k8s.io/v1beta1
+kind: Ingress
+metadata:
+  name: $NAME
+spec:
+  rules:
+  - host: $HOSTNAME
+    http:
+      paths:
+      - backend:
+          serviceName: $NAME
+          servicePort: 8888
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: $NAME
+spec:
+  type: ClusterIP
+  ports:
+  - port: 8888
+    name: jupyter
+  selector:
+    app: $NAME
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: jupyter-config
+data:
+  start.sh: |
+    export JUPYTER_PORT=8888
+    mkdir -p /private/.tf
+    (cd /tf && ln -s /private/.tf private)
+    jupyter notebook --notebook-dir=/tf --ip 0.0.0.0 --no-browser --allow-root --NotebookApp.token=''
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: $NAME
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: $NAME
+  template:
+    metadata:
+      labels:
+        app: $NAME
+    spec:
+      containers:
+      - name: $NAME
+        image: tensorflow/tensorflow:2.3.2-jupyter
+        ports:
+        - containerPort: 8888
+        command:
+        - bash
+        - -c
+        - |
+          source /etc/bash.bashrc && \
+          source /start.sh
+        volumeMounts:
+        - name: jupyter-config-volume
+          mountPath: /start.sh
+          subPath: start.sh
+      volumes:
+      - name: jupyter-config-volume
+        configMap:
+          name: jupyter-config
+          defaultMode: 0644
+---
+kind: Template
+name: Jupyter TF
+description: Notebook server with TensorFlow
+variables:
+- name: NAME
+  default: jupyter
+- name: HOSTNAME
+  default: jupyter.example.com
