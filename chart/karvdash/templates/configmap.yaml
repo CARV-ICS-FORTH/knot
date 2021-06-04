@@ -13,6 +13,7 @@ data:
     server {
         listen 80;
         server_name {{ .Release.Name }}.{{ .Release.Namespace }}.svc;
+        client_max_body_size {{ .Values.ingress.bodySize }};
 
         access_log /var/log/nginx/access.log custom;
 
