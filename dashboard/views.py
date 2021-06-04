@@ -523,7 +523,7 @@ def dataset_download(request, name):
 @login_required
 def files(request, path='/'):
     # Get user file domains.
-    file_domains = request.user.file_domains
+    file_domains = request.user.file_domains if not getattr(request.user, 'is_impersonate', False) else User.objects.get(pk=request.user.pk).file_domains
 
     # Normalize given path and split.
     path = os.path.normpath(path)
