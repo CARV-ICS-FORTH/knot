@@ -4,7 +4,7 @@ django-impersonate==1.7.2
 python-dxf==7.7.1
 docker==4.4.1
 kubernetes==12.0.1
-PyYAML==5.3.1
+PyYAML==5.4.1
 passlib==1.7.4
 restless==2.1.1
 jsonpatch==1.28
