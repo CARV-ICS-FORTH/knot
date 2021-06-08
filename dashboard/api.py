@@ -22,7 +22,7 @@ import kubernetes
 
 from django.conf import settings
 from restless.dj import DjangoResource
-from restless.exceptions import NotFound, BadRequest, Conflict, Forbidden
+from restless.exceptions import NotFound, BadRequest, Conflict, Forbidden, TooManyRequests
 from urllib.parse import urlparse
 
 from .models import APIToken, User
@@ -112,14 +112,19 @@ class ServiceResource(APIResource):
                 service_database.append(file_name[:-5])
 
         ingress_url = urlparse(settings.INGRESS_URL)
-        ingress_host = '%s:%s' % (ingress_url.hostname, ingress_url.port) if ingress_url.port else ingress_url.hostname
 
         contents = []
-        ingresses = [i.metadata.name for i in kubernetes_client.list_ingresses(namespace=self.user.namespace)]
+        ingresses = kubernetes_client.list_ingresses(namespace=self.user.namespace)
         for service in kubernetes_client.list_services(namespace=self.user.namespace, label_selector='karvdash-template'):
             name = service.metadata.name
-            # ports = [str(p.port) for p in service.spec.ports if p.protocol == 'TCP']
-            url = '%s://%s-%s.%s' % (ingress_url.scheme, name, self.user.username, ingress_host) if name in ingresses else None
+            url = None
+            for ingress in ingresses:
+                if name == ingress.metadata.name:
+                    try:
+                        url = '%s://%s' % (ingress_url.scheme, ingress.spec.rules[0].host)
+                    except:
+                        pass
+                    break
             try:
                 service_template = self.get_template(service.metadata.labels['karvdash-template']).format()
             except:
@@ -175,13 +180,29 @@ class ServiceResource(APIResource):
         while name in names:
             name = form.cleaned_data['NAME'] + '-' + ''.join([random.choice(string.ascii_lowercase) for i in range(4)])
 
+        # Generate service URLs.
+        if settings.GENERATE_SERVICE_URLS:
+            prefix = '%s-%s' % (name, self.user.username)
+        else:
+            # XXX Non-atomic prefix selection.
+            used_prefixes = []
+            for ingress in kubernetes_client.list_ingresses(namespace=''):
+                try:
+                    used_prefixes.append(ingress.spec.rules[0].host.split('.', 1)[0])
+                except:
+                    pass
+            available_prefixes = list(set(settings.SERVICE_URL_PREFIXES) - set(used_prefixes))
+            if not available_prefixes:
+                raise TooManyRequests()
+            prefix = random.choice(available_prefixes)
+
         ingress_url = urlparse(settings.INGRESS_URL)
         ingress_host = '%s:%s' % (ingress_url.hostname, ingress_url.port) if ingress_url.port else ingress_url.hostname
 
         # Set namespace, name, hostname, registry, and storage paths.
         template.NAMESPACE = self.user.namespace
         template.NAME = name
-        template.HOSTNAME = '%s-%s.%s' % (name, self.user.username, ingress_host)
+        template.HOSTNAME = '%s.%s' % (prefix, ingress_host)
         template.REGISTRY = DockerClient(settings.DOCKER_REGISTRY, settings.DOCKER_REGISTRY_NO_VERIFY).registry_host
         template.PRIVATE = self.user.file_domains['private'].mount_dir
         template.SHARED = self.user.file_domains['shared'].mount_dir
@@ -217,7 +238,7 @@ class ServiceResource(APIResource):
         service_template = template.format()
         service_template['values'] = template.values
         return {'name': name,
-                'url': '%s://%s-%s.%s' % (ingress_url.scheme, name, self.user.username, ingress_host),
+                'url': '%s://%s.%s' % (ingress_url.scheme, prefix, ingress_host),
                 # 'created': creation_timestamp,
                 'actions': True,
                 'template': service_template}
@@ -273,6 +294,8 @@ class TemplateResource(APIResource):
             if not file_name.endswith('.template.yaml'):
                 continue
             if os.path.exists(os.path.join(settings.SERVICE_TEMPLATE_DIR, file_name)):
+                continue
+            if file_name in settings.DISABLED_SERVICE_TEMPLATES:
                 continue
 
             try:
@@ -361,11 +384,12 @@ class DatasetResource(APIResource):
 
     @property
     def dataset_templates(self):
-        return [ServiceTemplate(LOCAL_S3_DATASET_TEMPLATE, identifier='s3-local'),
-                ServiceTemplate(REMOTE_S3_DATASET_TEMPLATE, identifier='s3-remote'),
-                ServiceTemplate(LOCAL_H3_DATASET_TEMPLATE, identifier='h3-local'),
-                ServiceTemplate(REMOTE_H3_DATASET_TEMPLATE, identifier='h3-remote'),
-                ServiceTemplate(ARCHIVE_DATASET_TEMPLATE, identifier='archive')]
+        templates = [ServiceTemplate(LOCAL_S3_DATASET_TEMPLATE, identifier='s3-local'),
+                     ServiceTemplate(REMOTE_S3_DATASET_TEMPLATE, identifier='s3-remote'),
+                     ServiceTemplate(LOCAL_H3_DATASET_TEMPLATE, identifier='h3-local'),
+                     ServiceTemplate(REMOTE_H3_DATASET_TEMPLATE, identifier='h3-remote'),
+                     ServiceTemplate(ARCHIVE_DATASET_TEMPLATE, identifier='archive')]
+        return [t for t in templates if t.identifier not in settings.DISABLED_DATASET_TEMPLATES]
 
     def get_template(self, dataset_type):
         dataset_templates = {'COS': Template(REMOTE_S3_DATASET_TEMPLATE),

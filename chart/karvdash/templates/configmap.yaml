@@ -1,6 +1,24 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
+  name: {{ .Release.Name }}
+  labels:
+    app: {{ .Release.Name }}
+    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+data:
+  config.json: |
+    {
+      "disabled_service_templates":
+      {{- if .Values.karvdash.disabledServiceTemplates }} {{ toPrettyJson .Values.karvdash.disabledServiceTemplates | indent 6 }} {{- else }} [] {{- end }},
+      "disabled_dataset_templates":
+      {{- if .Values.karvdash.disabledDatasetTemplates }} {{ toPrettyJson .Values.karvdash.disabledDatasetTemplates | indent 6 }} {{- else }} [] {{- end }},
+      "service_url_prefixes":
+      {{- if .Values.karvdash.serviceURLPrefixes }} {{ toPrettyJson .Values.karvdash.serviceURLPrefixes | indent 6 }} {{- else }} [] {{- end }}
+    }
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
   name: {{ .Release.Name }}-proxy
   labels:
     app: {{ .Release.Name }}

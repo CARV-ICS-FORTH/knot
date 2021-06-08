@@ -96,6 +96,9 @@ spec:
         - containerPort: 8000
           name: http
         volumeMounts:
+        - name: {{ .Release.Name }}-config
+          mountPath: /etc/karvdash/config.json
+          subPath: config.json
         - name: docker-socket
           mountPath: /var/run/docker.sock
         - name: {{ .Release.Name }}-state-volume
@@ -107,6 +110,10 @@ spec:
           mountPath: /shared
         {{- end }}
       volumes:
+      - name: {{ .Release.Name }}-config
+        configMap:
+          name: {{ .Release.Name }}
+          defaultMode: 0644
       - name: {{ .Release.Name }}-proxy-config
         configMap:
           name: {{ .Release.Name }}-proxy

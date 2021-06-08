@@ -231,6 +231,25 @@ if not DATASETS_AVAILABLE and not FILES_URL.startswith('file://'):
     raise ValueError('Datasets are required for non-file files URL')
 
 
-# Local directories allowed to be mounted in containers (in addition to file domains).
+# Local directories allowed to be mounted in containers (in addition to file domains)
 
 ALLOWED_HOSTPATH_DIRS = [d.strip() for d in os.getenv('KARVDASH_ALLOWED_HOSTPATH_DIRS', '').split(':') if d.strip()]
+
+
+# Service names and template configuration file
+
+import json
+
+CONFIG_DIR = os.getenv('KARVDASH_CONFIG_DIR', DATABASE_DIR)
+try:
+    with open(os.path.join(CONFIG_DIR, 'config.json'), 'rb') as f:
+        config = json.loads(f.read())
+    DISABLED_SERVICE_TEMPLATES = config.get('disabled_service_templates') or []
+    DISABLED_DATASET_TEMPLATES = config.get('disabled_dataset_templates') or []
+    SERVICE_URL_PREFIXES = config.get('service_url_prefixes') or []
+    GENERATE_SERVICE_URLS = False if SERVICE_URL_PREFIXES else True
+except:
+    DISABLED_SERVICE_TEMPLATES = []
+    DISABLED_DATASET_TEMPLATES = []
+    SERVICE_URL_PREFIXES = []
+    GENERATE_SERVICE_URLS = True

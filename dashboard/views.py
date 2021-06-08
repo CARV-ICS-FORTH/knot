@@ -132,6 +132,9 @@ def service_create(request, identifier=''):
             except restless.exceptions.Conflict:
                 messages.warning(request, 'There can be only one "%s" service running.' % template.name)
                 return redirect('services')
+            except restless.exceptions.TooManyRequests:
+                messages.warning(request, 'There are no more available service URLs.')
+                return redirect('services')
             except Exception as e:
                 messages.error(request, 'Can not create service: %s' % str(e))
             else:
