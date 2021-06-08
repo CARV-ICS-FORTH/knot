@@ -43,6 +43,15 @@ DEBUG = True if os.getenv('DJANGO_DEBUG', '1') else False
 ALLOWED_HOSTS = ['*']
 
 
+# Version
+try:
+    with open(os.path.join(BASE_DIR, 'VERSION'), 'rb') as f:
+        VERSION = f.read().decode().strip().lstrip('v')
+except:
+    raise
+    VERSION = 'unknown'
+
+
 # Application definition
 
 INSTALLED_APPS = [
