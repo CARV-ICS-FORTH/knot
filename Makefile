@@ -65,12 +65,12 @@ deploy-requirements: $(DEPLOY_DIR)/localtest.me.key $(DEPLOY_DIR)/localtest.me.c
 	--set controller.extraArgs.default-ssl-certificate=ingress-nginx/ssl-certificate \
 	--set controller.admissionWebhooks.enabled=false
 	# Deploy DLF
-	kubectl apply -f https://raw.githubusercontent.com/IBM/dataset-lifecycle-framework/master/release-tools/manifests/dlf.yaml
+	kubectl apply -f https://raw.githubusercontent.com/datashim-io/datashim/master/release-tools/manifests/dlf.yaml
 	kubectl wait --timeout=600s --for=condition=ready pods -l app.kubernetes.io/name=dlf -n dlf
 
 undeploy-requirements:
 	# Remove DLF
-	kubectl delete -f https://raw.githubusercontent.com/IBM/dataset-lifecycle-framework/master/release-tools/manifests/dlf.yaml
+	kubectl delete -f https://raw.githubusercontent.com/datashim-io/datashim/master/release-tools/manifests/dlf.yaml
 	# Remove ingress
 	helm uninstall ingress --namespace ingress-nginx
 	kubectl delete secret ssl-certificate -n ingress-nginx
