@@ -14,6 +14,7 @@
 
 import os
 import zipfile
+import shutil
 
 from urllib.parse import urlparse
 from datetime import datetime
@@ -62,8 +63,11 @@ class FileDomainPathWorker(object):
     def mkdir(self, name):
         os.mkdir(os.path.join(self.real_path, name))
 
-    def rmdir(self, name):
-        os.rmdir(os.path.join(self.real_path, name))
+    def rmdir(self, name, recursive=True):
+        if not recursive:
+            os.rmdir(os.path.join(self.real_path, name))
+            return
+        shutil.rmtree(os.path.join(self.real_path, name))
 
     def upload(self, files):
         for f in files:
