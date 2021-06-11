@@ -144,7 +144,7 @@
                 </form>
                 {% endif %}
                 <button type="button" class="dropdown-item btn-sm text-secondary confirm-delete" data-toggle="modal" data-target="#deleteModal" id="{{ item.name }}"><i class="fa fa-trash" aria-hidden="true"></i> Delete</button>
-                {% if item.name|endswith:'.tar' %}
+                {% if images_available and item.name|endswith:'.tar' %}
                 <button type="button" class="dropdown-item btn-sm text-secondary confirm-image" data-toggle="modal" data-target="#addImageModal" id="{{ item.name }}"><i class="fa fa-cube" aria-hidden="true"></i> Add image</button>
                 {% endif %}
                 {% if item.name|endswith:'.template.yaml' %}

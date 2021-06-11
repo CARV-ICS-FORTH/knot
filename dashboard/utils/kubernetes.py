@@ -106,6 +106,9 @@ class KubernetesClient(object):
             raise SystemError('Can not create secret')
 
     def create_docker_registry_secret(self, namespace, registry_url, email):
+        if not registry_url:
+            return
+
         url = urlparse(registry_url)
         if not url.username or not url.password:
             return

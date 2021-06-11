@@ -37,7 +37,7 @@ karvdash:
   # REQUIRED: The ingress URL used.
   ingressURL:
   # The URL of the Docker registry.
-  dockerRegistry: http://127.0.0.1:5000
+  dockerRegistry:
   # Set to anything to skip Docker registry SSL verification.
   dockerRegistryNoVerify:
   # Set to anything to enable dataset management.

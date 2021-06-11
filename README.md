@@ -25,13 +25,13 @@ If your application requirements differ, you will need to create custom Docker i
 Karvdash is deployed using [Helm](https://helm.sh) (version 3).
 
 To install, you need a running Kubernetes environment with the following features:
-* A private Docker registry. You can run one using the [official instructions](https://docs.docker.com/registry/deploying/), or use [this](https://artifacthub.io/packages/helm/twuni/docker-registry) Helm chart.
 * The [cert-manager](https://cert-manager.io) certificate management controller for Kubernetes. This is used for creating certificates automatically for the admission webhooks. We use [this](https://artifacthub.io/packages/helm/jetstack/cert-manager) Helm chart.
 * An [ingress controller](https://kubernetes.github.io/ingress-nginx/) answering to a domain name and its wildcard (i.e. both `example.com` and `*.example.com` should both point to your server). You can use [xip.io](http://xip.io) if you don't have a DNS entry. We use [this](https://artifacthub.io/packages/helm/ingress-nginx/ingress-nginx) Helm chart.
 * For storage of Karvdash state, an existing persistent volume claim, or a directory in a shared filesystem mounted at the same path across all Kubernetes nodes, like NFS, [Gluster](https://www.gluster.org), or similar.
 * For files, either a shared filesystem like the one used for storing the configuration, or access to an S3 service based on [MinIO](https://min.io).
-* Optionally [Datashim](https://github.com/datashim-io/datashim), in which case Karvdash can be used to configure datasets (Datashim is required for files over S3).
-* Optionally the [kube-prometheus-stack](https://github.com/prometheus-community/helm-charts/tree/main/charts/kube-prometheus-stack), for supporting the "Argo Metrics" template (a template that automatically creates a Prometheus/Grafana stack for collecting metrics from Argo). We use [this](https://artifacthub.io/packages/helm/prometheus-community/kube-prometheus-stack) Helm chart.
+* Optionally, a private Docker registry. You can run one using the [official instructions](https://docs.docker.com/registry/deploying/), or use [this](https://artifacthub.io/packages/helm/twuni/docker-registry) Helm chart.
+* Optionally, [Datashim](https://github.com/datashim-io/datashim), in which case Karvdash can be used to configure datasets (Datashim is required for files over S3).
+* Optionally, the [kube-prometheus-stack](https://github.com/prometheus-community/helm-charts/tree/main/charts/kube-prometheus-stack), for supporting the "Argo Metrics" template (a template that automatically creates a Prometheus/Grafana stack for collecting metrics from Argo). We use [this](https://artifacthub.io/packages/helm/prometheus-community/kube-prometheus-stack) Helm chart.
 
 To deploy, first add the repo and then install. For example:
 
@@ -39,7 +39,6 @@ To deploy, first add the repo and then install. For example:
 helm repo add karvdash https://carv-ics-forth.github.io/karvdash/chart
 helm install karvdash karvdash/karvdash --namespace default \
     --set karvdash.ingressURL=https://example.com \
-    --set karvdash.dockerRegistry=http://127.0.0.1:5000 \
     --set karvdash.stateHostPath=/mnt/nfs/karvdash \
     --set karvdash.filesURL=file:///mnt/nfs
 ```
@@ -63,7 +62,7 @@ Some of the variables set above are required. The table below lists all availabl
 | `karvdash.dashboardTheme`           |          | The theme of the dashboard. Choose between "evolve" and "CARV".                          | `evolve`                          |
 | `karvdash.issuesURL`                |          | If set, an option to "Report an issue" is shown in the user menu.                        |                                   |
 | `karvdash.ingressURL`               | &check;  | The ingress URL used.                                                                    |                                   |
-| `karvdash.dockerRegistry`           |          | The URL of the Docker registry.                                                          | `http://127.0.0.1:5000`           |
+| `karvdash.dockerRegistry`           |          | The URL of the Docker registry.                                                          |                                   |
 | `karvdash.dockerRegistryNoVerify`   |          | Set to anything to skip Docker registry SSL verification.                                |                                   |
 | `karvdash.datasetsAvailable`        |          | Set to anything to enable dataset management.                                            |                                   |
 | `karvdash.filesURL`                 | &check;  | The base URL for the private and shared file domains.                                    |                                   |
