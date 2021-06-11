@@ -98,7 +98,7 @@ deploy-local: deploy-requirements
 	helm list -q | grep karvdash || \
 	helm install karvdash $(CHART_DIR) --namespace default \
 	--set image="$(KARVDASH_IMAGE_TAG)" \
-	--set karvdash.djangoSecret="JWFkJiU0KiF4cGYqJHdkM150NTYrI29kZTQ9QHleanVfdCtqOWYrMjBhanN0YV5nb2c=" \
+	--set karvdash.djangoSecret='%ad&%4*!xpf*$$wd3^t56+#ode4=@y^ju_t+j9f+20ajsta^gog' \
 	--set karvdash.djangoDebug="1" \
 	--set karvdash.dashboardTitle="Karvdash on Docker Desktop" \
 	--set karvdash.ingressURL="https://localtest.me" \
