@@ -99,8 +99,10 @@ spec:
         - name: {{ .Release.Name }}-config
           mountPath: /etc/karvdash/config.json
           subPath: config.json
+        {{- if .Values.karvdash.dockerRegistry }}
         - name: docker-socket
           mountPath: /var/run/docker.sock
+        {{- end }}
         - name: {{ .Release.Name }}-state-volume
           mountPath: /db
         {{- if eq $filesURL.scheme "file" }}
@@ -125,9 +127,11 @@ spec:
         configMap:
           name: {{ .Release.Name }}-webhook
           defaultMode: 0644
+      {{- if .Values.karvdash.dockerRegistry }}
       - name: docker-socket
         hostPath:
           path: /var/run/docker.sock
+      {{- end }}
       {{- if .Values.karvdash.logsVolumeClaim }}
       - name: {{ .Release.Name }}-logs-volume
         persistentVolumeClaim:
