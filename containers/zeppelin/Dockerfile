@@ -20,7 +20,7 @@ COPY client /root/client/
 RUN (cd /root/client && ./setup.py install) && \
     rm -rf /root/client
 
-ARG EVOLVE_LIBRARY_COMMIT=4eab32f87b33
+ARG EVOLVE_LIBRARY_COMMIT=adc84b92ec12
 RUN curl -sLO https://bitbucket.org/sunlightio/evolve_python_library/get/${EVOLVE_LIBRARY_COMMIT}.tar.gz && \
     tar -zxvf ${EVOLVE_LIBRARY_COMMIT}.tar.gz && \
     (cd sunlightio-evolve_python_library-${EVOLVE_LIBRARY_COMMIT} && python setup.py install) && \
