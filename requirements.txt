@@ -1,6 +1,7 @@
 Django==3.0.11
 django-crispy-forms==1.10.0
 django-impersonate==1.7.2
+django-chunked-upload==2.0.0
 python-dxf==7.7.1
 docker==4.4.1
 kubernetes==12.0.1

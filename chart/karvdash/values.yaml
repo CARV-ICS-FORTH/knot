@@ -5,10 +5,6 @@ image:
 rbac:
   create: true
 
-ingress:
-  # The maximum allowed request size for the ingress.
-  bodySize: 4096m
-
 karvdash:
   # REQUIRED: If set, use this persistent volume claim for storing state (database, running services repository, template library).
   stateVolumeClaim:
@@ -19,6 +15,11 @@ karvdash:
   logsVolumeClaim:
   # The host path to use for storing logs, when no existing volume claim is set.
   logsHostPath:
+
+  # The volume to store uploads.
+  uploadsVolumeClaim:
+  # The host path to use for storing uploads, when no existing volume claim is set.
+  uploadsHostPath:
 
   # Secret for Django. Use a random string of 50 characters (a default will be generated if empty).
   djangoSecret:

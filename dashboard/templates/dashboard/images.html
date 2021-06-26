@@ -17,16 +17,12 @@
             <span aria-hidden="true">&times;</span>
           </button>
         </div>
-        <form method="post" enctype="multipart/form-data">
-          <div class="modal-body">
-            {% csrf_token %}
-            {{ add_image_form|crispy }}
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-            <input type="submit" class="btn btn-success" name="action" value="Add" />
-          </div>
-        </form>
+        <div class="modal-body">
+          To add an image, upload your exported image in ".tar" format in <i>Files</i>, then select <i>Add image</i> from the <i>Actions</i> menu.
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        </div>
       </div>
     </div>
   </div>

@@ -58,6 +58,7 @@ INSTALLED_APPS = [
     'dashboard.apps.DashboardConfig',
     'crispy_forms',
     'impersonate',
+    'chunked_upload',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -196,6 +197,10 @@ MESSAGE_TAGS = {
 
 FILES_URL = os.getenv('KARVDASH_FILES_URL', 'file://%s' % BASE_DIR)
 FILES_MOUNT_DIR = os.getenv('KARVDASH_FILES_MOUNT_DIR', BASE_DIR)
+
+
+# Upload path
+CHUNKED_UPLOAD_PATH = os.getenv('KARVDASH_UPLOADS_DIR', os.path.join(BASE_DIR, 'uploads'))
 
 
 # Docker registry endpoint

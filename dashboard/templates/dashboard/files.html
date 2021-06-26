@@ -4,6 +4,12 @@
 {% load dashboard_tags %}
 
 {% block script %}
+<script src="{% static 'dashboard/assets/js/jquery.ui.widget.js' %}"></script>
+<script src="{% static 'dashboard/assets/js/jquery.iframe-transport.js' %}"></script>
+<script src="{% static 'dashboard/assets/js/jquery.fileupload.js' %}"></script>
+<script src="{% static 'dashboard/assets/js/filesize.min.js' %}"></script>
+
+<link rel="stylesheet" href="{% static 'dashboard/assets/css/jquery.fileupload.css' %}" />
 <script>
   $(document).on('click', '.confirm-delete', function () {
     $("#deleteNameText").text($(this).attr("id"));
@@ -69,11 +75,19 @@
         <form method="post" enctype="multipart/form-data">
           <div class="modal-body">
             {% csrf_token %}
-            {{ add_files_form|crispy }}
+            <button type="button" class="btn btn-success fileinput-button">
+              <i class="glyphicon glyphicon-plus"></i>
+              <span>Add files...</span>
+              <input id="fileupload" type="file" name="file" multiple />
+            </button>
+            <span id="files-status"></span>
+            <div class="progress mt-2">
+              <div id="files-progress" class="progress-bar bg-secondary" role="progressbar"></div>
+            </div>
           </div>
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-            <input type="submit" class="btn btn-success" name="action" value="Add" />
+            <button type="button" class="btn btn-success confirm-upload">Add</button>
           </div>
         </form>
       </div>
@@ -214,4 +228,110 @@
 
   </div>
 </div>
+
+<script>
+  var filesList = [];
+
+  var updateFilesStatus = function () {
+    var totalCount = filesList.length;
+    if (!totalCount) {
+      $('#files-status').text('No files selected');
+    } else {
+      var totalSize = 0;
+      filesList.forEach(function (data) { totalSize += data.files[0].size; });
+      $('#files-status').text(totalCount + ' file' + (totalCount > 1 ? 's' : '') + ' selected (' + filesize(totalSize) + ')');
+    }
+  };
+
+  var filesListUploadAll = function () {
+    filesList.forEach(function (data) { data.submit(); });
+    filesList = [];
+  };
+
+  var csrf = $("input[name='csrfmiddlewaretoken']")[0].value,
+      form_data = [{"name": "csrfmiddlewaretoken", "value": csrf}];
+  $('#fileupload').fileupload({
+    dropZone: null,
+    pasteZone: null,
+    autoUpload: false,
+    sequentialUploads: true,
+    url: "{% url 'files_upload' %}",
+    dataType: 'json',
+    maxChunkSize: 1000000, // Chunks of 1 MB
+    formData: form_data,
+    add: function(e, data) { // Called when adding each file
+      filesList.push(data);
+      updateFilesStatus();
+    },
+    send: function(e, data) { // Called before starting upload
+      // If this is the second file you're uploading we need to remove the
+      // old upload_id and just keep the csrftoken (which is always first).
+      form_data.splice(1);
+    },
+    chunkdone: function (e, data) { // Called after uploading each chunk
+      if (form_data.length < 2) {
+        form_data.push(
+          {"name": "upload_id", "value": data.result.upload_id}
+        );
+      }
+    },
+    done: function (e, data) { // Called when all chunks of a file are uploaded
+      $.ajax({
+        type: 'POST',
+        url: "{% url 'files_upload_complete' %}",
+        data: {
+          csrfmiddlewaretoken: csrf,
+          upload_id: data.result.upload_id,
+          domain: "{{ domain }}",
+          path: "{{ path }}",
+        },
+        dataType: 'json',
+        success: function(data) {
+        },
+        error: function() {
+          $('#files-progress').css('width', '100%');
+          $('#files-progress').html('Upload failed');
+          $('#files-progress').attr('class', 'progress-bar bg-danger');
+        }
+      });
+    },
+    fail: function (e, data) { // Called when a chunk fails
+      $('#files-progress').css('width', '100%');
+      $('#files-progress').html('Upload failed');
+      $('#files-progress').attr('class', 'progress-bar bg-danger');
+    },
+    progressall: function (e, data) { // Called after uploading each chunk
+      var progress = parseInt(data.loaded / data.total * 100, 10);
+      $('#files-progress').css('width', progress + '%');
+      $('#files-progress').html(progress + '%');
+    }
+  });
+
+  $(document).on('click', '.confirm-upload', function () {
+    if (filesList.length) {
+      // Disable buttons, start upload
+      $('.confirm-upload').prop('disabled', true);
+      $('.fileinput-button').prop('disabled', true);
+      $('#fileupload').prop('disabled', true);
+      filesListUploadAll();
+    }
+  });
+
+  $('#addFilesModal').on('show.bs.modal', function (e) {
+    // Clear list, reset interface
+    filesList = [];
+    updateFilesStatus();
+    $('#files-progress').css('width', '0%');
+    $('#files-progress').html('');
+    $('#files-progress').attr('class', 'progress-bar bg-secondary');
+    $('.confirm-upload').removeAttr('disabled');
+    $('.fileinput-button').removeAttr('disabled');
+    $('#fileupload').removeAttr('disabled', true);
+  });
+
+  $('#addFilesModal').on('hidden.bs.modal', function (e) {
+    // Refresh
+    location.reload();
+  });
+</script>
 {% endblock %}

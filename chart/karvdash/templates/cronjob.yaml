@@ -1,0 +1,25 @@
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: {{ .Release.Name }}
+  labels:
+    app: {{ .Release.Name }}
+    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+spec:
+  schedule: "*/5 * * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 0
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: maintenance
+            image: bitnami/kubectl:1.19.8
+            command: ["/bin/bash", "-c"]
+            args:
+            - POD_NAME=$(kubectl get pods -l app={{ .Release.Name }} -o=jsonpath='{.items[0].metadata.name}');
+              kubectl exec $POD_NAME -c karvdash -- python manage.py deleteexpireduploads;
+              sleep 120
+          restartPolicy: OnFailure

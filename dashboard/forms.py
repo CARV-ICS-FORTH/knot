@@ -85,11 +85,6 @@ class CreateServiceForm(forms.Form):
 class AddTemplateForm(forms.Form):
     file_field = forms.FileField(label='Template file to add')
 
-class AddImageForm(forms.Form):
-    name = forms.CharField(label='Image name', min_length=1, max_length=128, validators=[validate_docker_name])
-    tag = forms.CharField(label='Tag', min_length=1, max_length=128, validators=[validate_docker_tag])
-    file_field = forms.FileField(label='Saved image file to add')
-
 class AddDatasetForm(forms.Form):
     def __init__(self, *args, **kwargs):
         self.request = kwargs.pop('request')
@@ -107,9 +102,6 @@ class CreateDatasetForm(CreateServiceForm):
 
 class AddFolderForm(forms.Form):
     name = forms.CharField(label='Name for the new folder', min_length=1, max_length=255, initial='New Folder')
-
-class AddFilesForm(forms.Form):
-    file_field = forms.FileField(label='Files to add', widget=forms.ClearableFileInput(attrs={'multiple': True}))
 
 class AddImageFromFileForm(forms.Form):
     name = forms.CharField(label='Image name', min_length=1, max_length=128, validators=[validate_docker_name])

@@ -91,7 +91,8 @@ undeploy-crds:
 	kubectl delete -f $(CHART_DIR)/crds/karvdash-crd.yaml
 
 deploy-local: deploy-requirements
-	# Create default directories for private and shared data
+	# Create default directories for uploads, private and shared data
+	mkdir -p uploads
 	mkdir -p private
 	mkdir -p shared
 	IP_ADDRESS=$$(ipconfig getifaddr en0 || ipconfig getifaddr en1); \
@@ -105,6 +106,7 @@ deploy-local: deploy-requirements
 	--set karvdash.dockerRegistry="http://$$IP_ADDRESS:5000" \
 	--set karvdash.datasetsAvailable="1" \
 	--set karvdash.stateHostPath="$(PWD)/db" \
+	--set karvdash.uploadsHostPath="$(PWD)/uploads" \
 	--set karvdash.filesURL="file://$(PWD)"
 
 undeploy-local: undeploy-requirements undeploy-crds

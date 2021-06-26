@@ -73,15 +73,15 @@ spec:
         - name: KARVDASH_HTPASSWD_EXPORT_DIR
           value: {{ .Values.karvdash.htpasswdExportDir | quote }}
         - name: KARVDASH_DASHBOARD_TITLE
-          value: {{ .Values.karvdash.dashboardTitle | quote}}
+          value: {{ .Values.karvdash.dashboardTitle | quote }}
         - name: KARVDASH_DASHBOARD_THEME
-          value: {{ .Values.karvdash.dashboardTheme | quote}}
+          value: {{ .Values.karvdash.dashboardTheme | quote }}
         - name: KARVDASH_ISSUES_URL
           value: {{ .Values.karvdash.issuesURL | quote }}
         - name: KARVDASH_INGRESS_URL
-          value: {{ required "You must set karvdash.ingressURL to the ingress URL used" .Values.karvdash.ingressURL | quote}}
+          value: {{ required "You must set karvdash.ingressURL to the ingress URL used" .Values.karvdash.ingressURL | quote }}
         - name: KARVDASH_DOCKER_REGISTRY
-          value: {{ .Values.karvdash.dockerRegistry | quote}}
+          value: {{ .Values.karvdash.dockerRegistry | quote }}
         - name: KARVDASH_DOCKER_REGISTRY_NO_VERIFY
           value: {{ .Values.karvdash.dockerRegistryNoVerify | quote }}
         - name: KARVDASH_DATASETS_AVAILABLE
@@ -102,6 +102,10 @@ spec:
         {{- if .Values.karvdash.dockerRegistry }}
         - name: docker-socket
           mountPath: /var/run/docker.sock
+        {{- end }}
+        {{- if or .Values.karvdash.uploadsVolumeClaim .Values.karvdash.uploadsHostPath }}
+        - name: {{ .Release.Name }}-uploads-volume
+          mountPath: /app/uploads
         {{- end }}
         - name: {{ .Release.Name }}-state-volume
           mountPath: /db
@@ -131,6 +135,15 @@ spec:
       - name: docker-socket
         hostPath:
           path: /var/run/docker.sock
+      {{- end }}
+      {{- if .Values.karvdash.uploadsVolumeClaim }}
+      - name: {{ .Release.Name }}-uploads-volume
+        persistentVolumeClaim:
+          claimName: {{ .Values.karvdash.uploadsVolumeClaim }}
+      {{- else if .Values.karvdash.uploadsHostPath }}
+      - name: {{ .Release.Name }}-uploads-volume
+        persistentVolumeClaim:
+          claimName: {{ .Release.Name }}-uploads-pvc
       {{- end }}
       {{- if .Values.karvdash.logsVolumeClaim }}
       - name: {{ .Release.Name }}-logs-volume

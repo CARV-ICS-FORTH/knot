@@ -25,9 +25,10 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import SetPasswordForm, PasswordChangeForm
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib import messages
+from chunked_upload.views import ChunkedUploadView, ChunkedUploadCompleteView
 
 from .models import User
-from .forms import SignUpForm, EditUserForm, AddServiceForm, CreateServiceForm, AddTemplateForm, AddImageForm, AddDatasetForm, CreateDatasetForm, AddFolderForm, AddFilesForm, AddImageFromFileForm
+from .forms import SignUpForm, EditUserForm, AddServiceForm, CreateServiceForm, AddTemplateForm, AddDatasetForm, CreateDatasetForm, AddFolderForm, AddImageFromFileForm
 from .api import ServiceResource, TemplateResource, DatasetResource
 from .utils.kubernetes import KubernetesClient
 from .utils.docker import DockerClient
@@ -35,7 +36,6 @@ from .utils.docker import DockerClient
 
 @login_required
 def dashboard(request):
-    # return render(request, 'dashboard/dashboard.html', {'title': 'Dashboard'})
     return redirect('services')
 
 @login_required
@@ -252,30 +252,6 @@ def template_download(request, identifier):
 def images(request):
     docker_client = DockerClient(settings.DOCKER_REGISTRY, settings.DOCKER_REGISTRY_NO_VERIFY)
 
-    # Handle changes.
-    if request.method == 'POST':
-        if 'action' not in request.POST:
-            messages.error(request, 'Invalid action.')
-        elif request.POST['action'] == 'Add':
-            form = AddImageForm(request.POST, request.FILES)
-            files = request.FILES.getlist('file_field')
-            if form.is_valid():
-                name = form.cleaned_data['name']
-                tag = form.cleaned_data['tag']
-                try:
-                    for f in files:
-                        docker_client.add_image(f, name, tag)
-                except Exception as e:
-                    messages.error(request, 'Failed to add image: %s.' % str(e))
-                else:
-                    messages.success(request, 'Image "%s:%s" added.' % (name, tag))
-            else:
-                messages.error(request, 'Failed to add image. Probably invalid characters in name or tag.')
-        else:
-            messages.error(request, 'Invalid action.')
-
-        return redirect('images')
-
     # There is no hierarchy here.
     trail = [{'name': '<i class="fa fa-archive" aria-hidden="true"></i> %s' % docker_client.safe_registry_url}]
 
@@ -307,8 +283,7 @@ def images(request):
                                                      'trail': trail,
                                                      'contents': contents,
                                                      'sort_by': sort_by,
-                                                     'order': order,
-                                                     'add_image_form': AddImageForm()})
+                                                     'order': order})
 
 @login_required
 def image_info(request, name):
@@ -570,20 +545,6 @@ def files(request, path='/'):
                 path_worker.download(name, response)
                 response['Content-Disposition'] = 'attachment; filename="%s.zip"' % re.sub(r'[^A-Za-z0-9 \-_]+', '', name)
                 return response
-        elif request.POST['action'] == 'Add':
-            form = AddFilesForm(request.POST, request.FILES)
-            files = request.FILES.getlist('file_field')
-            if form.is_valid():
-                for f in files:
-                    if path_worker.exists(f.name):
-                        messages.error(request, 'Can not add "%s". An item with the same name already exists.' % f.name)
-                        break
-                else:
-                    path_worker.upload(files)
-                    messages.success(request, 'Item%s %s added.' % ('s' if len(files) > 1 else '', ', '.join(['"%s"' % f.name for f in files])))
-            else:
-                # XXX Show form errors in messages.
-                pass
         elif request.POST['action'] == 'Delete':
             name = request.POST.get('filename', None)
             if name:
@@ -684,13 +645,29 @@ def files(request, path='/'):
 
     return render(request, 'dashboard/files.html', {'title': 'Files',
                                                     'domain': domain,
+                                                    'path': os.path.join(*path_components[1:]) if path_components[1:] else '',
                                                     'trail': trail,
                                                     'contents': contents,
                                                     'sort_by': sort_by,
                                                     'order': order,
                                                     'add_folder_form': AddFolderForm(),
-                                                    'add_files_form': AddFilesForm(),
                                                     'add_image_from_file_form': AddImageFromFileForm()})
+
+class UploadView(ChunkedUploadView):
+    pass
+
+class UploadCompleteView(ChunkedUploadCompleteView):
+    do_md5_check = False
+
+    def on_completion(self, uploaded_file, request):
+        # Get user file domains.
+        file_domains = request.user.file_domains if not getattr(request.user, 'is_impersonate', False) else User.objects.get(pk=request.user.pk).file_domains
+
+        path_worker = file_domains[request.POST['domain']].path_worker(request.POST['path'].split('/'))
+        if path_worker.exists(uploaded_file.name):
+            messages.error(request, 'Can not add "%s". An item with the same name already exists.' % uploaded_file.name)
+            return
+        path_worker.upload([uploaded_file])
 
 @staff_member_required
 def users(request):

@@ -10,7 +10,7 @@ metadata:
     {{- if eq ($ingressURL | urlParse).scheme "https" }}
     nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
     {{- end }}
-    nginx.ingress.kubernetes.io/proxy-body-size: {{ .Values.ingress.bodySize }}
+    nginx.ingress.kubernetes.io/proxy-body-size: 10m
 spec:
   rules:
     - host: {{ (split ":" ($ingressURL | urlParse).host)._0 }}
