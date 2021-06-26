@@ -19,8 +19,6 @@
 
 # Based on delete_expired_uploads.py from https://github.com/juliomalegria/django-chunked-upload.
 
-from optparse import make_option
-
 from django.core.management.base import BaseCommand
 from django.utils import timezone
 from django.utils.translation import ugettext as _

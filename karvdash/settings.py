@@ -252,7 +252,7 @@ ALLOWED_HOSTPATH_DIRS = [d.strip() for d in os.getenv('KARVDASH_ALLOWED_HOSTPATH
 
 # Service names and template configuration file
 
-import json
+import json # noqa: E402
 
 CONFIG_DIR = os.getenv('KARVDASH_CONFIG_DIR', DATABASE_DIR)
 try:
