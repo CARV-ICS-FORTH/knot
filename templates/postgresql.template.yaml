@@ -27,12 +27,12 @@ spec:
     spec:
       containers:
       - name: $NAME
-        image: postgres:12.3
+        image: postgres:${VERSION}
         ports:
         - containerPort: 5432
         env:
         - name: POSTGRES_PASSWORD
-          value: $PASSWORD
+          value: ${PASSWORD}
         - name: PGDATA
           value: ${PRIVATE}/.postgresql/data
 ---
@@ -48,6 +48,9 @@ variables:
   default: postgresql.example.com
 - name: PRIVATE
   default: /private
+- name: VERSION
+  default: 12.3
+  help: PostgreSQL version
 - name: PASSWORD
   default: postgres
   help: Password for postgres user
