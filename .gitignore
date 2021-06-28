@@ -9,7 +9,6 @@ deploy/
 docs/_build/
 venv/
 db/
-static/
 uploads/
 private/
 shared/
