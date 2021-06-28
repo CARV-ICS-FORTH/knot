@@ -92,13 +92,37 @@ spec:
           value: {{ .Values.karvdash.filesURL | quote }}
         - name: KARVDASH_ALLOWED_HOSTPATH_DIRS
           value: {{ .Values.karvdash.allowedHostPathDirs | quote }}
+        {{- if .Values.karvdash.disabledServiceTemplates }}
+        - name: KARVDASH_DISABLED_SERVICE_TEMPLATES_FILE
+          value: /etc/karvdash/disabled_service_templates
+        {{- end }}
+        {{- if .Values.karvdash.disabledDatasetTemplates }}
+        - name: KARVDASH_DISABLED_DATASET_TEMPLATES_FILE
+          value: /etc/karvdash/disabled_dataset_templates
+        {{- end }}
+        {{- if .Values.karvdash.serviceURLPrefixes }}
+        - name: KARVDASH_SERVICE_URL_PREFIXES_FILE
+          value: /etc/karvdash/service_url_prefixes
+        {{- end }}
         ports:
         - containerPort: 8000
           name: http
         volumeMounts:
+        {{- if .Values.karvdash.disabledServiceTemplates }}
         - name: {{ .Release.Name }}-config
-          mountPath: /etc/karvdash/config.json
-          subPath: config.json
+          mountPath: /etc/karvdash/disabled_service_templates
+          subPath: disabled_service_templates
+        {{- end }}
+        {{- if .Values.karvdash.disabledDatasetTemplates }}
+        - name: {{ .Release.Name }}-config
+          mountPath: /etc/karvdash/disabled_dataset_templates
+          subPath: disabled_dataset_templates
+        {{- end }}
+        {{- if .Values.karvdash.serviceURLPrefixes }}
+        - name: {{ .Release.Name }}-config
+          mountPath: /etc/karvdash/service_url_prefixes
+          subPath: service_url_prefixes
+        {{- end }}
         {{- if .Values.karvdash.dockerRegistry }}
         - name: docker-socket
           mountPath: /var/run/docker.sock

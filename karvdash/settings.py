@@ -250,20 +250,33 @@ if not DATASETS_AVAILABLE and not FILES_URL.startswith('file://'):
 ALLOWED_HOSTPATH_DIRS = [d.strip() for d in os.getenv('KARVDASH_ALLOWED_HOSTPATH_DIRS', '').split(':') if d.strip()]
 
 
-# Service names and template configuration file
+# Disabled templates
 
-import json # noqa: E402
+DISABLED_SERVICE_TEMPLATES = []
+DISABLED_SERVICE_TEMPLATES_FILE = os.getenv('KARVDASH_DISABLED_SERVICE_TEMPLATES_FILE')
+if DISABLED_SERVICE_TEMPLATES_FILE and os.path.isfile(DISABLED_SERVICE_TEMPLATES_FILE):
+    with open(DISABLED_SERVICE_TEMPLATES_FILE) as f:
+        DISABLED_SERVICE_TEMPLATES = [line.strip() for line in f if line.strip()]
 
-CONFIG_DIR = os.getenv('KARVDASH_CONFIG_DIR', DATABASE_DIR)
-try:
-    with open(os.path.join(CONFIG_DIR, 'config.json'), 'rb') as f:
-        config = json.loads(f.read())
-    DISABLED_SERVICE_TEMPLATES = config.get('disabled_service_templates') or []
-    DISABLED_DATASET_TEMPLATES = config.get('disabled_dataset_templates') or []
-    SERVICE_URL_PREFIXES = config.get('service_url_prefixes') or []
-    GENERATE_SERVICE_URLS = False if SERVICE_URL_PREFIXES else True
-except:
-    DISABLED_SERVICE_TEMPLATES = []
-    DISABLED_DATASET_TEMPLATES = []
-    SERVICE_URL_PREFIXES = []
-    GENERATE_SERVICE_URLS = True
+DISABLED_DATASET_TEMPLATES = []
+DISABLED_DATASET_TEMPLATES_FILE = os.getenv('KARVDASH_DISABLED_DATASET_TEMPLATES_FILE')
+if DISABLED_DATASET_TEMPLATES_FILE and os.path.isfile(DISABLED_DATASET_TEMPLATES_FILE):
+    with open(DISABLED_DATASET_TEMPLATES_FILE) as f:
+        DISABLED_DATASET_TEMPLATES = [line.strip() for line in f if line.strip()]
+
+
+# Preconfigured service URL prefixes
+
+import re # noqa: E402
+
+SERVICE_URL_PREFIXES = []
+SERVICE_URL_PREFIXES_FILE = os.getenv('KARVDASH_SERVICE_URL_PREFIXES_FILE')
+if SERVICE_URL_PREFIXES_FILE and os.path.isfile(SERVICE_URL_PREFIXES_FILE):
+    with open(SERVICE_URL_PREFIXES_FILE) as f:
+        SERVICE_URL_PREFIXES = [line.strip() for line in f if line.strip()]
+
+for service_url_prefix in SERVICE_URL_PREFIXES:
+    if not bool(re.match(r'^[0-9a-zA-Z_\-]+$', service_url_prefix)):
+        raise ValueError('Invalid characters in service URL prefix')
+
+GENERATE_SERVICE_URLS = False if SERVICE_URL_PREFIXES else True
