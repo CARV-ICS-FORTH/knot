@@ -329,7 +329,7 @@ class TemplateResource(APIResource):
         return contents
 
     def list(self):
-        return [template.format() for template in self.templates]
+        return [dict(template.format(), custom=(not isinstance(template, FileTemplate))) for template in self.templates]
 
     def add(self):
         try:

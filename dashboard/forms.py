@@ -64,8 +64,11 @@ class AddServiceForm(forms.Form):
 
         template_resource = TemplateResource()
         template_resource.request = self.request
+        templates = sorted(template_resource.list(),
+                           key=lambda x: x['name'],
+                           reverse=False)
         self.fields['id'] = forms.ChoiceField(label='Service to create',
-                                              choices=[(t['id'], '%s: %s' % (t['name'], t['description'])) for t in template_resource.list()])
+                                              choices=[(t['id'], '%s: %s' % (t['name'], t['description'])) for t in templates])
 
 class CreateServiceForm(forms.Form):
     def __init__(self, *args, **kwargs):

@@ -59,7 +59,7 @@
       <thead>
         <tr>
           <th scope="col"></th>
-          {% with 'name description singleton' as list %}
+          {% with 'name description singleton custom' as list %}
           {% for item in list.split %}
           <th scope="col">
             {% if sort_by == item and order == 'asc' %}
@@ -85,6 +85,7 @@
           </td>
           <td class="align-middle">{{ item.description }}</td>
           <td class="align-middle">{% if item.singleton %}<i class="fa fa-check" aria-hidden="true"></i>{% endif %}</td>
+          <td class="align-middle">{% if item.custom %}<i class="fa fa-check" aria-hidden="true"></i>{% endif %}</td>
           <td class="align-middle py-0">
             <div class="btn-group">
               <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="dropdownActionsButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">

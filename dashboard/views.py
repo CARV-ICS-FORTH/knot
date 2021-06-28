@@ -213,7 +213,7 @@ def templates(request):
 
     # Sort them up.
     sort_by = request.GET.get('sort_by')
-    if sort_by and sort_by in ('name', 'description', 'singleton'):
+    if sort_by and sort_by in ('name', 'description', 'singleton', 'custom'):
         request.session['templates_sort_by'] = sort_by
     else:
         sort_by = request.session.get('templates_sort_by', 'name')
