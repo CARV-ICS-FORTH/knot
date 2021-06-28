@@ -297,13 +297,18 @@
     },
     fail: function (e, data) { // Called when a chunk fails
       $('#files-progress').css('width', '100%');
-      $('#files-progress').html('Upload failed');
+      $('#files-progress').html('Failed');
       $('#files-progress').attr('class', 'progress-bar bg-danger');
     },
     progressall: function (e, data) { // Called after uploading each chunk
       var progress = parseInt(data.loaded / data.total * 100, 10);
       $('#files-progress').css('width', progress + '%');
-      $('#files-progress').html(progress + '%');
+      if (data.loaded != data.total) {
+        $('#files-progress').html(progress + '%');
+      } else {
+        $('#files-progress').html('Done');
+        $('#files-progress').attr('class', 'progress-bar bg-success');
+      }
     }
   });
 
