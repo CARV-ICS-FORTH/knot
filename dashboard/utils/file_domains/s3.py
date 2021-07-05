@@ -152,7 +152,6 @@ class S3Domain(object):
         self._url = urlparse(url)
         if self._url.scheme not in ('minio', 'minios', 'aws'):
             raise ValueError('Unsupported S3 domain URL')
-        self._mount_dir = mount_dir
         self._user = user
 
         self._bucket_prefix = self._url.path.lstrip('/').rstrip('-') or 'karvdash'
@@ -220,7 +219,7 @@ class S3Domain(object):
     @property
     def mount_dir(self):
         ''' Where to mount the domain. '''
-        raise NotImplementedError
+        return '/%s' % self.name
 
     @property
     def bucket_name(self):
@@ -297,10 +296,6 @@ class PrivateS3Domain(S3Domain):
         return 'private'
 
     @property
-    def mount_dir(self):
-        return os.path.join(self._mount_dir, 'private')
-
-    @property
     def bucket_name(self):
         return self._bucket_prefix + '-private-' + self._user.username
 
@@ -308,10 +303,6 @@ class SharedS3Domain(S3Domain):
     @property
     def name(self):
         return 'shared'
-
-    @property
-    def mount_dir(self):
-        return os.path.join(self._mount_dir, 'shared')
 
     @property
     def bucket_name(self):

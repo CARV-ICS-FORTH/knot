@@ -45,6 +45,8 @@ karvdash:
   datasetsAvailable:
   # REQUIRED: The base URL for the private and shared file domains.
   filesURL:
+  # The size for the files persistent volume.
+  filesSize: 1Pi
   # Other host paths to allow attaching to containers (separate with ":").
   allowedHostPathDirs:
 

@@ -195,8 +195,8 @@ MESSAGE_TAGS = {
 
 # File management domains
 
-FILES_URL = os.getenv('KARVDASH_FILES_URL', 'file://%s' % BASE_DIR)
-FILES_MOUNT_DIR = os.getenv('KARVDASH_FILES_MOUNT_DIR', BASE_DIR)
+FILES_URL = os.getenv('KARVDASH_FILES_URL', 'file://%s' % os.path.join(BASE_DIR, 'files'))
+FILES_MOUNT_DIR = os.getenv('KARVDASH_FILES_MOUNT_DIR', os.path.join(BASE_DIR, 'files'))
 
 
 # Upload path
@@ -241,8 +241,8 @@ ISSUES_URL = os.getenv('KARVDASH_ISSUES_URL')
 # Datasets
 
 DATASETS_AVAILABLE = True if os.getenv('KARVDASH_DATASETS_AVAILABLE', '') else False
-if not DATASETS_AVAILABLE and not FILES_URL.startswith('file://'):
-    raise ValueError('Datasets are required for non-file files URL')
+if not DATASETS_AVAILABLE and (FILES_URL.startswith('minio://') or FILES_URL.startswith('minios://')):
+    raise ValueError('Datasets are required for MinIO-based files URL')
 
 
 # Local directories allowed to be mounted in containers (in addition to file domains)

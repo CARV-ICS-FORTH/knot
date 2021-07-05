@@ -1,0 +1,42 @@
+{{- $filesURL := (required "You must set karvdash.filesURL to the base URL for the private and shared file domains" .Values.karvdash.filesURL) | urlParse }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ .Release.Name }}-files-pvc
+  labels:
+    app: {{ .Release.Name }}
+    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+spec:
+  storageClassName: ""
+  volumeName: {{ .Release.Name }}-files-pv
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: {{ .Values.karvdash.filesSize }}
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: {{ .Release.Name }}-files-pv
+  labels:
+    app: {{ .Release.Name }}
+    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+spec:
+  capacity:
+    storage: {{ .Values.karvdash.filesSize }}
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  {{- if eq $filesURL.scheme "file" }}
+  hostPath:
+    path: {{ $filesURL.path | clean | quote }}
+  {{- else if eq $filesURL.scheme "nfs" }}
+  csi:
+    driver: nfs.csi.k8s.io
+    readOnly: false
+    volumeHandle: {{ .Release.Name }}-files
+    volumeAttributes:
+      server: {{ $filesURL.host | clean | quote }}
+      share: {{ $filesURL.path | clean | quote }}
+  {{- end }}

@@ -92,9 +92,7 @@ class FileDomain(object):
             raise ValueError('Empty user')
 
         self._url = urlparse(url)
-        if self._url.scheme != 'file':
-            raise ValueError('Unsupported file domain URL')
-        self._mount_dir = mount_dir
+        self._mount_dir = mount_dir # Local mountpoint from settings
         self._user = user
         self.create_user_dir()
 
@@ -115,7 +113,7 @@ class FileDomain(object):
     @property
     def mount_dir(self):
         ''' Where to mount the domain. '''
-        raise NotImplementedError
+        return '/%s' % self.name
 
     @property
     def user_dir(self):
@@ -136,10 +134,6 @@ class PrivateFileDomain(FileDomain):
         return 'private'
 
     @property
-    def mount_dir(self):
-        return os.path.join(self._mount_dir, 'private')
-
-    @property
     def user_dir(self):
         return os.path.join(self._mount_dir, 'private', self._user.username)
 
@@ -151,10 +145,6 @@ class SharedFileDomain(FileDomain):
     @property
     def name(self):
         return 'shared'
-
-    @property
-    def mount_dir(self):
-        return os.path.join(self._mount_dir, 'shared')
 
     @property
     def user_dir(self):

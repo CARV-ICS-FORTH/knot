@@ -10,5 +10,4 @@ docs/_build/
 venv/
 db/
 uploads/
-private/
-shared/
+files/

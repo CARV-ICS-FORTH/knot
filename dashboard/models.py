@@ -108,8 +108,8 @@ class User(AuthUser):
             return {'private': PrivateFileDomain(settings.FILES_URL, settings.FILES_MOUNT_DIR, self),
                     'shared': SharedFileDomain(settings.FILES_URL, settings.FILES_MOUNT_DIR, self)}
         if files_url.scheme in ('minio', 'minios'):
-            return {'private': PrivateS3Domain(settings.FILES_URL, settings.FILES_MOUNT_DIR, self),
-                    'shared': SharedS3Domain(settings.FILES_URL, settings.FILES_MOUNT_DIR, self)}
+            return {'private': PrivateS3Domain(settings.FILES_URL, None, self),
+                    'shared': SharedS3Domain(settings.FILES_URL, None, self)}
         raise ValueError('Unsupported URL for files')
 
     @property
