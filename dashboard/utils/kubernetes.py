@@ -77,6 +77,9 @@ class KubernetesClient(object):
     def list_secrets(self, namespace):
         return self.core_client.list_namespaced_secret(namespace=namespace).items
 
+    def list_persistent_volume_claims(self, namespace):
+        return self.core_client.list_namespaced_persistent_volume_claim(namespace=namespace).items
+
     def apply_yaml(self, yaml_file, namespace=None):
         command = 'kubectl apply -f %s' % yaml_file
         if namespace:

@@ -214,7 +214,7 @@ class S3Domain(object):
     @property
     def volume_name(self):
         ''' How to name the volume when mounting it. '''
-        return 'karvdash-volume-%s' % self.name
+        return 'karvdash-%s-volume-%s' % (self._user, self.name)
 
     @property
     def mount_dir(self):

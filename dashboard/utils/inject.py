@@ -26,12 +26,8 @@ def inject_volumes(yaml_data, file_domains, add_api_settings=False, is_datasets=
         for file_domain in file_domains.values():
             if file_domain.volume_name in existing_names:
                 continue
-            if file_domain.url.startswith('file://'):
-                spec['volumes'].append({'name': file_domain.volume_name,
-                                        'hostPath': {'path': urlparse(file_domain.url).path}})
-            else:
-                spec['volumes'].append({'name': file_domain.volume_name,
-                                        'persistentVolumeClaim': {'claimName': file_domain.volume_name}})
+            spec['volumes'].append({'name': file_domain.volume_name,
+                                    'persistentVolumeClaim': {'claimName': file_domain.volume_name}})
         if add_api_settings and 'karvdash-api-volume' not in existing_names:
             spec['volumes'].append({'name': 'karvdash-api-volume',
                                     'configMap': {'name': 'karvdash-api',

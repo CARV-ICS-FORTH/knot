@@ -15,10 +15,51 @@
 import os
 import zipfile
 import shutil
+import tempfile
 
 from urllib.parse import urlparse
 from datetime import datetime
 
+from ..kubernetes import KubernetesClient
+from ..template import Template
+
+
+HOSTPATH_VOLUME_TEMPLATE = '''
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: $NAME
+spec:
+  storageClassName: ""
+  volumeName: $NAME-pv
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: $SIZE
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: $NAME-pv
+spec:
+  accessModes:
+    - ReadWriteMany
+  capacity:
+    storage: $SIZE
+  hostPath:
+    path: $PATH
+---
+kind: Template
+name: HostpathVolumeTemplate
+variables:
+- name: NAME
+  default: volume
+- name: SIZE
+  default: 1Pi
+- name: PATH
+  default: ""
+'''
 
 class FileDomainPathWorker(object):
     def __init__(self, domain, path_components):
@@ -96,6 +137,20 @@ class FileDomain(object):
         self._user = user
         self.create_user_dir()
 
+        # Create persistent volume and claim.
+        kubernetes_client = KubernetesClient()
+        for pvc in kubernetes_client.list_persistent_volume_claims(namespace=self._user.namespace):
+            if pvc.metadata.name == self.volume_name:
+                return
+
+        template = Template(HOSTPATH_VOLUME_TEMPLATE)
+        template.NAME = self.volume_name
+        template.PATH = urlparse(self.url).path
+        with tempfile.NamedTemporaryFile() as f:
+            f.write(template.yaml.encode())
+            f.seek(0)
+            kubernetes_client.apply_yaml(f.name, namespace=self._user.namespace)
+
     def create_user_dir(self):
         if not os.path.exists(self.user_dir):
             os.makedirs(self.user_dir)
@@ -108,7 +163,7 @@ class FileDomain(object):
     @property
     def volume_name(self):
         ''' How to name the volume when mounting it. '''
-        return 'karvdash-volume-%s' % self.name
+        return 'karvdash-%s-volume-%s' % (self._user, self.name)
 
     @property
     def mount_dir(self):
