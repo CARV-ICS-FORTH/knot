@@ -10,5 +10,4 @@ deploy/
 docs/_build/
 venv/
 db/
-uploads/
 files/

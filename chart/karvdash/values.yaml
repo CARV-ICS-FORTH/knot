@@ -16,11 +16,6 @@ karvdash:
   # The host path to use for storing logs, when no existing volume claim is set.
   logsHostPath:
 
-  # The volume to store uploads.
-  uploadsVolumeClaim:
-  # The host path to use for storing uploads, when no existing volume claim is set.
-  uploadsHostPath:
-
   # Secret for Django. Use a random string of 50 characters (a default will be generated if empty).
   djangoSecret:
   # Set to anything to enable, empty to disable.

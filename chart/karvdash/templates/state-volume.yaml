@@ -7,7 +7,8 @@ metadata:
     app: {{ .Release.Name }}
     chart: {{ .Chart.Name }}-{{ .Chart.Version }}
 spec:
-  storageClassName: karvdash-state
+  storageClassName: ""
+  volumeName: {{ .Release.Name }}-state-pv
   accessModes:
     - ReadWriteOnce
   resources:
@@ -22,11 +23,11 @@ metadata:
     app: {{ .Release.Name }}
     chart: {{ .Chart.Name }}-{{ .Chart.Version }}
 spec:
-  storageClassName: karvdash-state
-  capacity:
-    storage: 1Gi
   accessModes:
     - ReadWriteOnce
+  capacity:
+    storage: 1Gi
+  persistentVolumeReclaimPolicy: Retain
   hostPath:
     path: {{ required "You must set karvdash.stateHostPath to the host path for storing state, since no existing volume claim is set" .Values.karvdash.stateHostPath | quote }}
 {{- end }}

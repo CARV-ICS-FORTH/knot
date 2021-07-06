@@ -23,10 +23,10 @@ metadata:
     app: {{ .Release.Name }}
     chart: {{ .Chart.Name }}-{{ .Chart.Version }}
 spec:
-  capacity:
-    storage: {{ .Values.karvdash.filesSize }}
   accessModes:
     - ReadWriteMany
+  capacity:
+    storage: {{ .Values.karvdash.filesSize }}
   persistentVolumeReclaimPolicy: Retain
   {{- if eq $filesURL.scheme "file" }}
   hostPath:

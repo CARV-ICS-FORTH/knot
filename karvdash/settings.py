@@ -202,7 +202,8 @@ FILES_MOUNT_DIR = os.getenv('KARVDASH_FILES_MOUNT_DIR', os.path.join(BASE_DIR, '
 
 
 # Upload path
-CHUNKED_UPLOAD_PATH = os.getenv('KARVDASH_UPLOADS_DIR', os.path.join(BASE_DIR, 'uploads'))
+
+CHUNKED_UPLOAD_PATH = os.path.join(FILES_MOUNT_DIR, 'uploads')
 
 
 # Docker registry endpoint

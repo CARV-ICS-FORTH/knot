@@ -126,10 +126,6 @@ spec:
         - name: docker-socket
           mountPath: /var/run/docker.sock
         {{- end }}
-        {{- if or .Values.karvdash.uploadsVolumeClaim .Values.karvdash.uploadsHostPath }}
-        - name: {{ .Release.Name }}-uploads-volume
-          mountPath: /app/uploads
-        {{- end }}
         - name: {{ .Release.Name }}-state-volume
           mountPath: /db
         - name: {{ .Release.Name }}-files-volume
@@ -154,15 +150,6 @@ spec:
       - name: docker-socket
         hostPath:
           path: /var/run/docker.sock
-      {{- end }}
-      {{- if .Values.karvdash.uploadsVolumeClaim }}
-      - name: {{ .Release.Name }}-uploads-volume
-        persistentVolumeClaim:
-          claimName: {{ .Values.karvdash.uploadsVolumeClaim }}
-      {{- else if .Values.karvdash.uploadsHostPath }}
-      - name: {{ .Release.Name }}-uploads-volume
-        persistentVolumeClaim:
-          claimName: {{ .Release.Name }}-uploads-pvc
       {{- end }}
       {{- if .Values.karvdash.logsVolumeClaim }}
       - name: {{ .Release.Name }}-logs-volume
