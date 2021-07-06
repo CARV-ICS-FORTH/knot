@@ -233,7 +233,7 @@ class ServiceResource(APIResource):
 
         # Apply.
         self.user.update_kubernetes_credentials(kubernetes_client=kubernetes_client)
-        kubernetes_client.apply_yaml(service_yaml, namespace=self.user.namespace)
+        kubernetes_client.apply_yaml_file(service_yaml, namespace=self.user.namespace)
 
         service_template = template.format()
         service_template['values'] = template.values
@@ -269,7 +269,7 @@ class ServiceResource(APIResource):
             raise NotFound()
         else:
             try:
-                kubernetes_client.delete_yaml(service_yaml, namespace=self.user.namespace)
+                kubernetes_client.delete_yaml_file(service_yaml, namespace=self.user.namespace)
             except:
                 raise
             else:

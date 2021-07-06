@@ -13,7 +13,6 @@
 # limitations under the License.
 
 import os
-import shutil
 import restless
 import re
 
@@ -683,6 +682,7 @@ def users(request):
                 if user:
                     if action == 'Activate':
                         user.is_active = True
+                        user.create_namespace(request)
                         user.update_kubernetes_credentials()
                     elif action == 'Deactivate':
                         user.is_active = False
@@ -700,26 +700,7 @@ def users(request):
                 user = User.objects.get(username=username)
                 if user:
                     try:
-                        api_yaml = os.path.join(settings.SERVICE_DATABASE_DIR, '%s-api.yaml' % user.username)
-                        if os.path.exists(api_yaml):
-                            KubernetesClient().delete_yaml(api_yaml)
-                            os.unlink(api_yaml)
-
-                        namespace_yaml = os.path.join(settings.SERVICE_DATABASE_DIR, '%s-namespace.yaml' % user.username)
-                        if os.path.exists(namespace_yaml):
-                            KubernetesClient().delete_yaml(namespace_yaml)
-                            os.unlink(namespace_yaml)
-
-                        service_database_path = os.path.join(settings.SERVICE_DATABASE_DIR, user.username)
-                        if os.path.exists(service_database_path):
-                            shutil.rmtree(service_database_path)
-
-                        for name, variables in dict(settings.FILE_DOMAINS).items():
-                            if not variables['dir'] or not variables['host_dir']:
-                                continue
-                            user_path = os.path.join(variables['host_dir'], user.username)
-                            if os.path.exists(user_path):
-                                shutil.rmtree(user_path)
+                        user.delete_namespace()
                     except Exception as e:
                         messages.error(request, 'Failed to delete user "%s": %s.' % (username, str(e)))
                     else:

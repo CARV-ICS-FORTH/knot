@@ -14,6 +14,7 @@
 
 import os
 import socket
+import shutil
 import random
 
 from django.db import models
@@ -160,6 +161,58 @@ class User(AuthUser):
             kubernetes_client = KubernetesClient()
         kubernetes_client.delete_secret(self.namespace, 'karvdash-auth')
 
+    def create_namespace(self, request):
+        ingress_url = urlparse(settings.INGRESS_URL)
+        ingress_host = '%s:%s' % (ingress_url.hostname, ingress_url.port) if ingress_url.port else ingress_url.hostname
+
+        # Create service directory.
+        if not os.path.exists(settings.SERVICE_DATABASE_DIR):
+            os.makedirs(settings.SERVICE_DATABASE_DIR)
+
+        kubernetes_client = KubernetesClient()
+        if self.namespace not in [n.metadata.name for n in kubernetes_client.list_namespaces()]:
+            # Create namespace.
+            namespace_template = Template(NAMESPACE_TEMPLATE)
+            namespace_template.NAME = self.namespace
+            kubernetes_client.apply_yaml_data(namespace_template.yaml.encode())
+
+            # Create API connectivity configuration (mounted inside containers).
+            service_domain = settings.SERVICE_DOMAIN
+            if not service_domain:
+                # If running in Kubernetes this should be set.
+                service_host = socket.gethostbyname(socket.gethostname())
+                service_port = request.META['SERVER_PORT']
+                service_domain = '%s:%s' % (service_host, service_port)
+            api_template = Template(TOKEN_CONFIGMAP_TEMPLATE)
+            api_template.NAME = 'karvdash-api'
+            api_template.BASE_URL = 'http://%s/api' % service_domain
+            api_template.TOKEN = self.api_token.token # Get or create
+            kubernetes_client.apply_yaml_data(api_template.yaml.encode(), namespace=self.namespace)
+
+            # Create registry secret.
+            kubernetes_client.create_docker_registry_secret(self.namespace, settings.DOCKER_REGISTRY, 'admin@%s' % ingress_host)
+
+        # Create volumes.
+        for name, domain in self.file_domains.items():
+            domain.create_volume()
+
+    def delete_namespace(self):
+        kubernetes_client = KubernetesClient()
+
+        # Delete service directory.
+        service_database_path = os.path.join(settings.SERVICE_DATABASE_DIR, self.username)
+        if os.path.exists(service_database_path):
+            shutil.rmtree(service_database_path)
+
+        # Delete namespace.
+        namespace_template = Template(NAMESPACE_TEMPLATE)
+        namespace_template.NAME = self.namespace
+        kubernetes_client.delete_yaml_data(namespace_template.yaml.encode())
+
+        # Delete volumes.
+        for name, domain in self.file_domains.items():
+            domain.delete_volume()
+
 def generate_token():
     return ''.join(random.choice('0123456789abcdef') for n in range(40))
 
@@ -170,43 +223,4 @@ class APIToken(models.Model):
 @receiver(user_logged_in)
 def create_user_namespace(sender, user, request, **kwargs):
     user = User.objects.get(pk=user.pk)
-
-    kubernetes_client = KubernetesClient()
-    if user.namespace in [n.metadata.name for n in kubernetes_client.list_namespaces()]:
-        return
-
-    ingress_url = urlparse(settings.INGRESS_URL)
-    ingress_host = '%s:%s' % (ingress_url.hostname, ingress_url.port) if ingress_url.port else ingress_url.hostname
-
-    # Create namespace file.
-    namespace_template = Template(NAMESPACE_TEMPLATE)
-    namespace_template.NAME = user.namespace
-
-    if not os.path.exists(settings.SERVICE_DATABASE_DIR):
-        os.makedirs(settings.SERVICE_DATABASE_DIR)
-    namespace_yaml = os.path.join(settings.SERVICE_DATABASE_DIR, '%s-namespace.yaml' % user.username)
-    with open(namespace_yaml, 'wb') as f:
-        f.write(namespace_template.yaml.encode())
-
-    # Create API connectivity configuration file (mounted inside containers).
-    service_domain = settings.SERVICE_DOMAIN
-    if not service_domain:
-        # If running in Kubernetes this should be set.
-        service_host = socket.gethostbyname(socket.gethostname())
-        service_port = request.META['SERVER_PORT']
-        service_domain = '%s:%s' % (service_host, service_port)
-    api_template = Template(TOKEN_CONFIGMAP_TEMPLATE)
-    api_template.NAME = 'karvdash-api'
-    api_template.BASE_URL = 'http://%s/api' % service_domain
-    api_template.TOKEN = user.api_token.token # Get or create
-
-    api_yaml = os.path.join(settings.SERVICE_DATABASE_DIR, '%s-api.yaml' % user.username)
-    with open(api_yaml, 'wb') as f:
-        f.write(api_template.yaml.encode())
-
-    # Apply.
-    kubernetes_client.apply_yaml(namespace_yaml)
-    kubernetes_client.create_docker_registry_secret(user.namespace, settings.DOCKER_REGISTRY, 'admin@%s' % ingress_host)
-    # if settings.DATASETS_AVAILABLE:
-    #     kubernetes_client.add_namespace_label(user.namespace, 'monitor-pods-datasets')
-    kubernetes_client.apply_yaml(api_yaml, namespace=user.namespace)
+    user.create_namespace(request) # Make sure namespace and volumes are created on upgrade

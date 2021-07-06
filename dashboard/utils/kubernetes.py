@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import os
+import tempfile
 
 import kubernetes.client
 import kubernetes.config
@@ -80,19 +81,31 @@ class KubernetesClient(object):
     def list_persistent_volume_claims(self, namespace):
         return self.core_client.list_namespaced_persistent_volume_claim(namespace=namespace).items
 
-    def apply_yaml(self, yaml_file, namespace=None):
+    def apply_yaml_file(self, yaml_file, namespace=None):
         command = 'kubectl apply -f %s' % yaml_file
         if namespace:
             command += ' -n %s' % namespace
         if os.system(command) < 0:
             raise SystemError('Can not apply service file')
 
-    def delete_yaml(self, yaml_file, namespace=None):
+    def apply_yaml_data(self, yaml_data, namespace=None):
+        with tempfile.NamedTemporaryFile() as f:
+            f.write(yaml_data)
+            f.seek(0)
+            self.apply_yaml_file(f.name, namespace)
+
+    def delete_yaml_file(self, yaml_file, namespace=None):
         command = 'kubectl delete -f %s' % yaml_file
         if namespace:
             command += ' -n %s' % namespace
         if os.system(command) < 0:
             raise SystemError('Can not delete service file')
+
+    def delete_yaml_data(self, yaml_data, namespace=None):
+        with tempfile.NamedTemporaryFile() as f:
+            f.write(yaml_data)
+            f.seek(0)
+            self.delete_yaml_file(f.name, namespace)
 
     def apply_crd(self, group, version, namespace, plural, yaml):
         return self.custom_objects_client.create_namespaced_custom_object(group=group, version=version, namespace=namespace, plural=plural, body=yaml)

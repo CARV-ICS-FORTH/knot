@@ -15,7 +15,6 @@
 import os
 import zipfile
 import shutil
-import tempfile
 
 from urllib.parse import urlparse
 from datetime import datetime
@@ -135,25 +134,38 @@ class FileDomain(object):
         self._url = urlparse(url)
         self._mount_dir = mount_dir # Local mountpoint from settings
         self._user = user
+
+    def create_volume(self):
         self.create_user_dir()
 
         # Create persistent volume and claim.
         kubernetes_client = KubernetesClient()
-        for pvc in kubernetes_client.list_persistent_volume_claims(namespace=self._user.namespace):
-            if pvc.metadata.name == self.volume_name:
-                return
+        volume_names = [pvc.metadata.name for pvc in kubernetes_client.list_persistent_volume_claims(namespace=self._user.namespace)]
+        if self.volume_name in volume_names:
+            return
 
         template = Template(HOSTPATH_VOLUME_TEMPLATE)
         template.NAME = self.volume_name
         template.PATH = urlparse(self.url).path
-        with tempfile.NamedTemporaryFile() as f:
-            f.write(template.yaml.encode())
-            f.seek(0)
-            kubernetes_client.apply_yaml(f.name, namespace=self._user.namespace)
+        kubernetes_client.apply_yaml_data(template.yaml.encode(), namespace=self._user.namespace)
+
+    def delete_volume(self):
+        kubernetes_client = KubernetesClient()
+
+        # Delete anyway, as the namespace may already be deleted.
+        template = Template(HOSTPATH_VOLUME_TEMPLATE)
+        template.NAME = self.volume_name
+        template.PATH = urlparse(self.url).path
+        kubernetes_client.delete_yaml_data(template.yaml.encode(), namespace=self._user.namespace)
+
+        self.delete_user_dir()
 
     def create_user_dir(self):
         if not os.path.exists(self.user_dir):
             os.makedirs(self.user_dir)
+
+    def delete_user_dir(self):
+        raise NotImplementedError
 
     @property
     def name(self):
@@ -184,6 +196,10 @@ class FileDomain(object):
         return FileDomainPathWorker(self, subpath_components)
 
 class PrivateFileDomain(FileDomain):
+    def delete_user_dir(self):
+        if os.path.exists(self.user_dir):
+            shutil.rmtree(self.user_dir)
+
     @property
     def name(self):
         return 'private'
@@ -197,6 +213,9 @@ class PrivateFileDomain(FileDomain):
         return 'file://%s' % os.path.join(self._url.path, 'private', self._user.username)
 
 class SharedFileDomain(FileDomain):
+    def delete_user_dir(self):
+        pass
+
     @property
     def name(self):
         return 'shared'
