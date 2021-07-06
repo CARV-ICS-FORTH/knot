@@ -28,6 +28,7 @@ from collections import namedtuple
 from .utils.template import Template
 from .utils.kubernetes import KubernetesClient
 from .utils.file_domains.file import PrivateFileDomain, SharedFileDomain
+from .utils.file_domains.nfs import PrivateNFSDomain, SharedNFSDomain
 
 
 NAMESPACE_TEMPLATE = '''
@@ -107,6 +108,9 @@ class User(AuthUser):
         if files_url.scheme == 'file':
             return {'private': PrivateFileDomain(settings.FILES_URL, settings.FILES_MOUNT_DIR, self),
                     'shared': SharedFileDomain(settings.FILES_URL, settings.FILES_MOUNT_DIR, self)}
+        if files_url.scheme == 'nfs':
+            return {'private': PrivateNFSDomain(settings.FILES_URL, settings.FILES_MOUNT_DIR, self),
+                    'shared': SharedNFSDomain(settings.FILES_URL, settings.FILES_MOUNT_DIR, self)}
         raise ValueError('Unsupported URL for files')
 
     @property
@@ -194,7 +198,7 @@ class User(AuthUser):
 
         # Create volumes.
         for name, domain in self.file_domains.items():
-            domain.create_volume()
+            domain.create_domain()
 
     def delete_namespace(self):
         kubernetes_client = KubernetesClient()
@@ -211,7 +215,7 @@ class User(AuthUser):
 
         # Delete volumes.
         for name, domain in self.file_domains.items():
-            domain.delete_volume()
+            domain.delete_domain()
 
 def generate_token():
     return ''.join(random.choice('0123456789abcdef') for n in range(40))
