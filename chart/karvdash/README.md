@@ -14,7 +14,7 @@ To install, you need a running Kubernetes environment with the following feature
 * For storage of Karvdash state, an existing persistent volume claim, or a directory in a shared filesystem mounted at the same path across all Kubernetes nodes, like NFS, [Gluster](https://www.gluster.org), or similar.
 * For files, either a shared filesystem like the one used for storing the configuration, or access to an S3 service based on [MinIO](https://min.io).
 * Optionally, a private Docker registry. You can run one using the [official instructions](https://docs.docker.com/registry/deploying/), or use [this](https://artifacthub.io/packages/helm/twuni/docker-registry) Helm chart.
-* Optionally, [Datashim](https://github.com/datashim-io/datashim), in which case Karvdash can be used to configure datasets (Datashim is required for files over S3).
+* Optionally, [Datashim](https://github.com/datashim-io/datashim), in which case Karvdash can be used to configure datasets.
 * Optionally, the [kube-prometheus-stack](https://github.com/prometheus-community/helm-charts/tree/main/charts/kube-prometheus-stack), for supporting the "Argo Metrics" template (a template that automatically creates a Prometheus/Grafana stack for collecting metrics from Argo). We use [this](https://artifacthub.io/packages/helm/prometheus-community/kube-prometheus-stack) Helm chart.
  Prometheus/Grafana stack for collecting metrics from Argo). We use [this](https://artifacthub.io/packages/helm/prometheus-community/kube-prometheus-stack) Helm chart.
 
@@ -59,7 +59,6 @@ Some of the variables set above are required. The table below lists all availabl
 
 Set `karvdash.filesURL` to:
 * `file://<path>`, if using a node-wide, shared mountpoint for user files. Karvdash will create `private/<username>` and `shared` folders within.
-* `minio://<accessKeyID>:<secretAccessKey>@<host>:<port>/<prefix>` or `minios://...`, to use MinIO for files (`minios` for MinIO over SSL). Karvdash will create `<prefix>-private-<userrname>` and `<prefix>-shared` buckets within.
 
 The state volume is used to store the database, the running services repository, and the template library. You can either use an existing peristent storage claim with `karvdash.stateVolumeClaim`, or set `karvdash.stateHostPath` to automatically create one (this must accessible by all nodes). Create a `templates` directory inside the state volume to add new service templates or override defaults (the ones in [templates](https://github.com/CARV-ICS-FORTH/karvdash/tree/master/templates)). Templates placed there will be available as read-only to all users.
 

@@ -27,7 +27,6 @@ from collections import namedtuple
 from .utils.template import Template
 from .utils.kubernetes import KubernetesClient
 from .utils.file_domains.file import PrivateFileDomain, SharedFileDomain
-from .utils.file_domains.s3 import PrivateS3Domain, SharedS3Domain
 
 
 NAMESPACE_TEMPLATE = '''
@@ -107,9 +106,6 @@ class User(AuthUser):
         if files_url.scheme == 'file':
             return {'private': PrivateFileDomain(settings.FILES_URL, settings.FILES_MOUNT_DIR, self),
                     'shared': SharedFileDomain(settings.FILES_URL, settings.FILES_MOUNT_DIR, self)}
-        if files_url.scheme in ('minio', 'minios'):
-            return {'private': PrivateS3Domain(settings.FILES_URL, None, self),
-                    'shared': SharedS3Domain(settings.FILES_URL, None, self)}
         raise ValueError('Unsupported URL for files')
 
     @property
