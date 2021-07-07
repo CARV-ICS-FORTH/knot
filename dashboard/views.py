@@ -659,6 +659,10 @@ class UploadCompleteView(ChunkedUploadCompleteView):
     do_md5_check = False
 
     def on_completion(self, uploaded_file, request):
+        '''
+        Placeholder method to define what to do when upload is complete.
+        '''
+
         # Get user file domains.
         file_domains = request.user.file_domains if not getattr(request.user, 'is_impersonate', False) else User.objects.get(pk=request.user.pk).file_domains
 
@@ -666,7 +670,15 @@ class UploadCompleteView(ChunkedUploadCompleteView):
         if path_worker.exists(uploaded_file.name):
             messages.error(request, 'Can not add "%s". An item with the same name already exists.' % uploaded_file.name)
             return
-        path_worker.upload([uploaded_file])
+        path_worker.upload(uploaded_file.file, uploaded_file.name)
+
+    def get_response_data(self, chunked_upload, request):
+        '''
+        Data for the response. Should return a dictionary-like object.
+        Called *only* if POST is successful.
+        '''
+        chunked_upload.delete(delete_file=os.path.exists(chunked_upload.file.name))
+        return {}
 
 @staff_member_required
 def users(request):

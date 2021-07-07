@@ -58,7 +58,10 @@ Some of the variables set above are required. The table below lists all availabl
 | `karvdash.serviceURLPrefixes`       |          | List of predefined URL prefixes for services.                                            |                                   |
 
 Set `karvdash.filesURL` to:
-* `file://<path>`, if using a node-wide, shared mountpoint for user files. Karvdash will create `private/<username>` and `shared` folders within.
+* `file://<path>`, if using a node-wide, shared mountpoint for files.
+* `nfs://<server>/<path>`, if using an NFS server for files.
+
+Karvdash will create `private/<username>`, `shared`, and `uploads` folders within.
 
 The state volume is used to store the database, the running services repository, and the template library. You can either use an existing peristent storage claim with `karvdash.stateVolumeClaim`, or set `karvdash.stateHostPath` to automatically create one (this must accessible by all nodes). Create a `templates` directory inside the state volume to add new service templates or override defaults (the ones in [templates](https://github.com/CARV-ICS-FORTH/karvdash/tree/master/templates)). Templates placed there will be available as read-only to all users.
 

@@ -109,11 +109,8 @@ class FileDomainPathWorker(object):
             return
         shutil.rmtree(os.path.join(self.real_path, name))
 
-    def upload(self, files):
-        for f in files:
-            with open(os.path.join(self.real_path, f.name), 'wb') as dest:
-                for chunk in f.chunks():
-                    dest.write(chunk)
+    def upload(self, file, name):
+        shutil.move(file.name, os.path.join(self.real_path, name))
 
     def download(self, name, response):
         zip_path = os.path.join(self.real_path, name)
