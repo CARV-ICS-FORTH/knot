@@ -1,3 +1,3 @@
 [flake8]
 ignore = E261, E302, E305, E501, E722
-exclude = .git, __pycache__, chart, containers, deploy, docs, templates, venv, db, static, private, shared
+exclude = .git, __pycache__, chart, containers, deploy, docs, templates, venv, db, files
