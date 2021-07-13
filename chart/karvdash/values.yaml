@@ -51,3 +51,6 @@ karvdash:
   disabledDatasetTemplates:
   # List of predefined URL prefixes for services.
   serviceURLPrefixes:
+
+  # RSA key for enabling OpenID Connect.
+  OIDCRSAPrivateKey:

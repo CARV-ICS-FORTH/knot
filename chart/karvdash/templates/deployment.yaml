@@ -103,6 +103,10 @@ spec:
         - name: KARVDASH_SERVICE_URL_PREFIXES_FILE
           value: /etc/karvdash/service_url_prefixes
         {{- end }}
+        {{- if .Values.karvdash.OIDCRSAPrivateKey }}
+        - name: KARVDASH_OIDC_RSA_PRIVATE_KEY_FILE
+          value: /etc/karvdash/oidc_rsa_private_key
+        {{- end }}
         ports:
         - containerPort: 8000
           name: http
@@ -121,6 +125,11 @@ spec:
         - name: {{ .Release.Name }}-config
           mountPath: /etc/karvdash/service_url_prefixes
           subPath: service_url_prefixes
+        {{- end }}
+        {{- if .Values.karvdash.OIDCRSAPrivateKey }}
+        - name: {{ .Release.Name }}-config
+          mountPath: /etc/karvdash/oidc_rsa_private_key
+          subPath: oidc_rsa_private_key
         {{- end }}
         {{- if .Values.karvdash.dockerRegistry }}
         - name: docker-socket

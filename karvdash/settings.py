@@ -59,6 +59,7 @@ INSTALLED_APPS = [
     'crispy_forms',
     'impersonate',
     'chunked_upload',
+    'oauth2_provider',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -76,6 +77,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'oauth2_provider.middleware.OAuth2TokenMiddleware',
     'impersonate.middleware.ImpersonateMiddleware',
     'karvdash.middleware.AddLogUserHeaderMiddleware',
 ]
@@ -173,6 +175,25 @@ AUTHENTICATION_BACKENDS = ['dashboard.auth_backends.ProxiedModelBackend']
 LOGIN_URL = '/login'
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'
+
+
+# Enable OIDC
+
+OIDC_RSA_PRIVATE_KEY_FILE = os.getenv('KARVDASH_OIDC_RSA_PRIVATE_KEY')
+if OIDC_RSA_PRIVATE_KEY_FILE and os.path.isfile(OIDC_RSA_PRIVATE_KEY_FILE):
+    with open(OIDC_RSA_PRIVATE_KEY_FILE) as f:
+        OIDC_RSA_PRIVATE_KEY = f.read()
+
+    OAUTH2_PROVIDER = {
+        "OIDC_ENABLED": True,
+        "OIDC_RSA_PRIVATE_KEY": OIDC_RSA_PRIVATE_KEY,
+        "OAUTH2_VALIDATOR_CLASS": "karvdash.oauth_validators.CustomOAuth2Validator",
+        "SCOPES": {
+            "openid": "OpenID Connect scope",
+            "profile": "User profile",
+            "email": "User email",
+        },
+    }
 
 
 # Form styling with crispy-forms

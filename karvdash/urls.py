@@ -35,5 +35,6 @@ from django.urls import include, path
 urlpatterns = [
     path('', include('dashboard.urls')),
     path('impersonate/', include('impersonate.urls')),
+    path("oauth/", include('oauth2_provider.urls', namespace='oauth2_provider')),
     path('admin/', admin.site.urls),
 ]
