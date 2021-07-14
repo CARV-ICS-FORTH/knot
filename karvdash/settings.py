@@ -301,3 +301,9 @@ for service_url_prefix in SERVICE_URL_PREFIXES:
         raise ValueError('Invalid characters in service URL prefix')
 
 GENERATE_SERVICE_URLS = False if SERVICE_URL_PREFIXES else True
+
+
+# Argo integration
+
+ARGO_URL = os.getenv('KARVDASH_ARGO_URL')
+ARGO_NAMESPACE = os.getenv('KARVDASH_ARGO_NAMESPACE')

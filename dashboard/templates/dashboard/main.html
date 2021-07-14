@@ -15,6 +15,13 @@
             <i class="fa fa-tachometer" aria-hidden="true"></i> Dashboard
           </a>
         </li> -->
+        {% if argo_url %}
+        <li class="nav-item">
+          <a class="nav-link" href="{{ argo_url }}/workflows/{{ user.namespace }}" target="_blank">
+            <i class="fa fa-code-fork" aria-hidden="true"></i> Workflows
+          </a>
+        </li>
+        {% endif %}
         <li class="nav-item">
           <a class="nav-link {% if title == 'Services' %}active{% endif %}" href="{% url 'services' %}">
             <i class="fa fa-cogs" aria-hidden="true"></i> Services

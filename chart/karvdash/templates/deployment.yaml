@@ -107,6 +107,10 @@ spec:
         - name: KARVDASH_OIDC_RSA_PRIVATE_KEY_FILE
           value: /etc/karvdash/oidc_rsa_private_key
         {{- end }}
+        - name: KARVDASH_ARGO_URL
+          value: {{ .Values.karvdash.argoURL | quote }}
+        - name: KARVDASH_ARGO_NAMESPACE
+          value: {{ .Values.karvdash.argoNamespace | quote }}
         ports:
         - containerPort: 8000
           name: http

@@ -20,4 +20,5 @@ def settings(request):
             'dashboard_theme': django_settings.DASHBOARD_THEME,
             'issues_url': django_settings.ISSUES_URL,
             'images_available': True if django_settings.DOCKER_REGISTRY else False,
-            'datasets_available': django_settings.DATASETS_AVAILABLE}
+            'datasets_available': django_settings.DATASETS_AVAILABLE,
+            'argo_url': django_settings.ARGO_URL}

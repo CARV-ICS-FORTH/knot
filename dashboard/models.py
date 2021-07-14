@@ -82,6 +82,41 @@ variables:
   default: ""
 '''
 
+ARGO_SERVICE_ACCOUNT_TEMPLATE = '''
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  annotations:
+    workflows.argoproj.io/rbac-rule: "sub == '${NAME}'"
+    workflows.argoproj.io/rbac-rule-precedence: "1"
+  name: ${NAMESPACE}
+  namespace: ${ARGO_NAMESPACE}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: argo-binding
+  namespace: ${NAMESPACE}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cluster-admin
+subjects:
+- kind: ServiceAccount
+  name: ${NAMESPACE}
+  namespace: ${ARGO_NAMESPACE}
+---
+kind: Template
+name: ArgoServiceAccount
+variables:
+- name: NAME
+  default: user
+- name: NAMESPACE
+  default: namespace
+- name: ARGO_NAMESPACE
+  default: argo
+'''
+
 class User(AuthUser):
     class Meta:
         proxy = True
@@ -195,6 +230,14 @@ class User(AuthUser):
 
             # Create registry secret.
             kubernetes_client.create_docker_registry_secret(self.namespace, settings.DOCKER_REGISTRY, 'admin@%s' % ingress_host)
+
+            # Create service account for Argo.
+            if settings.ARGO_NAMESPACE:
+                argo_template = Template(ARGO_SERVICE_ACCOUNT_TEMPLATE)
+                argo_template.NAME = self.username
+                argo_template.NAMESPACE = self.namespace
+                argo_template.ARGO_NAMESPACE = settings.ARGO_NAMESPACE
+                kubernetes_client.apply_yaml_data(argo_template.yaml.encode())
 
         # Create volumes.
         for name, domain in self.file_domains.items():

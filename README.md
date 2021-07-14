@@ -73,6 +73,8 @@ Some of the variables set above are required. The table below lists all availabl
 | `karvdash.disabledDatasetTemplates` |          | List of dataset templates to disable on deployment (identifiers).                        |                                   |
 | `karvdash.serviceURLPrefixes`       |          | List of predefined URL prefixes for services.                                            |                                   |
 | `karvdash.OIDCRSAPrivateKey`        |          | RSA key for enabling OpenID Connect.                                                     |                                   |
+| `karvdash.argoURL`                  |          | Argo URL for integration with workflow frontend.                                         |                                   |
+| `karvdash.argoNamespace`            |          | Argo namespace for service account managment.                                            |                                   |
 
 Set `karvdash.filesURL` to:
 * `file://<path>`, if using a node-wide, shared mountpoint for files.

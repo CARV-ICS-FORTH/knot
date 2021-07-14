@@ -54,3 +54,8 @@ karvdash:
 
   # RSA key for enabling OpenID Connect.
   OIDCRSAPrivateKey:
+
+  # Argo URL for integration with workflow frontend.
+  argoURL:
+  # Argo namespace for service account managment.
+  argoNamespace:
