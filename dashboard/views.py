@@ -249,7 +249,7 @@ def template_download(request, identifier):
 
 @login_required
 def images(request):
-    docker_client = DockerClient(settings.DOCKER_REGISTRY, settings.DOCKER_REGISTRY_NO_VERIFY)
+    docker_client = DockerClient(settings.DOCKER_REGISTRY_URL, settings.DOCKER_REGISTRY_CERT_FILE)
 
     # There is no hierarchy here.
     trail = [{'name': '<i class="fa fa-archive" aria-hidden="true"></i> %s' % docker_client.safe_registry_url}]
@@ -286,7 +286,7 @@ def images(request):
 
 @login_required
 def image_info(request, name):
-    docker_client = DockerClient(settings.DOCKER_REGISTRY, settings.DOCKER_REGISTRY_NO_VERIFY)
+    docker_client = DockerClient(settings.DOCKER_REGISTRY_URL, settings.DOCKER_REGISTRY_CERT_FILE)
 
     # Handle changes.
     if request.method == 'POST':
@@ -563,14 +563,12 @@ def files(request, path='/'):
         elif request.POST['action'] == 'Add image':
             form = AddImageFromFileForm(request.POST)
             name = request.POST.get('filename', None)
-            if form.is_valid() and name:
+            if form.is_valid() and name and settings.DOCKER_REGISTRY_URL:
                 image_name = form.cleaned_data['name']
                 image_tag = form.cleaned_data['tag']
                 try:
-                    docker_client = DockerClient(settings.DOCKER_REGISTRY, settings.DOCKER_REGISTRY_NO_VERIFY)
-                    f = path_worker.open(name, 'rb')
-                    docker_client.add_image(f, image_name, image_tag)
-                    f.close()
+                    docker_client = DockerClient(settings.DOCKER_REGISTRY_URL, settings.DOCKER_REGISTRY_CERT_FILE)
+                    docker_client.add_image(path_worker.path_of(name), image_name, image_tag)
                 except Exception as e:
                     messages.error(request, 'Failed to add image: %s.' % str(e))
                 else:

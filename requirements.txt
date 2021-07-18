@@ -3,7 +3,6 @@ django-crispy-forms==1.12.0
 django-impersonate==1.7.3
 django-chunked-upload==2.0.0
 python-dxf==7.7.1
-docker==5.0.0
 kubernetes==17.17.0
 PyYAML==5.4.1
 passlib==1.7.4

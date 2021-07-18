@@ -33,9 +33,9 @@ karvdash:
   # REQUIRED: The ingress URL used.
   ingressURL:
   # The URL of the Docker registry.
-  dockerRegistry:
-  # Set to anything to skip Docker registry SSL verification.
-  dockerRegistryNoVerify:
+  dockerRegistryURL:
+  # The Docker registry certificate (use if self-signed).
+  dockerRegistryCert:
   # Set to anything to enable dataset management.
   datasetsAvailable:
   # REQUIRED: The base URL for the private and shared file domains.

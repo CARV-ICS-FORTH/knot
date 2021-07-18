@@ -203,7 +203,7 @@ class ServiceResource(APIResource):
         template.NAMESPACE = self.user.namespace
         template.NAME = name
         template.HOSTNAME = '%s.%s' % (prefix, ingress_host)
-        template.REGISTRY = DockerClient(settings.DOCKER_REGISTRY, settings.DOCKER_REGISTRY_NO_VERIFY).registry_host if settings.DOCKER_REGISTRY else ''
+        template.REGISTRY = DockerClient(settings.DOCKER_REGISTRY_URL, settings.DOCKER_REGISTRY_CERT_FILE).registry_host if settings.DOCKER_REGISTRY_URL else ''
         template.PRIVATE = self.user.file_domains['private'].mount_dir
         template.SHARED = self.user.file_domains['shared'].mount_dir
 

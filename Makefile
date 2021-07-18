@@ -101,7 +101,7 @@ deploy-local: deploy-requirements
 	--set karvdash.djangoDebug="1" \
 	--set karvdash.dashboardTitle="Karvdash on Docker Desktop" \
 	--set karvdash.ingressURL="https://localtest.me" \
-	--set karvdash.dockerRegistry="http://$$IP_ADDRESS:5000" \
+	--set karvdash.dockerRegistryURL="http://$$IP_ADDRESS:5000" \
 	--set karvdash.datasetsAvailable="1" \
 	--set karvdash.stateHostPath="$(PWD)/db" \
 	--set karvdash.filesURL="file://$(PWD)/files"
@@ -131,7 +131,7 @@ service-containers-push: service-containers
 	docker push $(ZEPPELIN_GPU_IMAGE_TAG)
 
 container:
-	docker build -f Dockerfile --build-arg KUBECTL_VERSION=$(KUBECTL_VERSION) -t $(KARVDASH_IMAGE_TAG) .
+	docker build -f Dockerfile --build-arg TARGETARCH=amd64 --build-arg KUBECTL_VERSION=$(KUBECTL_VERSION) -t $(KARVDASH_IMAGE_TAG) .
 
 container-push:
 	docker buildx build --platform linux/amd64,linux/arm64 --push -f Dockerfile --build-arg KUBECTL_VERSION=$(KUBECTL_VERSION) -t $(KARVDASH_IMAGE_TAG) .
