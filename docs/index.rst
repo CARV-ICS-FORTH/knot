@@ -10,7 +10,7 @@ Karvdash (Kubernetes CARV dashboard) is a service management software for Kubern
 
 Karvdash provides:
 
-* H web-based graphical frontend - a `dashboard` to:
+* A web-based graphical frontend - a `dashboard` to:
 
   * Manage services or applications that run in Kubernetes.
   * Manage container images stored in a private Docker registry.
