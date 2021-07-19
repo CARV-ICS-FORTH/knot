@@ -32,8 +32,6 @@ metadata:
 data:
   start.sh: |
     export JUPYTER_PORT=8888
-    mkdir -p /private/.tf
-    (cd /tf && ln -s /private/.tf private)
     jupyter notebook --notebook-dir=/tf --ip 0.0.0.0 --no-browser --allow-root --NotebookApp.token=''
 ---
 apiVersion: apps/v1
@@ -65,6 +63,9 @@ spec:
         - name: jupyter-config-volume
           mountPath: /start.sh
           subPath: start.sh
+        - mountPath: "/tf/private"
+          name: ${PRIVATE_VOLUME}
+          subPath: .tf
       volumes:
       - name: jupyter-config-volume
         configMap:
@@ -79,3 +80,5 @@ variables:
   default: jupyter
 - name: HOSTNAME
   default: jupyter.example.com
+- name: PRIVATE_VOLUME
+  default: private-volume

@@ -44,7 +44,7 @@ spec:
           value: ${SECRET_KEY}
       ports:
         - containerPort: 9000
-      command: [minio, server, "${PRIVATE}/.minio/data"]
+      command: [minio, server, "${PRIVATE_DIR}/.minio/data"]
 ---
 kind: Template
 name: Minio
@@ -57,7 +57,7 @@ variables:
   default: minio
 - name: HOSTNAME
   default: minio.example.com
-- name: PRIVATE
+- name: PRIVATE_DIR
   default: /private
 - name: ACCESS_KEY
   default: admin

@@ -43,8 +43,8 @@ spec:
         - |
           export KAFKA_BROKER_ID=${HOSTNAME##*-} && \
           export KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://${HOSTNAME}.${NAME}:9092,EXTERNAL://${HOST_IP}:$((31090 + ${KAFKA_BROKER_ID})) && \
-          mkdir -p ${PRIVATE}/.cp-kafka-$KAFKA_BROKER_ID/data && \
-          find /etc -type f -exec sed -i "s|/var/lib/kafka/*|${PRIVATE}/.cp-kafka-$KAFKA_BROKER_ID/|" {} \; && \
+          mkdir -p ${PRIVATE_DIR}/.cp-kafka-$KAFKA_BROKER_ID/data && \
+          find /etc -type f -exec sed -i "s|/var/lib/kafka/*|${PRIVATE_DIR}/.cp-kafka-$KAFKA_BROKER_ID/|" {} \; && \
           unset KAFKA_HOST; unset KAFKA_PORT && \
           /etc/confluent/docker/run
         env:
@@ -89,5 +89,5 @@ variables:
 - name: ZOOKEEPER
   default: zookeeper
   help: ZooKeeper service name
-- name: PRIVATE
+- name: PRIVATE_DIR
   default: /private

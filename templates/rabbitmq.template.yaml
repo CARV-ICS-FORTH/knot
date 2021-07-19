@@ -52,8 +52,8 @@ spec:
         - /bin/bash
         - -c
         - |
-          mkdir -p ${PRIVATE}/.rabbitmq/mnesia && \
-          chown -R rabbitmq:rabbitmq ${PRIVATE}/.rabbitmq/mnesia && \
+          mkdir -p ${PRIVATE_DIR}/.rabbitmq/mnesia && \
+          chown -R rabbitmq:rabbitmq ${PRIVATE_DIR}/.rabbitmq/mnesia && \
           /usr/local/bin/docker-entrypoint.sh rabbitmq-server
         ports:
         - containerPort: 5672
@@ -62,7 +62,7 @@ spec:
         - name: RABBITMQ_NODENAME
           value: rabbit@localhost
         - name: RABBITMQ_MNESIA_BASE
-          value: ${PRIVATE}/.rabbitmq/mnesia
+          value: ${PRIVATE_DIR}/.rabbitmq/mnesia
         - name: RABBITMQ_DEFAULT_USER
           value: ${USER}
         - name: RABBITMQ_DEFAULT_PASS
@@ -81,7 +81,7 @@ variables:
   default: rabbitmq
 - name: HOSTNAME
   default: rabbitmq.example.com
-- name: PRIVATE
+- name: PRIVATE_DIR
   default: /private
 - name: USER
   default: user

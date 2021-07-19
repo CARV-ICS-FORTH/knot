@@ -34,7 +34,7 @@ spec:
         - name: POSTGRES_PASSWORD
           value: ${PASSWORD}
         - name: PGDATA
-          value: ${PRIVATE}/.postgresql/data
+          value: ${PRIVATE_DIR}/.postgresql/data
 ---
 kind: Template
 name: PostgreSQL
@@ -46,7 +46,7 @@ variables:
   default: postgresql
 - name: HOSTNAME
   default: postgresql.example.com
-- name: PRIVATE
+- name: PRIVATE_DIR
   default: /private
 - name: VERSION
   default: 12.3

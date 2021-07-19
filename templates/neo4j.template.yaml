@@ -67,11 +67,11 @@ spec:
         - /bin/bash
         - -c
         - |
-          mkdir -p ${PRIVATE}/.neo4j/data ${PRIVATE}/.neo4j/logs && \
-          chown -R neo4j:neo4j ${PRIVATE}/.neo4j/data ${PRIVATE}/.neo4j/logs && \
+          mkdir -p ${PRIVATE_DIR}/.neo4j/data ${PRIVATE_DIR}/.neo4j/logs && \
+          chown -R neo4j:neo4j ${PRIVATE_DIR}/.neo4j/data ${PRIVATE_DIR}/.neo4j/logs && \
           rm data logs && \
-          ln -s ${PRIVATE}/.neo4j/data data && \
-          ln -s ${PRIVATE}/.neo4j/logs logs && \
+          ln -s ${PRIVATE_DIR}/.neo4j/data data && \
+          ln -s ${PRIVATE_DIR}/.neo4j/logs logs && \
           /sbin/tini -g -- /docker-entrypoint.sh neo4j
         ports:
         - containerPort: 7474
@@ -108,7 +108,7 @@ variables:
   default: neo4j
 - name: HOSTNAME
   default: neo4j.example.com
-- name: PRIVATE
+- name: PRIVATE_DIR
   default: /private
 - name: VERSION
   default: 4.2

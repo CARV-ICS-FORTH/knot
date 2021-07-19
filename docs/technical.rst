@@ -115,15 +115,17 @@ An example template is::
 
 The following variables are automatically set by Karvdash. If they are used in a template, they are not presented to the user, but rather their values are filled in by Karvdash before starting a service.
 
-=============  ===========================================================
-Field          Description
--------------  -----------------------------------------------------------
-``NAMESPACE``  The namespace that the service will run in
-``HOSTNAME``   The external hostname that will be assigned to the service
-``REGISTRY``   The private Docker registry configured for the installation
-``PRIVATE``    The path to the "private" data domain
-``SHARED``     The path to the "shared" data domain
-=============  ===========================================================
+==================  ===========================================================
+Field               Description
+------------------  -----------------------------------------------------------
+``NAMESPACE``       The namespace that the service will run in
+``HOSTNAME``        The external hostname that will be assigned to the service
+``REGISTRY``        The private Docker registry configured for the installation
+``PRIVATE_DIR``     The path to the "private" data domain
+``PRIVATE_VOLUME``  The volume used for the "private" data domain
+``SHARED_DIR``      The path to the "shared" data domain
+``SHARED_VOLUME``   The volume used for the "shared" data domain
+==================  ===========================================================
 
 Karvdash distinguishes between internal system templates, which are stored in the filesystem and can not be changed, and custom user templates, which are stored as CRDs in Kubernetes in the user's namespace. To manage service templates with ``kubectl`` use the ``templates`` resource identifier (i.e. ``kubectl get templates``).
 
