@@ -51,9 +51,9 @@ spec:
     - name: ZEPPELIN_PORT
       value: "8080"
     - name: ZEPPELIN_NOTEBOOK_DIR
-      value: ${PRIVATE}/.zeppelin/notebook
+      value: ${PRIVATE_DIR}/.zeppelin/notebook
     - name: ZEPPELIN_LOG_DIR
-      value: ${PRIVATE}/.zeppelin/logs
+      value: ${PRIVATE_DIR}/.zeppelin/logs
 ---
 kind: Template
 name: Zeppelin
@@ -65,5 +65,5 @@ variables:
   default: zeppelin
 - name: HOSTNAME
   default: zeppelin.example.com
-- name: PRIVATE
+- name: PRIVATE_DIR
   default: /private

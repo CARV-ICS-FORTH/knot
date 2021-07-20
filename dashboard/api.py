@@ -164,7 +164,8 @@ class ServiceResource(APIResource):
 
         for variable in template.variables:
             name = variable['name']
-            if name.upper() in ('NAMESPACE', 'HOSTNAME', 'REGISTRY', 'PRIVATE', 'SHARED'): # Set here later on.
+            # Backwards compatibility ("PRIVATE" and "SHARED").
+            if name.upper() in ('NAMESPACE', 'HOSTNAME', 'REGISTRY', 'PRIVATE', 'PRIVATE_DIR', 'PRIVATE_VOLUME', 'SHARED', 'SHARED_DIR', 'SHARED_VOLUME'): # Set here later on.
                 continue
             if name in self.data:
                 setattr(template, name, form.cleaned_data[name])
@@ -203,9 +204,13 @@ class ServiceResource(APIResource):
         template.NAMESPACE = self.user.namespace
         template.NAME = name
         template.HOSTNAME = '%s.%s' % (prefix, ingress_host)
-        template.REGISTRY = DockerClient(settings.DOCKER_REGISTRY, settings.DOCKER_REGISTRY_NO_VERIFY).registry_host if settings.DOCKER_REGISTRY else ''
-        template.PRIVATE = self.user.file_domains['private'].mount_dir
-        template.SHARED = self.user.file_domains['shared'].mount_dir
+        template.REGISTRY = DockerClient(settings.DOCKER_REGISTRY_URL, settings.DOCKER_REGISTRY_CERT_FILE).registry_host if settings.DOCKER_REGISTRY_URL else ''
+        template.PRIVATE = self.user.file_domains['private'].mount_dir # Backwards compatibility.
+        template.PRIVATE_DIR = self.user.file_domains['private'].mount_dir
+        template.PRIVATE_VOLUME = self.user.file_domains['private'].volume_name
+        template.SHARED = self.user.file_domains['shared'].mount_dir # Backwards compatibility.
+        template.SHARED_DIR = self.user.file_domains['shared'].mount_dir
+        template.SHARED_VOLUME = self.user.file_domains['private'].volume_name
 
         # Add template label and values.
         template.inject_service_details()

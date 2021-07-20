@@ -72,17 +72,20 @@ class FileDomainPathWorker(object):
             raise ValueError('Unsupported path')
         return os.path.normpath(tmp_path)
 
+    def path_of(self, name):
+        return os.path.join(self.real_path, name)
+
     def exists(self, name=None):
-        return os.path.exists(self.real_path if not name else os.path.join(self.real_path, name))
+        return os.path.exists(self.real_path if not name else self.path_of(name))
 
     def isfile(self, name=None):
-        return os.path.isfile(self.real_path if not name else os.path.join(self.real_path, name))
+        return os.path.isfile(self.real_path if not name else self.path_of(name))
 
     def isdir(self, name=None):
-        return os.path.isdir(self.real_path if not name else os.path.join(self.real_path, name))
+        return os.path.isdir(self.real_path if not name else self.path_of(name))
 
     def open(self, name, mode):
-        return open(os.path.join(self.real_path, name), mode)
+        return open(self.path_of(name), mode)
 
     def listdir(self):
         listing = []
@@ -101,19 +104,19 @@ class FileDomainPathWorker(object):
         return listing
 
     def mkdir(self, name):
-        os.mkdir(os.path.join(self.real_path, name))
+        os.mkdir(self.path_of(name))
 
     def rmdir(self, name, recursive=True):
         if not recursive:
-            os.rmdir(os.path.join(self.real_path, name))
+            os.rmdir(self.path_of(name))
             return
-        shutil.rmtree(os.path.join(self.real_path, name))
+        shutil.rmtree(self.path_of(name))
 
     def upload(self, file, name):
-        shutil.move(file.name, os.path.join(self.real_path, name))
+        shutil.move(file.name, self.path_of(name))
 
     def download(self, name, response):
-        zip_path = os.path.join(self.real_path, name)
+        zip_path = self.path_of(name)
         with zipfile.ZipFile(response, 'w') as zip_file:
             for root, dirs, files in os.walk(zip_path):
                 for file in files:
@@ -121,7 +124,7 @@ class FileDomainPathWorker(object):
                     zip_file.write(zip_add_file, zip_add_file[len(os.path.dirname(zip_path)):])
 
     def remove(self, name):
-        os.remove(os.path.join(self.real_path, name))
+        os.remove(self.path_of(name))
 
 class FileDomain(object):
     def __init__(self, url, mount_dir, user):

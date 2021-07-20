@@ -6,6 +6,10 @@ metadata:
     app: {{ .Release.Name }}
     chart: {{ .Chart.Name }}-{{ .Chart.Version }}
 data:
+  docker_registry_cert_file: |
+    {{- if .Values.karvdash.dockerRegistryCert }}
+    {{- .Values.karvdash.dockerRegistryCert | nindent 4 }}
+    {{- end }}
   disabled_service_templates: |
     {{- range $val := .Values.karvdash.disabledServiceTemplates }}
     {{ $val }}

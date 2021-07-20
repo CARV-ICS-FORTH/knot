@@ -79,10 +79,12 @@ spec:
           value: {{ .Values.karvdash.issuesURL | quote }}
         - name: KARVDASH_INGRESS_URL
           value: {{ required "You must set karvdash.ingressURL to the ingress URL used" .Values.karvdash.ingressURL | quote }}
-        - name: KARVDASH_DOCKER_REGISTRY
-          value: {{ .Values.karvdash.dockerRegistry | quote }}
-        - name: KARVDASH_DOCKER_REGISTRY_NO_VERIFY
-          value: {{ .Values.karvdash.dockerRegistryNoVerify | quote }}
+        - name: KARVDASH_DOCKER_REGISTRY_URL
+          value: {{ .Values.karvdash.dockerRegistryURL | quote }}
+        {{- if .Values.karvdash.dockerRegistryCert }}
+        - name: KARVDASH_DOCKER_REGISTRY_CERT_FILE
+          value: /etc/karvdash/docker_registry_cert_file
+        {{- end }}
         - name: KARVDASH_DATASETS_AVAILABLE
           value: {{ .Values.karvdash.datasetsAvailable | quote }}
         - name: KARVDASH_SERVICE_DOMAIN
@@ -115,6 +117,11 @@ spec:
         - containerPort: 8000
           name: http
         volumeMounts:
+        {{- if .Values.karvdash.dockerRegistryCert }}
+        - name: {{ .Release.Name }}-config
+          mountPath: /etc/karvdash/docker_registry_cert_file
+          subPath: docker_registry_cert_file
+        {{- end }}
         {{- if .Values.karvdash.disabledServiceTemplates }}
         - name: {{ .Release.Name }}-config
           mountPath: /etc/karvdash/disabled_service_templates
@@ -134,10 +141,6 @@ spec:
         - name: {{ .Release.Name }}-config
           mountPath: /etc/karvdash/oidc_rsa_private_key
           subPath: oidc_rsa_private_key
-        {{- end }}
-        {{- if .Values.karvdash.dockerRegistry }}
-        - name: docker-socket
-          mountPath: /var/run/docker.sock
         {{- end }}
         - name: {{ .Release.Name }}-state-volume
           mountPath: /db
@@ -159,11 +162,6 @@ spec:
         configMap:
           name: {{ .Release.Name }}-webhook
           defaultMode: 0644
-      {{- if .Values.karvdash.dockerRegistry }}
-      - name: docker-socket
-        hostPath:
-          path: /var/run/docker.sock
-      {{- end }}
       {{- if .Values.karvdash.logsVolumeClaim }}
       - name: {{ .Release.Name }}-logs-volume
         persistentVolumeClaim:

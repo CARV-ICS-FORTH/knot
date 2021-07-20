@@ -48,10 +48,10 @@ spec:
           POD_NUMBER=${HOSTNAME##*-} && \
           export ZOOKEEPER_SERVER_ID=$(($POD_NUMBER+1)) && \
           ZOOKEEPER_SERVERS=""; for i in `seq 0 $((${SERVERS} - 1))`; do if [ $i == $POD_NUMBER ]; then ZOOKEEPER_SERVERS="$ZOOKEEPER_SERVERS;0.0.0.0:2888:3888"; else ZOOKEEPER_SERVERS="$ZOOKEEPER_SERVERS;cp-zookeeper-$i.${NAME}:2888:3888"; fi; done; export ZOOKEEPER_SERVERS=${ZOOKEEPER_SERVERS:1} && \
-          mkdir -p ${PRIVATE}/.cp-zookeeper-$POD_NUMBER/data && \
-          mkdir -p ${PRIVATE}/.cp-zookeeper-$POD_NUMBER/log && \
-          find /etc -type f -exec sed -i "s|/var/lib/zookeeper/*|${PRIVATE}/.cp-zookeeper-$POD_NUMBER/|" {} \; && \
-          echo $ZOOKEEPER_SERVER_ID > ${PRIVATE}/.cp-zookeeper-$POD_NUMBER/data/myid && \
+          mkdir -p ${PRIVATE_DIR}/.cp-zookeeper-$POD_NUMBER/data && \
+          mkdir -p ${PRIVATE_DIR}/.cp-zookeeper-$POD_NUMBER/log && \
+          find /etc -type f -exec sed -i "s|/var/lib/zookeeper/*|${PRIVATE_DIR}/.cp-zookeeper-$POD_NUMBER/|" {} \; && \
+          echo $ZOOKEEPER_SERVER_ID > ${PRIVATE_DIR}/.cp-zookeeper-$POD_NUMBER/data/myid && \
           /etc/confluent/docker/run
         env:
         - name: ZOOKEEPER_TICK_TIME
@@ -92,5 +92,5 @@ variables:
 - name: SERVERS
   default: 3
   help: Set to an odd number from 3 and above
-- name: PRIVATE
+- name: PRIVATE_DIR
   default: /private

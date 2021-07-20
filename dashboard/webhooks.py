@@ -71,6 +71,6 @@ def validate(request):
 
     response = JsonResponse({'response': {'uid': uid,
                                           'allowed': validate_hostpath_volumes([service], user.file_domains, other_allowed_paths=settings.ALLOWED_HOSTPATH_DIRS),
-                                          'status': {'message': 'Checking for unauthorized hostPath volumes'}}})
+                                          'status': {'message': 'Checking for unauthorized volumes'}}})
     response['X-Log-User'] = user.username
     return response

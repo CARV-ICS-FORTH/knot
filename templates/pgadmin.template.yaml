@@ -36,7 +36,7 @@ data:
   config_system.py: |
     import os
 
-    DATA_DIR = '${PRIVATE}/.pgadmin/'
+    DATA_DIR = '${PRIVATE_DIR}/.pgadmin/'
     LOG_FILE = os.path.join(DATA_DIR, 'pgadmin4.log')
     SQLITE_PATH = os.path.join(DATA_DIR, 'pgadmin4.db')
     SESSION_DB_PATH = os.path.join(DATA_DIR, 'sessions')
@@ -88,7 +88,7 @@ variables:
   default: pgadmin
 - name: HOSTNAME
   default: pgadmin.example.com
-- name: PRIVATE
+- name: PRIVATE_DIR
   default: /private
 - name: EMAIL
   default: user@domain.com
