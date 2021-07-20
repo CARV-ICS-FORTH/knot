@@ -121,16 +121,25 @@ def inject_service_details(yaml_data, template=None, values=None):
                 part['metadata']['annotations']['karvdash-values'] = json.dumps(values)
             return # Only mark the first service.
 
-def inject_ingress_auth(yaml_data, secret, realm, redirect_ssl=False):
+def inject_ingress_auth(yaml_data, auth_config, redirect_ssl=False):
     for part in yaml_data:
         if part.get('kind') == 'Ingress':
             if 'metadata' not in part:
                 part['metadata'] = {}
             if 'annotations' not in part['metadata']:
                 part['metadata']['annotations'] = {}
-            part['metadata']['annotations']['nginx.ingress.kubernetes.io/auth-type'] = 'basic'
-            part['metadata']['annotations']['nginx.ingress.kubernetes.io/auth-secret'] = secret
-            part['metadata']['annotations']['nginx.ingress.kubernetes.io/auth-realm'] = realm
+            if 'vouch_url' in auth_config:
+                part['metadata']['annotations']['nginx.ingress.kubernetes.io/auth-signin'] = '%s/login?url=$scheme://$http_host$request_uri&vouch-failcount=$auth_resp_failcount&X-Vouch-Token=$auth_resp_jwt&error=$auth_resp_err' % auth_config['vouch_url']
+                part['metadata']['annotations']['nginx.ingress.kubernetes.io/auth-url'] = '%s/validate' % auth_config['vouch_url']
+                part['metadata']['annotations']['nginx.ingress.kubernetes.io/auth-response-headers'] = 'X-Vouch-User'
+                part['metadata']['annotations']['nginx.ingress.kubernetes.io/auth-snippet'] = '\n'.join(('auth_request_set $auth_resp_jwt $upstream_http_x_vouch_jwt;',
+                                                                                                         'auth_request_set $auth_resp_err $upstream_http_x_vouch_err;',
+                                                                                                         'auth_request_set $auth_resp_failcount $upstream_http_x_vouch_failcount;'))
+            else:
+                # Fallback to basic HTTP authentication.
+                part['metadata']['annotations']['nginx.ingress.kubernetes.io/auth-type'] = 'basic'
+                part['metadata']['annotations']['nginx.ingress.kubernetes.io/auth-secret'] = auth_config['secret']
+                part['metadata']['annotations']['nginx.ingress.kubernetes.io/auth-realm'] = auth_config['realm']
             if redirect_ssl:
                 part['metadata']['annotations']['nginx.ingress.kubernetes.io/force-ssl-redirect'] = 'true'
 

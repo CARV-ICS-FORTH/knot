@@ -5,7 +5,6 @@ client/build/
 client/dist/
 client/*.egg-info/
 client/config.ini
-deploy/
 docs/_build/
 venv/
 db/

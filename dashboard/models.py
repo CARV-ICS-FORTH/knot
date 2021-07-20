@@ -187,6 +187,9 @@ class User(AuthUser):
         return api_token
 
     def update_kubernetes_credentials(self, kubernetes_client=None):
+        if settings.VOUCH_URL:
+            return
+
         from .utils.kubernetes import KubernetesClient
 
         if not kubernetes_client:
@@ -194,6 +197,9 @@ class User(AuthUser):
         kubernetes_client.update_secret(self.namespace, 'karvdash-auth', [self.literal_auth])
 
     def delete_kubernetes_credentials(self, kubernetes_client=None):
+        if settings.VOUCH_URL:
+            return
+
         from .utils.kubernetes import KubernetesClient
 
         if not kubernetes_client:

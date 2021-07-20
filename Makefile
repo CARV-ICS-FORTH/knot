@@ -32,11 +32,37 @@ CHART_DIR=./chart/karvdash
 
 all: container
 
-$(DEPLOY_DIR)/localtest.me.key $(DEPLOY_DIR)/localtest.me.crt:
-	mkdir -p $(DEPLOY_DIR)
-	openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout $(DEPLOY_DIR)/localtest.me.key -out $(DEPLOY_DIR)/localtest.me.crt -subj "/CN=*.localtest.me/CN=localtest.me/O=localtest.me"
+IP_ADDRESS=$(shell ipconfig getifaddr en0 || ipconfig getifaddr en1)
 
-deploy-requirements: $(DEPLOY_DIR)/localtest.me.key $(DEPLOY_DIR)/localtest.me.crt
+INGRESS_EXTERNAL_ADDRESS=${IP_ADDRESS}.nip.io
+define INGRESS_CERTIFICATE
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: selfsigned
+spec:
+  selfSigned: {}
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: ssl-certificate
+spec:
+  secretName: ssl-certificate
+  duration: 87600h
+  commonName: ${INGRESS_EXTERNAL_ADDRESS}
+  dnsNames:
+  - "${INGRESS_EXTERNAL_ADDRESS}"
+  - "*.${INGRESS_EXTERNAL_ADDRESS}"
+  privateKey:
+    algorithm: RSA
+    size: 2048
+  issuerRef:
+    name: selfsigned
+endef
+
+export INGRESS_CERTIFICATE
+deploy-requirements:
 	if [[ `helm version --short` != v3* ]]; then echo "Can not find Helm 3 installed"; exit 1; fi
 	helm repo add twuni https://helm.twun.io
 	helm repo add jetstack https://charts.jetstack.io
@@ -44,43 +70,41 @@ deploy-requirements: $(DEPLOY_DIR)/localtest.me.key $(DEPLOY_DIR)/localtest.me.c
 	helm repo update
 	# Deploy registry
 	kubectl create namespace registry || true
-	helm list -n registry -q | grep registry || \
+	helm list --namespace registry -q | grep registry || \
 	helm install registry twuni/docker-registry --version 1.10.0 --namespace registry \
 	--set persistence.enabled=true \
 	--set persistence.deleteEnabled=true \
 	--set service.type=LoadBalancer
 	# Deploy cert-manager
 	kubectl create namespace cert-manager || true
-	helm list -n cert-manager -q | grep cert-manager || \
+	helm list --namespace cert-manager -q | grep cert-manager || \
 	helm install cert-manager jetstack/cert-manager --version v1.1.0 --namespace cert-manager \
 	--set installCRDs=true
 	# Deploy ingress
 	kubectl create namespace ingress-nginx || true
 	kubectl get secret ssl-certificate -n ingress-nginx || \
-	kubectl create secret tls ssl-certificate -n ingress-nginx \
-	--cert=$(DEPLOY_DIR)/localtest.me.crt \
-	--key=$(DEPLOY_DIR)/localtest.me.key
-	helm list -n ingress-nginx -q | grep ingress || \
+	echo "$$INGRESS_CERTIFICATE" | kubectl apply -n ingress-nginx -f -
+	helm list --namespace ingress-nginx -q | grep ingress || \
 	helm install ingress ingress-nginx/ingress-nginx --version 3.19.0 --namespace ingress-nginx \
 	--set controller.extraArgs.default-ssl-certificate=ingress-nginx/ssl-certificate \
 	--set controller.admissionWebhooks.enabled=false
 	# Deploy DLF
-	kubectl apply -f https://raw.githubusercontent.com/datashim-io/datashim/master/release-tools/manifests/dlf.yaml
-	kubectl wait --timeout=600s --for=condition=ready pods -l app.kubernetes.io/name=dlf -n dlf
+	# kubectl apply -f https://raw.githubusercontent.com/datashim-io/datashim/master/release-tools/manifests/dlf.yaml
+	# kubectl wait --timeout=600s --for=condition=ready pods -l app.kubernetes.io/name=dlf -n dlf
 
 undeploy-requirements:
 	# Remove DLF
-	kubectl delete -f https://raw.githubusercontent.com/datashim-io/datashim/master/release-tools/manifests/dlf.yaml
+	# kubectl delete -f https://raw.githubusercontent.com/datashim-io/datashim/master/release-tools/manifests/dlf.yaml || true
 	# Remove ingress
-	helm uninstall ingress --namespace ingress-nginx
-	kubectl delete secret ssl-certificate -n ingress-nginx
-	kubectl delete namespace ingress-nginx
+	helm uninstall ingress --namespace ingress-nginx || true
+	kubectl delete secret ssl-certificate -n ingress-nginx || true
+	kubectl delete namespace ingress-nginx || true
 	# Remove cert-manager
-	helm uninstall cert-manager --namespace cert-manager
-	kubectl delete namespace cert-manager
+	helm uninstall cert-manager --namespace cert-manager || true
+	kubectl delete namespace cert-manager || true
 	# Remove registry
-	helm uninstall registry --namespace registry
-	kubectl delete namespace registry
+	helm uninstall registry --namespace registry || true
+	kubectl delete namespace registry || true
 
 deploy-crds:
 	kubectl apply -f $(CHART_DIR)/crds/karvdash-crd.yaml
@@ -91,18 +115,17 @@ undeploy-crds:
 	kubectl delete -f $(CHART_DIR)/crds/karvdash-crd.yaml
 
 deploy-local: deploy-requirements
-	# Create default directories for files
+	# Create default directory for files
 	mkdir -p files
-	IP_ADDRESS=$$(ipconfig getifaddr en0 || ipconfig getifaddr en1); \
 	helm list -q | grep karvdash || \
 	helm install karvdash $(CHART_DIR) --namespace default \
 	--set image="$(KARVDASH_IMAGE_TAG)" \
 	--set karvdash.djangoSecret='%ad&%4*!xpf*$$wd3^t56+#ode4=@y^ju_t+j9f+20ajsta^gog' \
 	--set karvdash.djangoDebug="1" \
 	--set karvdash.dashboardTitle="Karvdash on Docker Desktop" \
-	--set karvdash.ingressURL="https://localtest.me" \
-	--set karvdash.dockerRegistryURL="http://$$IP_ADDRESS:5000" \
-	--set karvdash.datasetsAvailable="1" \
+	--set karvdash.ingressURL="https://${IP_ADDRESS}.nip.io" \
+	--set karvdash.dockerRegistryURL="http://${IP_ADDRESS}:5000" \
+	--set karvdash.datasetsAvailable="0" \
 	--set karvdash.stateHostPath="$(PWD)/db" \
 	--set karvdash.filesURL="file://$(PWD)/files"
 

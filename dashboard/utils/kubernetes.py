@@ -116,12 +116,23 @@ class KubernetesClient(object):
         return self.custom_objects_client.delete_namespaced_custom_object(group=group, version=version, namespace=namespace, plural=plural, name=name, body={})
 
     def delete_secret(self, namespace, name):
-        os.system('kubectl delete -n %s secret %s' % (namespace, name))
+        command = 'kubectl delete secret %s' % name
+        if namespace:
+            command += ' -n %s' % namespace
+        # if os.system(command) != 0:
+        #     raise SystemError('Can not delete service file')
+        os.system(command)
 
     def update_secret(self, namespace, name, literals):
         self.delete_secret(namespace, name)
-        if os.system('kubectl create -n %s secret generic %s %s' % (namespace, name, ' '.join([('--from-literal=\'%s\'' % literal) for literal in literals]))) < 0:
-            raise SystemError('Can not create secret')
+        command = 'kubectl create secret generic %s' % name
+        if namespace:
+            command += ' -n %s' % namespace
+        for literal in literals:
+            command += ' --from-literal=\'%s\'' % literal
+        # if os.system(command) != 0:
+        #     raise SystemError('Can not delete service file')
+        os.system(command)
 
     def create_docker_registry_secret(self, namespace, registry_url, email):
         if not registry_url:

@@ -13,10 +13,17 @@ metadata:
     nginx.ingress.kubernetes.io/proxy-body-size: 10m
 spec:
   rules:
-    - host: {{ (split ":" ($ingressURL | urlParse).host)._0 }}
-      http:
-        paths:
-          - path: /
-            backend:
-              serviceName: {{ .Release.Name }}
-              servicePort: 80
+  - host: {{ (split ":" ($ingressURL | urlParse).host)._0 }}
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: {{ .Release.Name }}
+          servicePort: 80
+  - host: vouch.{{ (split ":" ($ingressURL | urlParse).host)._0 }}
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: {{ .Release.Name }}
+          servicePort: 9090

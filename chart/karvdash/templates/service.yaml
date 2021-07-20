@@ -12,5 +12,7 @@ spec:
     name: http
   - port: 443
     name: https
+  - port: 9090
+    name: vouch
   selector:
     app: {{ .Release.Name }}

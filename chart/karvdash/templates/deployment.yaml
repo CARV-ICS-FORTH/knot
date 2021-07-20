@@ -1,3 +1,4 @@
+{{- $ingressURL := (required "You must set karvdash.ingressURL to the ingress URL used" .Values.karvdash.ingressURL) }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -24,7 +25,7 @@ spec:
           value: "1"
         ports:
         - containerPort: 80
-          name: https
+          name: http
         volumeMounts:
         - name: {{ .Release.Name }}-proxy-config
           mountPath: /etc/nginx/conf.d/default.conf
@@ -69,6 +70,8 @@ spec:
             secretKeyRef:
               name: {{ .Release.Name }}-secret
               key: admin-password
+        - name: KARVDASH_VOUCH_URL
+          value: {{ printf "%s://vouch.%s" ($ingressURL | urlParse).scheme (split ":" ($ingressURL | urlParse).host)._0 | quote }}
         - name: KARVDASH_HTPASSWD_EXPORT_DIR
           value: {{ .Values.karvdash.htpasswdExportDir | quote }}
         - name: KARVDASH_DASHBOARD_TITLE
@@ -78,7 +81,7 @@ spec:
         - name: KARVDASH_ISSUES_URL
           value: {{ .Values.karvdash.issuesURL | quote }}
         - name: KARVDASH_INGRESS_URL
-          value: {{ required "You must set karvdash.ingressURL to the ingress URL used" .Values.karvdash.ingressURL | quote }}
+          value: {{ $ingressURL | quote }}
         - name: KARVDASH_DOCKER_REGISTRY_URL
           value: {{ .Values.karvdash.dockerRegistryURL | quote }}
         {{- if .Values.karvdash.dockerRegistryCert }}
@@ -137,6 +140,38 @@ spec:
           mountPath: /db
         - name: {{ .Release.Name }}-files-volume
           mountPath: /files
+      - image: voucher/vouch-proxy:0.27.1
+        name: vouch-proxy
+        env:
+        - name: VOUCH_ALLOWALLUSERS
+          value: "true"
+        - name: VOUCH_COOKIE_DOMAIN
+          value: {{ (split ":" ($ingressURL | urlParse).host)._0 }}
+        - name: VOUCH_COOKIE_SECURE
+          value: "false"
+        - name: OAUTH_PROVIDER
+          value: oidc
+        - name: OAUTH_AUTH_URL
+          value: {{ $ingressURL }}/oauth/authorize/
+        - name: OAUTH_TOKEN_URL
+          value: {{ $ingressURL }}/oauth/token/
+        - name: OAUTH_USER_INFO_URL
+          value: {{ $ingressURL }}/oauth/userinfo/
+        - name: OAUTH_CLIENT_ID
+          valueFrom:
+            secretKeyRef:
+              name: karvdash-vouch
+              key: oauth-client-id
+        - name: OAUTH_CLIENT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: karvdash-vouch
+              key: oauth-client-secret
+        - name: OAUTH_CALLBACK_URL
+          value: {{ printf "%s://vouch.%s/auth" ($ingressURL | urlParse).scheme (split ":" ($ingressURL | urlParse).host)._0 | quote }}
+        ports:
+        - containerPort: 9090
+          name: vouch-proxy
       volumes:
       - name: {{ .Release.Name }}-config
         configMap:

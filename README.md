@@ -26,7 +26,7 @@ Karvdash is deployed using [Helm](https://helm.sh) (version 3).
 
 To install, you need a running Kubernetes environment with the following features:
 * The [cert-manager](https://cert-manager.io) certificate management controller for Kubernetes. This is used for creating certificates automatically for the admission webhooks. We use [this](https://artifacthub.io/packages/helm/jetstack/cert-manager) Helm chart.
-* An [ingress controller](https://kubernetes.github.io/ingress-nginx/) answering to a domain name and its wildcard (i.e. both `example.com` and `*.example.com` should both point to your server). You can use [xip.io](http://xip.io) if you don't have a DNS entry. We use [this](https://artifacthub.io/packages/helm/ingress-nginx/ingress-nginx) Helm chart.
+* An [ingress controller](https://kubernetes.github.io/ingress-nginx/) answering to a domain name and its wildcard (i.e. both `example.com` and `*.example.com` should both point to your server). You can use [nip.io](http://nip.io) if you don't have a DNS entry. We use [this](https://artifacthub.io/packages/helm/ingress-nginx/ingress-nginx) Helm chart.
 * For storage of Karvdash state, an existing persistent volume claim, or a directory in a shared filesystem mounted at the same path across all Kubernetes nodes, like NFS, [Gluster](https://www.gluster.org), or similar.
 * For files, either a shared filesystem like the one used for storing the configuration, or an NFS server. If using an NFS server, you should also install the [NFS CSI Driver](https://github.com/kubernetes-csi/csi-driver-nfs). We use [these](https://github.com/kubernetes-csi/csi-driver-nfs/tree/master/charts) instructions to install via Helm.
 
@@ -111,7 +111,7 @@ make container
 
 To change the version, edit `VERSION`. The image uses `kubectl` 1.19.8 by default, but this can be changed by setting the `KUBECTL_VERSION` variable before running `make`. You can also set your Docker account in `REGISTRY_NAME`.
 
-To test the container in a local Kubernetes environment, run the following and then point your browser to https://localtest.me (provided by [localtest.me](https://readme.localtest.me)):
+To test the container in a local Kubernetes environment, run the following and then point your browser to `https://<your IP address>.nip.io`:
 ```bash
 make deploy-local
 ```

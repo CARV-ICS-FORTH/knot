@@ -217,7 +217,12 @@ class ServiceResource(APIResource):
 
         # Add authentication.
         if template.auth:
-            template.inject_ingress_auth('karvdash-auth', 'Authentication Required - %s' % settings.DASHBOARD_TITLE, redirect_ssl=(ingress_url.scheme == 'https'))
+            if settings.VOUCH_URL:
+                auth_config = {'vouch_url': settings.VOUCH_URL}
+            else:
+                auth_config = {'secret': 'karvdash-auth',
+                               'realm': 'Authentication Required - %s' % settings.DASHBOARD_TITLE}
+            template.inject_ingress_auth(auth_config, redirect_ssl=(ingress_url.scheme == 'https'))
 
         # Add no local datasets label.
         if not template.datasets:

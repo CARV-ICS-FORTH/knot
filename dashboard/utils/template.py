@@ -70,8 +70,8 @@ class Template(object):
     def inject_service_details(self, template=None):
         inject_service_details(self._template, template=template, values=self._values)
 
-    def inject_ingress_auth(self, secret, realm, redirect_ssl=False):
-        inject_ingress_auth(self._template, secret, realm, redirect_ssl=redirect_ssl)
+    def inject_ingress_auth(self, auth_config, redirect_ssl=False):
+        inject_ingress_auth(self._template, auth_config, redirect_ssl=redirect_ssl)
 
     def inject_no_datasets_label(self):
         inject_no_datasets_label(self._template)
