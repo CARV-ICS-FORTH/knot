@@ -246,6 +246,14 @@ class User(AuthUser):
     def delete_namespace(self):
         kubernetes_client = KubernetesClient()
 
+        # Delete service account for Argo.
+        if settings.ARGO_NAMESPACE:
+            argo_template = Template(ARGO_SERVICE_ACCOUNT_TEMPLATE)
+            argo_template.NAME = self.username
+            argo_template.NAMESPACE = self.namespace
+            argo_template.ARGO_NAMESPACE = settings.ARGO_NAMESPACE
+            kubernetes_client.delete_yaml_data(argo_template.yaml.encode())
+
         # Delete service directory.
         service_database_path = os.path.join(settings.SERVICE_DATABASE_DIR, self.username)
         if os.path.exists(service_database_path):
