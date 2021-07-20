@@ -22,10 +22,6 @@ data:
     {{- range $val := .Values.karvdash.serviceURLPrefixes }}
     {{ $val }}
     {{- end }}
-  oidc_rsa_private_key: |
-    {{- if .Values.karvdash.OIDCRSAPrivateKey }}
-    {{ .Values.karvdash.OIDCRSAPrivateKey }}
-    {{- end }}
 ---
 apiVersion: v1
 kind: ConfigMap

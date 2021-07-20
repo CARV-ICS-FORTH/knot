@@ -179,21 +179,24 @@ LOGOUT_REDIRECT_URL = '/'
 
 # Enable OIDC
 
-OIDC_RSA_PRIVATE_KEY_FILE = os.getenv('KARVDASH_OIDC_RSA_PRIVATE_KEY')
-if OIDC_RSA_PRIVATE_KEY_FILE and os.path.isfile(OIDC_RSA_PRIVATE_KEY_FILE):
-    with open(OIDC_RSA_PRIVATE_KEY_FILE) as f:
-        OIDC_RSA_PRIVATE_KEY = f.read()
+OIDC_RSA_PRIVATE_KEY_FILE = os.path.join(DATABASE_DIR, 'oidc.key')
+if not os.path.isfile(OIDC_RSA_PRIVATE_KEY_FILE):
+    if os.system('openssl genrsa -out %s 4096' % OIDC_RSA_PRIVATE_KEY_FILE) != 0:
+        raise SystemError('Can not create private key for OIDC')
 
-    OAUTH2_PROVIDER = {
-        "OIDC_ENABLED": True,
-        "OIDC_RSA_PRIVATE_KEY": OIDC_RSA_PRIVATE_KEY,
-        "OAUTH2_VALIDATOR_CLASS": "karvdash.oauth_validators.CustomOAuth2Validator",
-        "SCOPES": {
-            "openid": "OpenID Connect scope",
-            "profile": "User profile",
-            "email": "User email",
-        },
-    }
+with open(OIDC_RSA_PRIVATE_KEY_FILE) as f:
+    OIDC_RSA_PRIVATE_KEY = f.read()
+
+OAUTH2_PROVIDER = {
+    "OIDC_ENABLED": True,
+    "OIDC_RSA_PRIVATE_KEY": OIDC_RSA_PRIVATE_KEY,
+    "OAUTH2_VALIDATOR_CLASS": "karvdash.oauth_validators.CustomOAuth2Validator",
+    "SCOPES": { # Scopes requested by social_core.backends.django.DjangoOpenIdConnect
+        "openid": "OpenID Connect scope",
+        "profile": "User profile",
+        "email": "User email",
+    },
+}
 
 
 # Form styling with crispy-forms

@@ -105,10 +105,6 @@ spec:
         - name: KARVDASH_SERVICE_URL_PREFIXES_FILE
           value: /etc/karvdash/service_url_prefixes
         {{- end }}
-        {{- if .Values.karvdash.OIDCRSAPrivateKey }}
-        - name: KARVDASH_OIDC_RSA_PRIVATE_KEY_FILE
-          value: /etc/karvdash/oidc_rsa_private_key
-        {{- end }}
         - name: KARVDASH_ARGO_URL
           value: {{ .Values.karvdash.argoURL | quote }}
         - name: KARVDASH_ARGO_NAMESPACE
@@ -136,11 +132,6 @@ spec:
         - name: {{ .Release.Name }}-config
           mountPath: /etc/karvdash/service_url_prefixes
           subPath: service_url_prefixes
-        {{- end }}
-        {{- if .Values.karvdash.OIDCRSAPrivateKey }}
-        - name: {{ .Release.Name }}-config
-          mountPath: /etc/karvdash/oidc_rsa_private_key
-          subPath: oidc_rsa_private_key
         {{- end }}
         - name: {{ .Release.Name }}-state-volume
           mountPath: /db
