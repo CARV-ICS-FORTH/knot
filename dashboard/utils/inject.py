@@ -76,7 +76,7 @@ def inject_volumes(yaml_data, file_domains, add_api_settings=False, is_datasets=
         add_volumes_to_spec(spec, no_datasets)
 
 def validate_hostpath_volumes(yaml_data, file_domains, other_allowed_paths=[]):
-    allowed_paths = [urlparse(file_domain.url).path for file_domain in file_domains.values()]
+    allowed_paths = [urlparse(file_domain.url).path for file_domain in file_domains.values() if file_domain.url.startswith('file://')]
     allowed_paths += other_allowed_paths
 
     for part in yaml_data:
@@ -92,6 +92,8 @@ def validate_hostpath_volumes(yaml_data, file_domains, other_allowed_paths=[]):
         if not spec_volumes:
             continue
         for volume in spec_volumes:
+            if 'nfs' in volume:
+                return False
             if 'hostPath' not in volume or 'path' not in volume['hostPath']:
                 continue
             if volume['hostPath']['path'] not in allowed_paths:
