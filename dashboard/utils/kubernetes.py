@@ -85,8 +85,9 @@ class KubernetesClient(object):
         command = 'kubectl apply -f %s' % yaml_file
         if namespace:
             command += ' -n %s' % namespace
-        if os.system(command) != 0:
-            raise SystemError('Can not apply service file')
+        # if os.system(command) != 0:
+        #     raise SystemError('Can not apply service file')
+        os.system(command)
 
     def apply_yaml_data(self, yaml_data, namespace=None):
         with tempfile.NamedTemporaryFile() as f:
@@ -98,8 +99,9 @@ class KubernetesClient(object):
         command = 'kubectl delete -f %s' % yaml_file
         if namespace:
             command += ' -n %s' % namespace
-        if os.system(command) != 0:
-            raise SystemError('Can not delete service file')
+        # if os.system(command) != 0:
+        #     raise SystemError('Can not delete service file')
+        os.system(command)
 
     def delete_yaml_data(self, yaml_data, namespace=None):
         with tempfile.NamedTemporaryFile() as f:
