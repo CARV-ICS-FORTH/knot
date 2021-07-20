@@ -61,4 +61,4 @@ class DockerClient(object):
                                                                       self.registry_host)
         command += 'crane push %s %s/%s:%s' % (filename, self.registry_host, name, tag)
         if os.system(command) != 0:
-            raise SystemError('Can not add image to registry')
+            raise SystemError('Can not push image to registry')
