@@ -688,8 +688,8 @@ def users(request):
             action = request.POST['action']
             username = request.POST.get('username', None)
             if username and username != request.user.username:
-                user = User.objects.get(username=username)
-                if user:
+                try:
+                    user = User.objects.get(username=username)
                     if action == 'Activate':
                         user.is_active = True
                         user.create_namespace(request)
@@ -702,13 +702,15 @@ def users(request):
                     user.save()
                     User.export_to_htpasswd(settings.HTPASSWD_EXPORT_DIR)
                     messages.success(request, 'User "%s" %s.' % (username, action.lower() + 'd'))
+                except User.DoesNotExist:
+                    pass
             else:
                 messages.error(request, 'Invalid username')
         elif request.POST['action'] == 'Delete':
             username = request.POST.get('username', None)
             if username and username != request.user.username:
-                user = User.objects.get(username=username)
-                if user:
+                try:
+                    user = User.objects.get(username=username)
                     try:
                         user.delete_namespace()
                     except Exception as e:
@@ -717,6 +719,8 @@ def users(request):
                         user.delete()
                         User.export_to_htpasswd(settings.HTPASSWD_EXPORT_DIR)
                         messages.success(request, 'User "%s" deleted.' % username)
+                except User.DoesNotExist:
+                    pass
             else:
                 messages.error(request, 'Invalid username')
         else:
@@ -761,8 +765,9 @@ def user_edit(request, username):
     if username == request.user.username:
         messages.error(request, 'Invalid username.')
         return redirect('users')
-    user = User.objects.get(username=username)
-    if not user:
+    try:
+        user = User.objects.get(username=username)
+    except User.DoesNotExist:
         messages.error(request, 'Invalid username.')
         return redirect('users')
 
@@ -789,8 +794,9 @@ def user_change_password(request, username):
     if username == request.user.username:
         messages.error(request, 'Invalid username.')
         return redirect('users')
-    user = User.objects.get(username=username)
-    if not user:
+    try:
+        user = User.objects.get(username=username)
+    except User.DoesNotExist:
         messages.error(request, 'Invalid username.')
         return redirect('users')
 
