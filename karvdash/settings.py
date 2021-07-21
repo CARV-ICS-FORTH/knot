@@ -199,6 +199,7 @@ OAUTH2_PROVIDER = {
 }
 
 VOUCH_URL = os.getenv('KARVDASH_VOUCH_URL')
+VOUCH_SECRET = os.getenv('KARVDASH_VOUCH_SECRET')
 
 
 # Form styling with crispy-forms

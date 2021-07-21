@@ -36,8 +36,12 @@ class Command(BaseCommand):
             return
 
         vouch_url = urlparse(settings.VOUCH_URL)
+        vouch_redirect_uri = '%s://%s/auth' % (vouch_url.scheme, vouch_url.netloc)
         try:
             vouch_application = Application.objects.get(name='vouch', user=user)
+            if vouch_application.redirect_uris != vouch_redirect_uri:
+                vouch_application.redirect_uris = vouch_redirect_uri
+                vouch_application.save()
         except Application.DoesNotExist:
             vouch_application = Application(name='vouch',
                                             user=user,
@@ -45,12 +49,14 @@ class Command(BaseCommand):
                                             authorization_grant_type=Application.GRANT_AUTHORIZATION_CODE,
                                             algorithm=Application.RS256_ALGORITHM,
                                             skip_authorization=True,
-                                            redirect_uris='%s://%s/auth' % (vouch_url.scheme, vouch_url.netloc))
+                                            redirect_uris=vouch_redirect_uri)
             vouch_application.save()
             print('OAuth application for Vouch created.')
         else:
             print('Skipping creation of OAuth application for Vouch: Application already configured.')
 
+        if not settings.VOUCH_SECRET:
+            return
         kubernetes_client = KubernetesClient()
-        kubernetes_client.update_secret(None, 'karvdash-vouch', ['oauth-client-id=%s' % vouch_application.client_id,
-                                                                 'oauth-client-secret=%s' % vouch_application.client_secret])
+        kubernetes_client.update_secret(None, settings.VOUCH_SECRET, ['oauth-client-id=%s' % vouch_application.client_id,
+                                                                      'oauth-client-secret=%s' % vouch_application.client_secret])
