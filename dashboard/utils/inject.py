@@ -135,6 +135,13 @@ def inject_ingress_auth(yaml_data, auth_config, redirect_ssl=False):
                 part['metadata']['annotations']['nginx.ingress.kubernetes.io/auth-snippet'] = '\n'.join(('auth_request_set $auth_resp_jwt $upstream_http_x_vouch_jwt;',
                                                                                                          'auth_request_set $auth_resp_err $upstream_http_x_vouch_err;',
                                                                                                          'auth_request_set $auth_resp_failcount $upstream_http_x_vouch_failcount;'))
+                part['metadata']['annotations']['nginx.ingress.kubernetes.io/configuration-snippet'] = '\n'.join(('  auth_request_set $auth_resp_x_vouch_username $upstream_http_x_vouch_idp_claims_preferred_username;',
+                                                                                                                  '  access_by_lua_block {',
+                                                                                                                  '    if not (string.match(ngx.var.auth_resp_x_vouch_username, "%s")) then' % auth_config['username'],
+                                                                                                                  '      ngx.exit(ngx.HTTP_FORBIDDEN);',
+                                                                                                                  '    end',
+                                                                                                                  '  }'))
+
             else:
                 # Fallback to basic HTTP authentication.
                 part['metadata']['annotations']['nginx.ingress.kubernetes.io/auth-type'] = 'basic'

@@ -218,7 +218,8 @@ class ServiceResource(APIResource):
         # Add authentication.
         if template.auth:
             if settings.VOUCH_URL:
-                auth_config = {'vouch_url': settings.VOUCH_URL}
+                auth_config = {'vouch_url': settings.VOUCH_URL,
+                               'username': self.user.username}
             else:
                 auth_config = {'secret': 'karvdash-auth',
                                'realm': 'Authentication Required - %s' % settings.DASHBOARD_TITLE}

@@ -151,14 +151,16 @@ spec:
           value: {{ (split ":" ($ingressURL | urlParse).host)._0 }}
         - name: VOUCH_COOKIE_SECURE
           value: "false"
+        - name: VOUCH_HEADERS_CLAIMS
+          value: "preferred_username"
         - name: OAUTH_PROVIDER
           value: oidc
         - name: OAUTH_AUTH_URL
           value: {{ $ingressURL }}/oauth/authorize/
         - name: OAUTH_TOKEN_URL
-          value: http://127.0.0.1:8000/oauth/token/
+          value: http://127.0.0.1/oauth/token/
         - name: OAUTH_USER_INFO_URL
-          value: http://127.0.0.1:8000/oauth/userinfo/
+          value: http://127.0.0.1/oauth/userinfo/
         - name: OAUTH_CLIENT_ID
           valueFrom:
             secretKeyRef:
