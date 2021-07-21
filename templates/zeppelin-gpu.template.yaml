@@ -38,15 +38,13 @@ spec:
   subdomain: $NAME
   containers:
   - name: $NAME
-    image: carvicsforth/karvdash-zeppelin-gpu:0.9.0.7
+    image: apache/zeppelin:0.9.0
     resources:
       limits:
         nvidia.com/gpu: 1
     ports:
     - containerPort: 8080
     env:
-    - name: KARVDASH_NAMESPACE
-      value: $NAMESPACE
     - name: ZEPPELIN_RUN_MODE
       value: local
     - name: ZEPPELIN_ADDR

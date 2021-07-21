@@ -1,4 +1,4 @@
-# Docker image to use.
+# Container image to use.
 image:
 
 # Include access-control rules for API and namespace discovery.

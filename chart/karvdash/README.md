@@ -33,7 +33,7 @@ Some of the variables set above are required. The table below lists all availabl
 
 | Variable                            | Required | Description                                                                              | Default                           |
 |-------------------------------------|----------|------------------------------------------------------------------------------------------|-----------------------------------|
-| `image`                             |          | Docker image to use.                                                                     | `carvicsforth/karvdash:<version>` |
+| `image`                             |          | Container image to use.                                                                  | `carvicsforth/karvdash:<version>` |
 | `rbac.create`                       |          | Assign full permissions to Karvdash, API and namespace discovery to authenticated users. | `true`                            |
 | `karvdash.stateVolumeClaim`         | &check;  | If set, use this persistent volume claim for storing state.                              |                                   |
 | `karvdash.stateHostPath`            | &check;  | The host path to use for storing state, when no existing volume claim is set.            |                                   |

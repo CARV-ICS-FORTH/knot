@@ -10,13 +10,9 @@ Check out the [user guide and API documentation](https://carv-ics-forth.github.i
 
 We use Kubernetes 1.19.x to develop, test, and run Karvdash on both `amd64` and `arm64` architectures.
 
-Karvdash includes service templates for [Zeppelin](https://zeppelin.apache.org) 0.9.0, [Jupyter](https://jupyter.org) (Jupyter Core 4.7.0 with Jupyter Notebook 6.1.6, as bundled with [TensorFlow](http://www.tensorflow.org) 2.3.2), [Argo](https://argoproj.github.io) (both [Argo Workflows](https://github.com/argoproj/argo) 2.12.10 and [Argo Events](https://github.com/argoproj/argo-events) 1.2.3), and other applications.
+Karvdash includes service templates for [Zeppelin](https://zeppelin.apache.org) 0.9.0, [Jupyter](https://jupyter.org) (Jupyter Core 4.7.0 with Jupyter Notebook 6.1.6, as bundled with [TensorFlow](http://www.tensorflow.org) 2.3.2), [Argo](https://argoproj.github.io) (both [Argo Workflows](https://github.com/argoproj/argo) 2.12.10 and [Argo Events](https://github.com/argoproj/argo-events) 1.2.3), and other applications. The Zeppelin and Jupyter "with GPU support" templates add the necessary directives to place the resulting containers in a node with a GPU.
 
-The Zeppelin template uses a Karvdash-specific Docker image which adds `kubectl` 1.19.8, the `argo` utility (at the same version as the Argo service template), `karvdashctl` to manage Karvdash services from a notebook, [Spark](http://spark.apache.org) 2.4.5 with [Hadoop](https://hadoop.apache.org) 2.7, as well as the [evolve](https://bitbucket.org/sunlightio/evolve_python_library/) Python library from [Sunlight.io](https://sunlight.io), that allows building Argo workflows in Python.
-
-The Zeppelin "with GPU support" template uses the above image with [CUDA](https://developer.nvidia.com/cuda-toolkit) 10.1 and TensorFlow 2.3.2 preinstalled, as well as the necessary directives to place the resulting container in a node with a GPU. A corresponding Jupyter "with GPU support" template is also included.
-
-If your application requirements differ, you will need to create custom Docker images and service templates.
+If your application requirements differ, you will need to create custom service templates and possibly associated container images.
 
 > :warning: **`arm64` support is experimental:** Zeppelin and some other services do not currently work on `arm64`.
 
@@ -49,7 +45,7 @@ Some of the variables set above are required. The table below lists all availabl
 
 | Variable                            | Required | Description                                                                              | Default                           |
 |-------------------------------------|----------|------------------------------------------------------------------------------------------|-----------------------------------|
-| `image`                             |          | Docker image to use.                                                                     | `carvicsforth/karvdash:<version>` |
+| `image`                             |          | Container image to use.                                                                  | `carvicsforth/karvdash:<version>` |
 | `rbac.create`                       |          | Assign full permissions to Karvdash, API and namespace discovery to authenticated users. | `true`                            |
 | `karvdash.stateVolumeClaim`         | &check;  | If set, use this persistent volume claim for storing state.                              |                                   |
 | `karvdash.stateHostPath`            | &check;  | The host path to use for storing state, when no existing volume claim is set.            |                                   |
@@ -104,7 +100,7 @@ kubectl create clusterrolebinding default-cluster-admin --clusterrole=cluster-ad
 
 ## Building images
 
-Docker images for Karvdash are [available](https://hub.docker.com/r/carvicsforth/karvdash). To build your own locally, run:
+Container images for Karvdash are [available](https://hub.docker.com/r/carvicsforth/karvdash). To build your own locally, run:
 ```bash
 make container
 ```
@@ -122,12 +118,6 @@ make container-push
 ```
 
 We use `buildx` to build the Karvdash container for multiple architectures (`linux/amd64` and `linux/arm64`).
-
-To build and push additional service containers (custom Zeppelin-based containers):
-```bash
-make service-containers
-make service-containers-push
-```
 
 ## Acknowledgements
 

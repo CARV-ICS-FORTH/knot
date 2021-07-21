@@ -20,11 +20,6 @@ KUBECTL_VERSION?=v1.19.8
 KARVDASH_VERSION=$(shell cat VERSION)
 KARVDASH_IMAGE_TAG=$(REGISTRY_NAME)/karvdash:$(KARVDASH_VERSION)
 
-# This should match the version used in Zeppelin templates (we use <Zeppelin version>.<build>).
-ZEPPELIN_VERSION=0.9.0.7
-ZEPPELIN_IMAGE_TAG=$(REGISTRY_NAME)/karvdash-zeppelin:$(ZEPPELIN_VERSION)
-ZEPPELIN_GPU_IMAGE_TAG=$(REGISTRY_NAME)/karvdash-zeppelin-gpu:$(ZEPPELIN_VERSION)
-
 DEPLOY_DIR=deploy
 CHART_DIR=./chart/karvdash
 
@@ -145,14 +140,6 @@ prepare-develop: deploy-crds
 		./manage.py migrate; \
 		./manage.py createadmin --noinput --username admin --password admin --email admin@example.com --preserve; \
 	fi
-
-service-containers:
-	docker build -f containers/zeppelin/Dockerfile --build-arg KUBECTL_VERSION=$(KUBECTL_VERSION) -t $(ZEPPELIN_IMAGE_TAG) .
-	docker build -f containers/zeppelin-gpu/Dockerfile --build-arg BASE=$(ZEPPELIN_IMAGE_TAG) -t $(ZEPPELIN_GPU_IMAGE_TAG) .
-
-service-containers-push: service-containers
-	docker push $(ZEPPELIN_IMAGE_TAG)
-	docker push $(ZEPPELIN_GPU_IMAGE_TAG)
 
 container:
 	docker build -f Dockerfile --build-arg TARGETARCH=amd64 --build-arg KUBECTL_VERSION=$(KUBECTL_VERSION) -t $(KARVDASH_IMAGE_TAG) .
