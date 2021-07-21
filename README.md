@@ -111,7 +111,7 @@ make container
 
 To change the version, edit `VERSION`. The image uses `kubectl` 1.19.8 by default, but this can be changed by setting the `KUBECTL_VERSION` variable before running `make`. You can also set your Docker account in `REGISTRY_NAME`.
 
-To test the container in a local Kubernetes environment, run the following and then point your browser to `https://<your IP address>.nip.io`:
+To test the container in a local Kubernetes environment, run the following and then point your browser to https://localtest.me (provided by [localtest.me](https://readme.localtest.me)):
 ```bash
 make deploy-local
 ```

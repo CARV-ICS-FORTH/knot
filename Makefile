@@ -34,7 +34,7 @@ all: container
 
 IP_ADDRESS=$(shell ipconfig getifaddr en0 || ipconfig getifaddr en1)
 
-INGRESS_EXTERNAL_ADDRESS=${IP_ADDRESS}.nip.io
+EXTERNAL_URL=localtest.me
 define INGRESS_CERTIFICATE
 apiVersion: cert-manager.io/v1
 kind: Issuer
@@ -124,7 +124,7 @@ deploy-local: deploy-requirements
 	--set karvdash.djangoSecret='%ad&%4*!xpf*$$wd3^t56+#ode4=@y^ju_t+j9f+20ajsta^gog' \
 	--set karvdash.djangoDebug="1" \
 	--set karvdash.dashboardTitle="Karvdash on Docker Desktop" \
-	--set karvdash.ingressURL="https://${IP_ADDRESS}.nip.io" \
+	--set karvdash.ingressURL="https://${EXTERNAL_URL}" \
 	--set karvdash.dockerRegistryURL="http://${IP_ADDRESS}:5000" \
 	--set karvdash.datasetsAvailable="0" \
 	--set karvdash.stateHostPath="$(PWD)/db" \

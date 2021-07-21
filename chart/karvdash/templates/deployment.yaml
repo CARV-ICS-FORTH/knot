@@ -156,9 +156,9 @@ spec:
         - name: OAUTH_AUTH_URL
           value: {{ $ingressURL }}/oauth/authorize/
         - name: OAUTH_TOKEN_URL
-          value: {{ $ingressURL }}/oauth/token/
+          value: http://127.0.0.1:8000/oauth/token/
         - name: OAUTH_USER_INFO_URL
-          value: {{ $ingressURL }}/oauth/userinfo/
+          value: http://127.0.0.1:8000/oauth/userinfo/
         - name: OAUTH_CLIENT_ID
           valueFrom:
             secretKeyRef:
