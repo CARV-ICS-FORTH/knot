@@ -30,11 +30,12 @@ Including another URLconf
 
 from django.contrib import admin
 from django.urls import include, path
+from oauth2_provider.urls import base_urlpatterns, oidc_urlpatterns
 
 
 urlpatterns = [
     path('', include('dashboard.urls')),
     path('impersonate/', include('impersonate.urls')),
-    path("oauth/", include('oauth2_provider.urls', namespace='oauth2_provider')),
+    path('oauth/', include((base_urlpatterns + oidc_urlpatterns, 'oauth2_provider'), namespace='oauth2_provider')),
     path('admin/', admin.site.urls),
 ]
