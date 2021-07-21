@@ -115,7 +115,8 @@ undeploy-crds:
 	kubectl delete -f $(CHART_DIR)/crds/karvdash-crd.yaml
 
 deploy-local: deploy-requirements
-	# Create default directory for files
+	# Create necessary directories
+	mkdir -p db
 	mkdir -p files
 	helm list -q | grep karvdash || \
 	helm install karvdash $(CHART_DIR) --namespace default \
@@ -133,9 +134,9 @@ undeploy-local: undeploy-requirements undeploy-crds
 	helm uninstall karvdash --namespace default
 
 prepare-develop: deploy-crds
-	# Create default directories for private and shared data
-	mkdir -p private
-	mkdir -p shared
+	# Create necessary directories
+	mkdir -p db
+	mkdir -p files
 	# Create the Python environment and prepare the application
 	if [[ ! -d venv ]]; then python3 -m venv venv; fi
 	if [[ -z "$${VIRTUAL_ENV}" ]]; then \

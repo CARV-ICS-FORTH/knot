@@ -118,8 +118,6 @@ PASSWORD_HASHERS = [
 # https://docs.djangoproject.com/en/3.0/ref/settings/#databases
 
 DATABASE_DIR = os.getenv('KARVDASH_DATABASE_DIR', os.path.join(BASE_DIR, 'db'))
-if not os.path.exists(DATABASE_DIR):
-    os.makedirs(DATABASE_DIR)
 
 DATABASES = {
     'default': {
@@ -180,23 +178,25 @@ LOGOUT_REDIRECT_URL = '/'
 # Enable OIDC
 
 OIDC_RSA_PRIVATE_KEY_FILE = os.path.join(DATABASE_DIR, 'oidc.key')
-if not os.path.isfile(OIDC_RSA_PRIVATE_KEY_FILE):
+# Check for the database dir to avoid creating the key in the Docker image.
+if os.path.exists(DATABASE_DIR) and not os.path.exists(OIDC_RSA_PRIVATE_KEY_FILE):
     if os.system('openssl genrsa -out %s 4096' % OIDC_RSA_PRIVATE_KEY_FILE) != 0:
         raise SystemError('Can not create private key for OIDC')
 
-with open(OIDC_RSA_PRIVATE_KEY_FILE) as f:
-    OIDC_RSA_PRIVATE_KEY = f.read()
+if os.path.exists(OIDC_RSA_PRIVATE_KEY_FILE):
+    with open(OIDC_RSA_PRIVATE_KEY_FILE) as f:
+        OIDC_RSA_PRIVATE_KEY = f.read()
 
-OAUTH2_PROVIDER = {
-    "OIDC_ENABLED": True,
-    "OIDC_RSA_PRIVATE_KEY": OIDC_RSA_PRIVATE_KEY,
-    "OAUTH2_VALIDATOR_CLASS": "karvdash.oauth_validators.CustomOAuth2Validator",
-    "SCOPES": { # Scopes requested by social_core.backends.django.DjangoOpenIdConnect
-        "openid": "OpenID Connect scope",
-        "profile": "User profile",
-        "email": "User email",
-    },
-}
+    OAUTH2_PROVIDER = {
+        "OIDC_ENABLED": True,
+        "OIDC_RSA_PRIVATE_KEY": OIDC_RSA_PRIVATE_KEY,
+        "OAUTH2_VALIDATOR_CLASS": "karvdash.oauth_validators.CustomOAuth2Validator",
+        "SCOPES": { # Scopes requested by social_core.backends.django.DjangoOpenIdConnect
+            "openid": "OpenID Connect scope",
+            "profile": "User profile",
+            "email": "User email",
+        },
+    }
 
 VOUCH_URL = os.getenv('KARVDASH_VOUCH_URL')
 VOUCH_SECRET = os.getenv('KARVDASH_VOUCH_SECRET')
