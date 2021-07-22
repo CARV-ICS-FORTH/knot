@@ -66,6 +66,12 @@ class KubernetesClient(object):
     def list_namespaces(self):
         return self.core_client.list_namespace().items
 
+    def list_config_maps(self, namespace):
+        return self.core_client.list_namespaced_config_map(namespace=namespace).items
+
+    def list_service_accounts(self, namespace):
+        return self.core_client.list_namespaced_service_account(namespace=namespace).items
+
     def list_services(self, namespace, label_selector):
         return self.core_client.list_namespaced_service(namespace=namespace, label_selector=label_selector).items
 
@@ -142,6 +148,8 @@ class KubernetesClient(object):
         if not url.username or not url.password:
             return
 
+        if 'docker-registry-secret' in [s.metadata.name for s in self.list_secrets(namespace)]:
+            return
         server = '%s://%s:%s' % (url.scheme, url.hostname, url.port)
         os.system('kubectl create secret docker-registry docker-registry-secret -n %s --docker-server="%s" --docker-username="%s" --docker-password="%s" --docker-email="%s"' % (namespace, server, url.username, url.password, email))
         os.system('kubectl patch serviceaccount default -n %s -p \'{"imagePullSecrets": [{"name": "docker-registry-secret"}]}\'' % namespace)

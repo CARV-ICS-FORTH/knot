@@ -60,7 +60,7 @@ variables:
   default: user
 '''
 
-TOKEN_CONFIGMAP_TEMPLATE = '''
+TOKEN_CONFIG_MAP_TEMPLATE = '''
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -89,7 +89,7 @@ metadata:
   annotations:
     workflows.argoproj.io/rbac-rule: "sub == '${NAME}'"
     workflows.argoproj.io/rbac-rule-precedence: "1"
-  name: ${NAMESPACE}
+  name: ${ARGO_SERVICE_ACCOUNT}
   namespace: ${ARGO_NAMESPACE}
 ---
 apiVersion: rbac.authorization.k8s.io/v1
@@ -103,7 +103,7 @@ roleRef:
   name: cluster-admin
 subjects:
 - kind: ServiceAccount
-  name: ${NAMESPACE}
+  name: ${ARGO_SERVICE_ACCOUNT}
   namespace: ${ARGO_NAMESPACE}
 ---
 kind: Template
@@ -113,6 +113,8 @@ variables:
   default: user
 - name: NAMESPACE
   default: namespace
+- name: ARGO_SERVICE_ACCOUNT
+  default: karvdash-user
 - name: ARGO_NAMESPACE
   default: argo
 '''
@@ -215,33 +217,39 @@ class User(AuthUser):
             os.makedirs(settings.SERVICE_DATABASE_DIR)
 
         kubernetes_client = KubernetesClient()
+
+        # Create namespace.
         if self.namespace not in [n.metadata.name for n in kubernetes_client.list_namespaces()]:
-            # Create namespace.
             namespace_template = Template(NAMESPACE_TEMPLATE)
             namespace_template.NAME = self.namespace
             kubernetes_client.apply_yaml_data(namespace_template.yaml.encode())
 
-            # Create API connectivity configuration (mounted inside containers).
+        # Create API connectivity configuration (mounted inside containers).
+        api_config_map_name = 'karvdash-api'
+        if api_config_map_name not in [c.metadata.name for c in kubernetes_client.list_config_maps(self.namespace)]:
             service_domain = settings.SERVICE_DOMAIN
             if not service_domain:
                 # If running in Kubernetes this should be set.
                 service_host = socket.gethostbyname(socket.gethostname())
                 service_port = request.META['SERVER_PORT']
                 service_domain = '%s:%s' % (service_host, service_port)
-            api_template = Template(TOKEN_CONFIGMAP_TEMPLATE)
-            api_template.NAME = 'karvdash-api'
+            api_template = Template(TOKEN_CONFIG_MAP_TEMPLATE)
+            api_template.NAME = api_config_map_name
             api_template.BASE_URL = 'http://%s/api' % service_domain
             api_template.TOKEN = self.api_token.token # Get or create
             kubernetes_client.apply_yaml_data(api_template.yaml.encode(), namespace=self.namespace)
 
-            # Create registry secret.
-            kubernetes_client.create_registry_secret(self.namespace, settings.REGISTRY_URL, 'admin@%s' % ingress_host)
+        # Create registry secret.
+        kubernetes_client.create_registry_secret(self.namespace, settings.REGISTRY_URL, 'admin@%s' % ingress_host)
 
-            # Create service account for Argo.
-            if settings.ARGO_NAMESPACE:
+        # Create service account for Argo.
+        if settings.ARGO_NAMESPACE:
+            argo_service_account_name = self.namespace
+            if argo_service_account_name not in [s.metadata.name for s in kubernetes_client.list_service_accounts(settings.ARGO_NAMESPACE)]:
                 argo_template = Template(ARGO_SERVICE_ACCOUNT_TEMPLATE)
                 argo_template.NAME = self.username
                 argo_template.NAMESPACE = self.namespace
+                argo_template.ARGO_SERVICE_ACCOUNT = argo_service_account_name
                 argo_template.ARGO_NAMESPACE = settings.ARGO_NAMESPACE
                 kubernetes_client.apply_yaml_data(argo_template.yaml.encode())
 
@@ -254,9 +262,11 @@ class User(AuthUser):
 
         # Delete service account for Argo.
         if settings.ARGO_NAMESPACE:
+            argo_service_account_name = self.namespace
             argo_template = Template(ARGO_SERVICE_ACCOUNT_TEMPLATE)
             argo_template.NAME = self.username
             argo_template.NAMESPACE = self.namespace
+            argo_template.ARGO_SERVICE_ACCOUNT = argo_service_account_name
             argo_template.ARGO_NAMESPACE = settings.ARGO_NAMESPACE
             kubernetes_client.delete_yaml_data(argo_template.yaml.encode())
 
