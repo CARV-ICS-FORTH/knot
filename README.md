@@ -1,4 +1,6 @@
-![Karvdash logo](https://github.com/CARV-ICS-FORTH/karvdash/raw/master/docs/images/karvdash-blue.png)
+<p align="center">
+  <img src="https://github.com/CARV-ICS-FORTH/karvdash/raw/master/docs/images/karvdash-blue.png" alt="Karvdash logo" width="320">
+</p>
 
 Karvdash (Kubernetes CARV dashboard) is a dashboard service for facilitating data science on [Kubernetes](https://kubernetes.io). It supplies the landing page for users, allowing them to launch notebooks and other services, design workflows, and specify parameters related to execution through a user-friendly interface. Karvdash manages users, wires up relevant storage to the appropriate paths inside running containers, securely provisions multiple services under one externally-accessible HTTPS endpoint, while keeping them isolated in per-user namespaces at the Kubernetes level, and provides an identity service for OIDC-compatible applications.
 
