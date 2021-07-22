@@ -109,7 +109,7 @@ undeploy-crds:
 	kubectl delete -f $(CHART_DIR)/crds/argo-crd.yaml
 	kubectl delete -f $(CHART_DIR)/crds/karvdash-crd.yaml
 
-deploy-local: deploy-requirements
+deploy-local:
 	# Create necessary directories
 	mkdir -p db
 	mkdir -p files
@@ -125,7 +125,7 @@ deploy-local: deploy-requirements
 	--set karvdash.stateHostPath="$(PWD)/db" \
 	--set karvdash.filesURL="file://$(PWD)/files"
 
-undeploy-local: undeploy-requirements undeploy-crds
+undeploy-local:
 	helm uninstall karvdash --namespace default
 
 prepare-develop: deploy-crds
@@ -153,6 +153,4 @@ release:
 	git add VERSION
 	git commit -m "Bump version"
 	git tag ${VERSION}
-	# make container && make container-push
-	# make service-containers && make service-containers-push
 	# git push && git push --tags

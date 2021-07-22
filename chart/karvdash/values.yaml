@@ -26,8 +26,8 @@ karvdash:
   htpasswdExportDir:
   # The title of the dashboard.
   dashboardTitle: Dashboard
-  # The theme of the dashboard. Choose between "evolve" and "CARV".
-  dashboardTheme: evolve
+  # The theme of the dashboard.
+  dashboardTheme: karvdash
   # If set, an option to "Report an issue" is shown in the user menu.
   issuesURL:
   # REQUIRED: The ingress URL used.

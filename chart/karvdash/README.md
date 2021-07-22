@@ -44,7 +44,7 @@ Some of the variables set above are required. The table below lists all availabl
 | `karvdash.adminPassword`            |          | The default admin password.                                                              | `admin`                           |
 | `karvdash.htpasswdExportDir`        |          | If set, the path to export the htpasswd file in.                                         |                                   |
 | `karvdash.dashboardTitle`           |          | The title of the dashboard.                                                              | `Dashboard`                       |
-| `karvdash.dashboardTheme`           |          | The theme of the dashboard. Choose between "evolve" and "CARV".                          | `evolve`                          |
+| `karvdash.dashboardTheme`           |          | The theme of the dashboard.                                                              | `karvdash`                        |
 | `karvdash.issuesURL`                |          | If set, an option to "Report an issue" is shown in the user menu.                        |                                   |
 | `karvdash.ingressURL`               | &check;  | The ingress URL used.                                                                    |                                   |
 | `karvdash.dockerRegistryURL`        |          | The URL of the Docker registry.                                                          |                                   |

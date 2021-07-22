@@ -263,7 +263,7 @@ INGRESS_URL = os.getenv('KARVDASH_INGRESS_URL', 'http://localtest.me')
 # Theme
 
 DASHBOARD_TITLE = os.getenv('KARVDASH_DASHBOARD_TITLE', 'Dashboard')
-DASHBOARD_THEME = os.getenv('KARVDASH_DASHBOARD_THEME', 'evolve')
+DASHBOARD_THEME = os.getenv('KARVDASH_DASHBOARD_THEME', 'karvdash')
 ISSUES_URL = os.getenv('KARVDASH_ISSUES_URL')
 
 
