@@ -211,25 +211,3 @@ variables:
   label: Archive URL
   default: "http://example.com/archive.tar.gz"
 '''
-
-# HOSTPATH_DATASET_TEMPLATE = '''
-# apiVersion: com.ie.ibm.hpsys/v1alpha1
-# kind: Dataset
-# metadata:
-#   name: $NAME
-# spec:
-#   local:
-#     type: "HOST"
-#     path: $ENDPOINT
-#     hostPathType: Directory
-# ---
-# kind: Template
-# name: HostPath
-# description: Dataset for local host path
-# variables:
-# - name: NAME
-#   default: dataset
-# - name: ENDPOINT
-#   default: "/tmp"
-#   help: Existing local host path
-# '''
