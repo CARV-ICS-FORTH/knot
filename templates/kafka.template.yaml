@@ -11,7 +11,7 @@ spec:
   selector:
     app: cp-kafka
 ---
-apiVersion: apps/v1beta1
+apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: cp-kafka
@@ -19,6 +19,9 @@ spec:
   podManagementPolicy: OrderedReady
   replicas: ${SERVERS}
   serviceName: ${NAME}
+  selector:
+    matchLabels:
+      app: cp-kafka
   template:
     metadata:
       labels:

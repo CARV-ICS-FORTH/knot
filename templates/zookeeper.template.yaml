@@ -15,7 +15,7 @@ spec:
   selector:
     app: cp-zookeeper
 ---
-apiVersion: apps/v1beta1
+apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: cp-zookeeper
@@ -23,6 +23,9 @@ spec:
   podManagementPolicy: OrderedReady
   replicas: ${SERVERS}
   serviceName: ${NAME}
+  selector:
+    matchLabels:
+      app: cp-zookeeper
   template:
     metadata:
       labels:
