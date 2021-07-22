@@ -27,7 +27,7 @@ In addition to the "private" and "shared" data domains, Karvdash interfaces with
 Service templates
 -----------------
 
-Karvdash provides a way for users to easily configure and start services, by integrating a simple service templating mechanism - practically YAML files with variables. The user can specify execution parameters through the dashboard before deployment, and Karvdash will set other "internal" platform configuration values, such as private Docker registry location, external DNS name, etc. Moreover, Karvdash automatically manages service names when starting multiple services from the same template, while it also allows "singleton" services that can only be deployed once per user.
+Karvdash provides a way for users to easily configure and start services, by integrating a simple service templating mechanism - practically YAML files with variables. The user can specify execution parameters through the dashboard before deployment, and Karvdash will set other "internal" platform configuration values, such as private container registry location, external DNS name, etc. Moreover, Karvdash automatically manages service names when starting multiple services from the same template, while it also allows "singleton" services that can only be deployed once per user.
 
 To convert a YAML deployment into a Karvdash service template:
 
@@ -115,15 +115,17 @@ An example template is::
 
 The following variables are automatically set by Karvdash. If they are used in a template, they are not presented to the user, but rather their values are filled in by Karvdash before starting a service.
 
-=============  ===========================================================
-Field          Description
--------------  -----------------------------------------------------------
-``NAMESPACE``  The namespace that the service will run in
-``HOSTNAME``   The external hostname that will be assigned to the service
-``REGISTRY``   The private Docker registry configured for the installation
-``PRIVATE``    The path to the "private" data domain
-``SHARED``     The path to the "shared" data domain
-=============  ===========================================================
+==================  ==============================================================
+Field               Description
+------------------  --------------------------------------------------------------
+``NAMESPACE``       The namespace that the service will run in
+``HOSTNAME``        The external hostname that will be assigned to the service
+``REGISTRY``        The private container registry configured for the installation
+``PRIVATE_DIR``     The path to the "private" data domain
+``PRIVATE_VOLUME``  The volume used for the "private" data domain
+``SHARED_DIR``      The path to the "shared" data domain
+``SHARED_VOLUME``   The volume used for the "shared" data domain
+==================  ==============================================================
 
 Karvdash distinguishes between internal system templates, which are stored in the filesystem and can not be changed, and custom user templates, which are stored as CRDs in Kubernetes in the user's namespace. To manage service templates with ``kubectl`` use the ``templates`` resource identifier (i.e. ``kubectl get templates``).
 
@@ -148,4 +150,4 @@ Assuming that the dashboard is accessible at ``example.com``, user's "test" Zepp
 Registry gateway
 ----------------
 
-Additionally, Karvdash provides a graphical frontend to a private Docker registry, so users can easily manage available private container images and upload new ones from files (exported images). Note that the registry is shared between users, so each user may add new images, but only admins can delete them.
+Additionally, Karvdash provides a graphical frontend to a private container registry, so users can easily manage available private container images and upload new ones from files (exported images). Note that the registry is shared between users, so each user may add new images, but only admins can delete them.

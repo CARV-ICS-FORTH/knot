@@ -4,8 +4,7 @@
 <html class="writer-html5" lang="en" >
 <head>
   <meta charset="utf-8" />
-  <meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
-
+  
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
   <title>API documentation &mdash; Karvdash  documentation</title>
@@ -14,6 +13,8 @@
   
   <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
 
   
   
@@ -30,6 +31,7 @@
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
         <script src="_static/jquery.js"></script>
         <script src="_static/underscore.js"></script>
         <script src="_static/doctools.js"></script>
@@ -84,7 +86,7 @@
               
             
             
-              <p><span class="caption-text">Contents:</span></p>
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="user.html">User guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="technical.html">Technical overview</a></li>
@@ -160,7 +162,7 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <section id="api-documentation">
+  <div class="section" id="api-documentation">
 <h1>API documentation<a class="headerlink" href="#api-documentation" title="Permalink to this headline">¶</a></h1>
 <p>Karvdash (Kubernetes CARV dashboard) provides a REST API for performing service management from external systems.</p>
 <p>The API includes the following methods under the API’s base URL (i.e. <code class="docutils literal notranslate"><span class="pre">http://karvdash.default.svc/api</span></code>):</p>
@@ -212,7 +214,7 @@
 <p>All methods use a JSON dictionary for input data (if applicable) and respond using JSON formatting. For a detailed description of request and response variables consult the <a class="reference internal" href="#python-library">Python library</a> documentation.</p>
 <p>A Python library called <code class="docutils literal notranslate"><span class="pre">karvdash_client</span></code> has been implemented to easily use the API in any Python script. The library also comes with a CLI utility, <code class="docutils literal notranslate"><span class="pre">karvdashctl</span></code> which allows interfacing with Karvdash through the shell. The client library and CLI utility can be particularly useful for managing services through a Zeppelin notebook.</p>
 <p>To use the client library you should provide the API endpoint and an authentication token in a configuration file (an example is shown in the <a class="reference internal" href="#python-library">Python library</a> documentation). For services running with the Karvdash mutating admission webhook activated, this file is automatically created and mounted in pods at <code class="docutils literal notranslate"><span class="pre">/var/lib/karvdash/config.ini</span></code>.</p>
-<section id="command-line-tool">
+<div class="section" id="command-line-tool">
 <h2>Command line tool<a class="headerlink" href="#command-line-tool" title="Permalink to this headline">¶</a></h2>
 <p>The <code class="docutils literal notranslate"><span class="pre">karvdashctl</span></code> tool has a <code class="docutils literal notranslate"><span class="pre">--help</span></code> flag to show available commands:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ karvdashctl -h
@@ -254,12 +256,12 @@ optional arguments:
   -h, --help  show this help message and exit
 </pre></div>
 </div>
-</section>
-<section id="python-library">
+</div>
+<div class="section" id="python-library">
 <h2>Python library<a class="headerlink" href="#python-library" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
-<dt id="karvdash_client.api.API">
-<em class="property">class </em><code class="sig-prename descclassname">karvdash_client.api.</code><code class="sig-name descname">API</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">config_path</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#karvdash_client.api.API" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="karvdash_client.api.API">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">karvdash_client.api.</span></span><span class="sig-name descname"><span class="pre">API</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#karvdash_client.api.API" title="Permalink to this definition">¶</a></dt>
 <dd><p>Python interface to the Karvdash API.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -274,8 +276,8 @@ optional arguments:
 </div>
 <p>If no config file is set, the following paths are tried in order: <code class="docutils literal notranslate"><span class="pre">~/.karvdash/config.ini</span></code>, <code class="docutils literal notranslate"><span class="pre">/var/lib/karvdash/config.ini</span></code>.</p>
 <dl class="py method">
-<dt id="karvdash_client.api.API.list_services">
-<code class="sig-name descname">list_services</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#karvdash_client.api.API.list_services" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="karvdash_client.api.API.list_services">
+<span class="sig-name descname"><span class="pre">list_services</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#karvdash_client.api.API.list_services" title="Permalink to this definition">¶</a></dt>
 <dd><p>List running services.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
@@ -323,8 +325,8 @@ the <code class="docutils literal notranslate"><span class="pre">list_services()
 </dd></dl>
 
 <dl class="py method">
-<dt id="karvdash_client.api.API.create_service">
-<code class="sig-name descname">create_service</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">identifier</span></em>, <em class="sig-param"><span class="n">variables</span></em><span class="sig-paren">)</span><a class="headerlink" href="#karvdash_client.api.API.create_service" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="karvdash_client.api.API.create_service">
+<span class="sig-name descname"><span class="pre">create_service</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">identifier</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">variables</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#karvdash_client.api.API.create_service" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create/start a service.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -340,8 +342,8 @@ the <code class="docutils literal notranslate"><span class="pre">list_services()
 </dd></dl>
 
 <dl class="py method">
-<dt id="karvdash_client.api.API.exec_service">
-<code class="sig-name descname">exec_service</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">name</span></em>, <em class="sig-param"><span class="n">command</span></em>, <em class="sig-param"><span class="n">all_pods</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#karvdash_client.api.API.exec_service" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="karvdash_client.api.API.exec_service">
+<span class="sig-name descname"><span class="pre">exec_service</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">command</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">all_pods</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#karvdash_client.api.API.exec_service" title="Permalink to this definition">¶</a></dt>
 <dd><p>Execute a command at service pods.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -357,8 +359,8 @@ the <code class="docutils literal notranslate"><span class="pre">list_services()
 </dd></dl>
 
 <dl class="py method">
-<dt id="karvdash_client.api.API.delete_service">
-<code class="sig-name descname">delete_service</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">name</span></em><span class="sig-paren">)</span><a class="headerlink" href="#karvdash_client.api.API.delete_service" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="karvdash_client.api.API.delete_service">
+<span class="sig-name descname"><span class="pre">delete_service</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#karvdash_client.api.API.delete_service" title="Permalink to this definition">¶</a></dt>
 <dd><p>Delete/stop a running service.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -368,8 +370,8 @@ the <code class="docutils literal notranslate"><span class="pre">list_services()
 </dd></dl>
 
 <dl class="py method">
-<dt id="karvdash_client.api.API.list_templates">
-<code class="sig-name descname">list_templates</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#karvdash_client.api.API.list_templates" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="karvdash_client.api.API.list_templates">
+<span class="sig-name descname"><span class="pre">list_templates</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#karvdash_client.api.API.list_templates" title="Permalink to this definition">¶</a></dt>
 <dd><p>List available templates.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
@@ -434,8 +436,8 @@ when template is returned as part of a service)</p></td>
 </dd></dl>
 
 <dl class="py method">
-<dt id="karvdash_client.api.API.add_template">
-<code class="sig-name descname">add_template</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">data</span></em><span class="sig-paren">)</span><a class="headerlink" href="#karvdash_client.api.API.add_template" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="karvdash_client.api.API.add_template">
+<span class="sig-name descname"><span class="pre">add_template</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#karvdash_client.api.API.add_template" title="Permalink to this definition">¶</a></dt>
 <dd><p>Add a template.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -448,8 +450,8 @@ when template is returned as part of a service)</p></td>
 </dd></dl>
 
 <dl class="py method">
-<dt id="karvdash_client.api.API.get_template">
-<code class="sig-name descname">get_template</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">identifier</span></em><span class="sig-paren">)</span><a class="headerlink" href="#karvdash_client.api.API.get_template" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="karvdash_client.api.API.get_template">
+<span class="sig-name descname"><span class="pre">get_template</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">identifier</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#karvdash_client.api.API.get_template" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get template data.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -462,8 +464,8 @@ when template is returned as part of a service)</p></td>
 </dd></dl>
 
 <dl class="py method">
-<dt id="karvdash_client.api.API.remove_template">
-<code class="sig-name descname">remove_template</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">identifier</span></em><span class="sig-paren">)</span><a class="headerlink" href="#karvdash_client.api.API.remove_template" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="karvdash_client.api.API.remove_template">
+<span class="sig-name descname"><span class="pre">remove_template</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">identifier</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#karvdash_client.api.API.remove_template" title="Permalink to this definition">¶</a></dt>
 <dd><p>Remove a template.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -474,8 +476,8 @@ when template is returned as part of a service)</p></td>
 
 </dd></dl>
 
-</section>
-</section>
+</div>
+</div>
 
 
            </div>
