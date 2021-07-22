@@ -120,7 +120,7 @@ deploy-local:
 	--set karvdash.djangoDebug="1" \
 	--set karvdash.dashboardTitle="Karvdash on Docker Desktop" \
 	--set karvdash.ingressURL="https://${EXTERNAL_URL}" \
-	--set karvdash.dockerRegistryURL="http://${IP_ADDRESS}:5000" \
+	--set karvdash.registryURL="http://${IP_ADDRESS}:5000" \
 	--set karvdash.datasetsAvailable="0" \
 	--set karvdash.stateHostPath="$(PWD)/db" \
 	--set karvdash.filesURL="file://$(PWD)/files"

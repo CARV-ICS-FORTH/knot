@@ -32,10 +32,10 @@ karvdash:
   issuesURL:
   # REQUIRED: The ingress URL used.
   ingressURL:
-  # The URL of the Docker registry.
-  dockerRegistryURL:
-  # The Docker registry certificate (use if self-signed).
-  dockerRegistryCert:
+  # The URL of the container registry.
+  registryURL:
+  # The container registry certificate (use if self-signed).
+  registryCert:
   # Set to anything to enable dataset management.
   datasetsAvailable:
   # REQUIRED: The base URL for the private and shared file domains.

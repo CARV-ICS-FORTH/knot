@@ -22,8 +22,8 @@ from crispy_forms.layout import Layout, Submit
 from .models import User
 
 
-validate_docker_name = RegexValidator(r'^[0-9a-z\-\.]*$', 'Only alphanumeric characters, dash, and period are allowed.')
-validate_docker_tag = RegexValidator(r'^[0-9a-zA-Z_\-\.]*$', 'Only alphanumeric characters, dash, underscore, and period are allowed.')
+validate_image_name = RegexValidator(r'^[0-9a-z\-\.]*$', 'Only alphanumeric characters, dash, and period are allowed.')
+validate_image_tag = RegexValidator(r'^[0-9a-zA-Z_\-\.]*$', 'Only alphanumeric characters, dash, underscore, and period are allowed.')
 
 validate_username = RegexValidator(r'^[a-z0-9]+$', 'Only lowercase alphanumeric characters are allowed.')
 
@@ -108,8 +108,8 @@ class AddFolderForm(forms.Form):
     name = forms.CharField(label='Name for the new folder', min_length=1, max_length=255, initial='New Folder')
 
 class AddImageFromFileForm(forms.Form):
-    name = forms.CharField(label='Image name', min_length=1, max_length=128, validators=[validate_docker_name])
-    tag = forms.CharField(label='Tag', min_length=1, max_length=128, validators=[validate_docker_tag])
+    name = forms.CharField(label='Image name', min_length=1, max_length=128, validators=[validate_image_name])
+    tag = forms.CharField(label='Tag', min_length=1, max_length=128, validators=[validate_image_tag])
 
 class EditUserForm(forms.Form):
     email = forms.EmailField(label='Email')

@@ -178,7 +178,7 @@ LOGOUT_REDIRECT_URL = '/'
 # Enable OIDC
 
 OIDC_RSA_PRIVATE_KEY_FILE = os.path.join(DATABASE_DIR, 'oidc.key')
-# Check for the database dir to avoid creating the key in the Docker image.
+# Check for the database dir to avoid creating the key in the container image.
 if os.path.exists(DATABASE_DIR) and not os.path.exists(OIDC_RSA_PRIVATE_KEY_FILE):
     if os.system('openssl genrsa -out %s 4096' % OIDC_RSA_PRIVATE_KEY_FILE) != 0:
         raise SystemError('Can not create private key for OIDC')
@@ -232,10 +232,10 @@ CHUNKED_UPLOAD_PATH = os.path.join(FILES_MOUNT_DIR, 'uploads')
 MEDIA_ROOT = CHUNKED_UPLOAD_PATH
 
 
-# Docker registry endpoint
+# Container registry endpoint
 
-DOCKER_REGISTRY_URL = os.getenv('KARVDASH_DOCKER_REGISTRY_URL')
-DOCKER_REGISTRY_CERT_FILE = os.getenv('KARVDASH_DOCKER_REGISTRY_CERT_FILE')
+REGISTRY_URL = os.getenv('KARVDASH_REGISTRY_URL')
+REGISTRY_CERT_FILE = os.getenv('KARVDASH_REGISTRY_CERT_FILE')
 
 
 # Service templates

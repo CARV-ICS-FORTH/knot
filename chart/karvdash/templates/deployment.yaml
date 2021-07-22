@@ -84,11 +84,11 @@ spec:
           value: {{ .Values.karvdash.issuesURL | quote }}
         - name: KARVDASH_INGRESS_URL
           value: {{ $ingressURL | quote }}
-        - name: KARVDASH_DOCKER_REGISTRY_URL
-          value: {{ .Values.karvdash.dockerRegistryURL | quote }}
-        {{- if .Values.karvdash.dockerRegistryCert }}
-        - name: KARVDASH_DOCKER_REGISTRY_CERT_FILE
-          value: /etc/karvdash/docker_registry_cert_file
+        - name: KARVDASH_REGISTRY_URL
+          value: {{ .Values.karvdash.registryURL | quote }}
+        {{- if .Values.karvdash.registryCert }}
+        - name: KARVDASH_REGISTRY_CERT_FILE
+          value: /etc/karvdash/registry_cert_file
         {{- end }}
         - name: KARVDASH_DATASETS_AVAILABLE
           value: {{ .Values.karvdash.datasetsAvailable | quote }}
@@ -118,10 +118,10 @@ spec:
         - containerPort: 8000
           name: http
         volumeMounts:
-        {{- if .Values.karvdash.dockerRegistryCert }}
+        {{- if .Values.karvdash.registryCert }}
         - name: {{ .Release.Name }}-config
-          mountPath: /etc/karvdash/docker_registry_cert_file
-          subPath: docker_registry_cert_file
+          mountPath: /etc/karvdash/registry_cert_file
+          subPath: registry_cert_file
         {{- end }}
         {{- if .Values.karvdash.disabledServiceTemplates }}
         - name: {{ .Release.Name }}-config

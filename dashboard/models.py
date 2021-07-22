@@ -235,7 +235,7 @@ class User(AuthUser):
             kubernetes_client.apply_yaml_data(api_template.yaml.encode(), namespace=self.namespace)
 
             # Create registry secret.
-            kubernetes_client.create_docker_registry_secret(self.namespace, settings.DOCKER_REGISTRY_URL, 'admin@%s' % ingress_host)
+            kubernetes_client.create_registry_secret(self.namespace, settings.REGISTRY_URL, 'admin@%s' % ingress_host)
 
             # Create service account for Argo.
             if settings.ARGO_NAMESPACE:

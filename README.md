@@ -59,8 +59,8 @@ Some of the variables set above are required. The table below lists all availabl
 | `karvdash.dashboardTheme`           |          | The theme of the dashboard.                                                              | `karvdash`                        |
 | `karvdash.issuesURL`                |          | If set, an option to "Report an issue" is shown in the user menu.                        |                                   |
 | `karvdash.ingressURL`               | &check;  | The ingress URL used.                                                                    |                                   |
-| `karvdash.dockerRegistryURL`        |          | The URL of the Docker registry.                                                          |                                   |
-| `karvdash.dockerRegistryCert`       |          | The Docker registry certificate (use if self-signed).                                    |                                   |
+| `karvdash.registryURL`              |          | The URL of the container registry.                                                       |                                   |
+| `karvdash.registryCert`             |          | The container registry certificate (use if self-signed).                                 |                                   |
 | `karvdash.datasetsAvailable`        |          | Set to anything to enable dataset management.                                            |                                   |
 | `karvdash.filesURL`                 | &check;  | The base URL for the private and shared file domains.                                    |                                   |
 | `karvdash.filesSize`                |          | The size for the files persistent volume.                                                | `1Pi`                             |

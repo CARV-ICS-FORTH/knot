@@ -10,7 +10,7 @@ Karvdash (Kubernetes CARV dashboard) is a service for facilitating data science 
 In summary, Karvdash provides a web-based, graphical frontend - a `dashboard` - for users to:
 
 * Launch services or applications from customizable templates.
-* Organize container images stored in a private Docker registry.
+* Organize container images stored in a private registry.
 * Manage files that are automatically attached to service and application containers when launched.
 
 Under the hood, Karvdash:

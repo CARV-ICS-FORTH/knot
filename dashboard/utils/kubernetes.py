@@ -134,7 +134,7 @@ class KubernetesClient(object):
         #     raise SystemError('Can not delete service file')
         os.system(command)
 
-    def create_docker_registry_secret(self, namespace, registry_url, email):
+    def create_registry_secret(self, namespace, registry_url, email):
         if not registry_url:
             return
 

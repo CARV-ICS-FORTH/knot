@@ -30,7 +30,7 @@ from .models import User
 from .forms import SignUpForm, EditUserForm, AddServiceForm, CreateServiceForm, AddTemplateForm, AddDatasetForm, CreateDatasetForm, AddFolderForm, AddImageFromFileForm
 from .api import ServiceResource, TemplateResource, DatasetResource
 from .utils.kubernetes import KubernetesClient
-from .utils.docker import DockerClient
+from .utils.registry import RegistryClient
 
 
 @login_required
@@ -249,18 +249,18 @@ def template_download(request, identifier):
 
 @login_required
 def images(request):
-    docker_client = DockerClient(settings.DOCKER_REGISTRY_URL, settings.DOCKER_REGISTRY_CERT_FILE)
+    registry_client = RegistryClient(settings.REGISTRY_URL, settings.REGISTRY_CERT_FILE)
 
     # There is no hierarchy here.
-    trail = [{'name': '<i class="fa fa-archive" aria-hidden="true"></i> %s' % docker_client.safe_registry_url}]
+    trail = [{'name': '<i class="fa fa-archive" aria-hidden="true"></i> %s' % registry_client.safe_registry_url}]
 
     # Fill in the contents.
     contents = []
     try:
-        for repository in docker_client.registry().list_repos():
+        for repository in registry_client.registry().list_repos():
             contents.append({'name': repository})
     except:
-        messages.error(request, 'Can not connect to Docker registry.')
+        messages.error(request, 'Can not connect to container registry.')
 
     # Sort them up.
     sort_by = request.GET.get('sort_by')
@@ -286,7 +286,7 @@ def images(request):
 
 @login_required
 def image_info(request, name):
-    docker_client = DockerClient(settings.DOCKER_REGISTRY_URL, settings.DOCKER_REGISTRY_CERT_FILE)
+    registry_client = RegistryClient(settings.REGISTRY_URL, settings.REGISTRY_CERT_FILE)
 
     # Handle changes.
     if request.method == 'POST':
@@ -298,7 +298,7 @@ def image_info(request, name):
             else:
                 tag = request.POST.get('tag', None)
                 try:
-                    docker_client.registry(name).del_alias(tag)
+                    registry_client.registry(name).del_alias(tag)
                 except Exception as e:
                     messages.error(request, 'Failed to delete image: %s.' % str(e))
                 else:
@@ -309,12 +309,12 @@ def image_info(request, name):
         return redirect('images')
 
     # There is no hierarchy here.
-    trail = [{'name': '<i class="fa fa-archive" aria-hidden="true"></i> %s' % docker_client.safe_registry_url}]
+    trail = [{'name': '<i class="fa fa-archive" aria-hidden="true"></i> %s' % registry_client.safe_registry_url}]
 
     # Fill in the contents.
     contents = []
     try:
-        registry = docker_client.registry(name)
+        registry = registry_client.registry(name)
         for alias in registry.list_aliases():
             digest = registry.get_digest(alias)
             existing_content = next((c for c in contents if c['digest'] == digest), None)
@@ -329,7 +329,7 @@ def image_info(request, name):
                              'size': sum([h[1] for h in hashes]),
                              'actions': request.user.is_staff})
     except:
-        messages.error(request, 'Can not connect to Docker registry.')
+        messages.error(request, 'Can not connect to container registry.')
     for content in contents:
         content['aliases'].sort()
         content['tag'] = content['aliases'][0] if content['aliases'] else ''
@@ -563,12 +563,12 @@ def files(request, path='/'):
         elif request.POST['action'] == 'Add image':
             form = AddImageFromFileForm(request.POST)
             name = request.POST.get('filename', None)
-            if form.is_valid() and name and settings.DOCKER_REGISTRY_URL:
+            if form.is_valid() and name and settings.REGISTRY_URL:
                 image_name = form.cleaned_data['name']
                 image_tag = form.cleaned_data['tag']
                 try:
-                    docker_client = DockerClient(settings.DOCKER_REGISTRY_URL, settings.DOCKER_REGISTRY_CERT_FILE)
-                    docker_client.add_image(path_worker.path_of(name), image_name, image_tag)
+                    registry_client = RegistryClient(settings.REGISTRY_URL, settings.REGISTRY_CERT_FILE)
+                    registry_client.add_image(path_worker.path_of(name), image_name, image_tag)
                 except Exception as e:
                     messages.error(request, 'Failed to add image: %s.' % str(e))
                 else:

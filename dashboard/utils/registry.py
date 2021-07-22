@@ -19,7 +19,7 @@ from dxf import DXF
 from base64 import b64encode
 
 
-class DockerClient(object):
+class RegistryClient(object):
     def __init__(self, registry_url, registry_cert_file):
         self._registry_url = urlparse(registry_url)
         self._registry_host = '%s:%s' % (self._registry_url.hostname, self._registry_url.port)

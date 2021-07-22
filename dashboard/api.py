@@ -30,7 +30,7 @@ from .forms import CreateServiceForm, CreateDatasetForm
 from .datasets import LOCAL_S3_DATASET_TEMPLATE, REMOTE_S3_DATASET_TEMPLATE, LOCAL_H3_DATASET_TEMPLATE, REMOTE_H3_DATASET_TEMPLATE, ARCHIVE_DATASET_TEMPLATE
 from .utils.template import Template, ServiceTemplate, FileTemplate
 from .utils.kubernetes import KubernetesClient
-from .utils.docker import DockerClient
+from .utils.registry import RegistryClient
 from .utils.base64 import base64_encode, base64_decode
 
 
@@ -204,7 +204,7 @@ class ServiceResource(APIResource):
         template.NAMESPACE = self.user.namespace
         template.NAME = name
         template.HOSTNAME = '%s.%s' % (prefix, ingress_host)
-        template.REGISTRY = DockerClient(settings.DOCKER_REGISTRY_URL, settings.DOCKER_REGISTRY_CERT_FILE).registry_host if settings.DOCKER_REGISTRY_URL else ''
+        template.REGISTRY = RegistryClient(settings.REGISTRY_URL, settings.REGISTRY_CERT_FILE).registry_host if settings.REGISTRY_URL else ''
         template.PRIVATE = self.user.file_domains['private'].mount_dir # Backwards compatibility.
         template.PRIVATE_DIR = self.user.file_domains['private'].mount_dir
         template.PRIVATE_VOLUME = self.user.file_domains['private'].volume_name
