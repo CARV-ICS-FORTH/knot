@@ -1,5 +1,5 @@
 .. figure:: images/karvdash-black.png
-   :scale: 20%
+   :scale: 15%
    :align: center
 
 Overview
@@ -27,6 +27,7 @@ Kubernetes provides all the tools to do data sharing, create namespaces, etc., b
 
    user
    technical
+   sso
    api
 
 Indices and tables

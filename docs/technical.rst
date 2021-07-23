@@ -15,14 +15,14 @@ For the first domain Karvdash creates a subfolder for each user, named after the
 
 .. figure:: images/service-layout.png
 
-   The dashboard runs as a service in Kubernetes and coordinates the execution of other services in particular namespaces. All provisioned containers share common mountpoints that correspond to specific paths in the hosts.
+   The dashboard runs as a service in Kubernetes and coordinates the execution of other services in particular namespaces. All provisioned containers of a user share common volumes.
 
-To attach these data folders to service and application containers, Karvdash provides a Kubernetes mutating admission webhook which intercepts all calls to create pods or deployments and injects the appropriate "HostPaths" to respective configurations before they are applied. The Karvdash service itself also has the same data folders mounted in order to present their contents via the dashboard. Another validating admission webhook makes sure that only allowed host paths are mounted in pods.
+To attach these data folders to service and application containers, Karvdash creates Persistent Volumes and associated Persistent Volume Claims for each user, and provides a Kubernetes mutating admission webhook which intercepts all calls to create pods or deployments and injects the appropriate volumes to respective configurations before they are applied. The Karvdash service itself also has the same data folders mounted in order to present their contents via the dashboard. Also, another validating admission webhook makes sure that only allowed host paths can be mounted in pods.
 
 Remote datasets
 ---------------
 
-In addition to the "private" and "shared" data domains, Karvdash interfaces with `Datashim <https://github.com/datashim-io/datashim>`_ to mount internal or external S3 and H3 buckets to running containers. Karvdash provides the frontend to configure datasets and then attaches the produced Persistent Volume Claims to deployed pods. Datasets are mounted in containers at ``/mnt/datasets/<name>``.
+In addition to the "private" and "shared" data domains, Karvdash optionally interfaces with `Datashim <https://github.com/datashim-io/datashim>`_ to mount internal or external S3 and H3 buckets to running containers. Karvdash provides the frontend to configure datasets and then attaches the produced Persistent Volume Claims to deployed pods. Datasets are mounted in containers at ``/mnt/datasets/<name>``.
 
 Service templates
 -----------------
@@ -127,7 +127,7 @@ Field               Description
 ``SHARED_VOLUME``   The volume used for the "shared" data domain
 ==================  ==============================================================
 
-Karvdash distinguishes between internal system templates, which are stored in the filesystem and can not be changed, and custom user templates, which are stored as CRDs in Kubernetes in the user's namespace. To manage service templates with ``kubectl`` use the ``templates`` resource identifier (i.e. ``kubectl get templates``).
+Karvdash distinguishes between internal system templates, which are stored in the filesystem and can not be changed, and custom user templates, which are stored as CRDs in Kubernetes in the user's namespace. To manage service templates with ``kubectl`` use the ``templates`` resource identifier (i.e., ``kubectl get templates``).
 
 User namespaces
 ---------------
@@ -142,10 +142,10 @@ Service exposure
 To expose services to the user, Karvdash makes use of a Kubernetes ingress - a proxy server. Service templates that provide a user-facing service include an ingress directive. Karvdash effectively:
 
 * Exposes all services on subdomains of the main dashboard domain. These domains are composed of the service name and the username, so they can always be the same, allowing the user to bookmark the location.
-* Protects all services with a basic HTTP authentication mechanism, using the dashboard usernames and passwords, where each service can only be accessed by its owner. This helps avoiding any external party visiting a user's service frontend without appropriate credentials.
-* Incorporates all services under a common SSL environment, so all data sent back-and-forth through the ingress is encrypted.
+* Protects all services with an authentication/authorization mechanism, by configuring each respective ingress to perform single sing-on through the dashboard. The default deployment integrates `Vouch Proxy <https://github.com/vouch/vouch-proxy>`_ as an OIDC client to the dashboard, which in turn provides credentials to the NGINX-based web proxy implementing the ingress. Thus, each service can only be accessed by its owner. This helps avoiding any external party visiting a user's service frontend without appropriate credentials.
+* Incorporates all services under a common SSL environment, so all data sent back-and-forth through each ingress is encrypted.
 
-Assuming that the dashboard is accessible at ``example.com``, user's "test" Zeppelin service named ``zeppelin`` will be exposed at ``zeppelin-test.example.com``. Karvdash will also inject user's "test" credientials to the service's ingress configuration, so that no other user can access ``zeppelin-test.example.com``. As the ingress will be configured with an SSL certificate for both ``example.com`` and ``*.example.com``, all connections will be SSL terminated.
+Assuming that the dashboard is accessible at ``example.com``, user's "test" Zeppelin service named ``zeppelin`` will be exposed at ``zeppelin-test.example.com``. Karvdash will also inject appropriate rules to the service's ingress configuration, so that no other user can access ``zeppelin-test.example.com``. As the ingress will be configured with an SSL certificate for both ``example.com`` and ``*.example.com``, all connections will be SSL terminated.
 
 Registry gateway
 ----------------
