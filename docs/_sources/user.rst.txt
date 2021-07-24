@@ -89,8 +89,8 @@ Administration
 .. note::
    The information in this section applies only to administrators.
 
-The admin user has access to an additional screen named "Users". Moreover, in the "Images" screen, the admin has the option to use the "Actions" button to delete an image.
+The "admin" user has access to an additional screen named "Users". Moreover, in the "Images" screen, the administrator has the option to use the "Actions" button to delete an image.
 
-The users screen is accessed by selecting "Users" from the menu on the left. You are presented with a list of users, by username. Each user can be "active", meaning with access to the dashboard and services. Each user can also be promoted to an "admin". The respective actions are available in the menu presented when selecting the "Actions" button. An administrator can edit a user's email, change a user's password, impersonate, and delete a user.
+The users screen is accessed by selecting "Users" from the menu on the left. You are presented with a list of users, by username. Each user can be "active", meaning with access to the dashboard and services. Each user can also be promoted to an administrator. The respective actions are available in the menu presented when selecting the "Actions" button. An administrator can edit a user's email, change a user's password, impersonate, and delete a user.
 
 When impersonating another user, the whole interface changes to what the user sees and the user icon at the top-right of the screen darkens to signify "impersonation mode". The user menu provides the option to stop impersonating and return to the original user's view.

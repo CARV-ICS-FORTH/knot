@@ -96,6 +96,7 @@
 <li class="toctree-l2"><a class="reference internal" href="#service-templates">Service templates</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#user-namespaces">User namespaces</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#service-exposure">Service exposure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#sso-service">SSO service</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#registry-gateway">Registry gateway</a></li>
 </ul>
 </li>
@@ -180,13 +181,13 @@
 <p>For the first domain Karvdash creates a subfolder for each user, named after the corresponding username and only allows access within that subfolder (like a “home folder”). This is hidden to the user, meaning that <code class="docutils literal notranslate"><span class="pre">/private</span></code> is the user subfolder itself. Users cannot go up a level and check other users’ names and files.</p>
 <div class="figure align-default" id="id1">
 <img alt="_images/service-layout.png" src="_images/service-layout.png" />
-<p class="caption"><span class="caption-text">The dashboard runs as a service in Kubernetes and coordinates the execution of other services in particular namespaces. All provisioned containers share common mountpoints that correspond to specific paths in the hosts.</span><a class="headerlink" href="#id1" title="Permalink to this image">¶</a></p>
+<p class="caption"><span class="caption-text">The dashboard runs as a service in Kubernetes and coordinates the execution of other services in particular namespaces. All provisioned containers of a user share common volumes.</span><a class="headerlink" href="#id1" title="Permalink to this image">¶</a></p>
 </div>
-<p>To attach these data folders to service and application containers, Karvdash provides a Kubernetes mutating admission webhook which intercepts all calls to create pods or deployments and injects the appropriate “HostPaths” to respective configurations before they are applied. The Karvdash service itself also has the same data folders mounted in order to present their contents via the dashboard. Another validating admission webhook makes sure that only allowed host paths are mounted in pods.</p>
+<p>To attach these data folders to service and application containers, Karvdash creates Persistent Volumes and associated Persistent Volume Claims for each user, and provides a Kubernetes mutating admission webhook which intercepts all calls to create pods or deployments and injects the appropriate volumes to respective configurations before they are applied. The Karvdash service itself also has the same data folders mounted in order to present their contents via the dashboard. Also, another validating admission webhook makes sure that only allowed host paths can be mounted in pods.</p>
 </div>
 <div class="section" id="remote-datasets">
 <h2>Remote datasets<a class="headerlink" href="#remote-datasets" title="Permalink to this headline">¶</a></h2>
-<p>In addition to the “private” and “shared” data domains, Karvdash interfaces with <a class="reference external" href="https://github.com/datashim-io/datashim">Datashim</a> to mount internal or external S3 and H3 buckets to running containers. Karvdash provides the frontend to configure datasets and then attaches the produced Persistent Volume Claims to deployed pods. Datasets are mounted in containers at <code class="docutils literal notranslate"><span class="pre">/mnt/datasets/&lt;name&gt;</span></code>.</p>
+<p>In addition to the “private” and “shared” data domains, Karvdash optionally interfaces with <a class="reference external" href="https://github.com/datashim-io/datashim">Datashim</a> to mount internal or external S3 and H3 buckets to running containers. Karvdash provides the frontend to configure datasets and then attaches the produced Persistent Volume Claims to deployed pods. Datasets are mounted in containers at <code class="docutils literal notranslate"><span class="pre">/mnt/datasets/&lt;name&gt;</span></code>.</p>
 </div>
 <div class="section" id="service-templates">
 <h2>Service templates<a class="headerlink" href="#service-templates" title="Permalink to this headline">¶</a></h2>
@@ -336,7 +337,7 @@ variables:
 </tr>
 </tbody>
 </table>
-<p>Karvdash distinguishes between internal system templates, which are stored in the filesystem and can not be changed, and custom user templates, which are stored as CRDs in Kubernetes in the user’s namespace. To manage service templates with <code class="docutils literal notranslate"><span class="pre">kubectl</span></code> use the <code class="docutils literal notranslate"><span class="pre">templates</span></code> resource identifier (i.e. <code class="docutils literal notranslate"><span class="pre">kubectl</span> <span class="pre">get</span> <span class="pre">templates</span></code>).</p>
+<p>Karvdash distinguishes between internal system templates, which are stored in the filesystem and can not be changed, and custom user templates, which are stored as CRDs in Kubernetes in the user’s namespace. To manage service templates with <code class="docutils literal notranslate"><span class="pre">kubectl</span></code> use the <code class="docutils literal notranslate"><span class="pre">templates</span></code> resource identifier (i.e., <code class="docutils literal notranslate"><span class="pre">kubectl</span> <span class="pre">get</span> <span class="pre">templates</span></code>).</p>
 </div>
 <div class="section" id="user-namespaces">
 <h2>User namespaces<a class="headerlink" href="#user-namespaces" title="Permalink to this headline">¶</a></h2>
@@ -348,10 +349,14 @@ variables:
 <p>To expose services to the user, Karvdash makes use of a Kubernetes ingress - a proxy server. Service templates that provide a user-facing service include an ingress directive. Karvdash effectively:</p>
 <ul class="simple">
 <li><p>Exposes all services on subdomains of the main dashboard domain. These domains are composed of the service name and the username, so they can always be the same, allowing the user to bookmark the location.</p></li>
-<li><p>Protects all services with a basic HTTP authentication mechanism, using the dashboard usernames and passwords, where each service can only be accessed by its owner. This helps avoiding any external party visiting a user’s service frontend without appropriate credentials.</p></li>
-<li><p>Incorporates all services under a common SSL environment, so all data sent back-and-forth through the ingress is encrypted.</p></li>
+<li><p>Protects all services with an authentication/authorization mechanism, by configuring each respective ingress to perform single sing-on through the dashboard. The default deployment integrates <a class="reference external" href="https://github.com/vouch/vouch-proxy">Vouch Proxy</a> as an OAuth 2.0/OIDC client to the dashboard, which in turn provides credentials to the NGINX-based web proxy implementing the ingress. Thus, each service can only be accessed by its owner. This helps avoiding any external party visiting a user’s service frontend without appropriate credentials.</p></li>
+<li><p>Incorporates all services under a common SSL environment, so all data sent back-and-forth through each ingress is encrypted.</p></li>
 </ul>
-<p>Assuming that the dashboard is accessible at <code class="docutils literal notranslate"><span class="pre">example.com</span></code>, user’s “test” Zeppelin service named <code class="docutils literal notranslate"><span class="pre">zeppelin</span></code> will be exposed at <code class="docutils literal notranslate"><span class="pre">zeppelin-test.example.com</span></code>. Karvdash will also inject user’s “test” credientials to the service’s ingress configuration, so that no other user can access <code class="docutils literal notranslate"><span class="pre">zeppelin-test.example.com</span></code>. As the ingress will be configured with an SSL certificate for both <code class="docutils literal notranslate"><span class="pre">example.com</span></code> and <code class="docutils literal notranslate"><span class="pre">*.example.com</span></code>, all connections will be SSL terminated.</p>
+<p>Assuming that the dashboard is accessible at <code class="docutils literal notranslate"><span class="pre">example.com</span></code>, user’s “test” Zeppelin service named <code class="docutils literal notranslate"><span class="pre">zeppelin</span></code> will be exposed at <code class="docutils literal notranslate"><span class="pre">zeppelin-test.example.com</span></code>. Karvdash will also inject appropriate rules to the service’s ingress configuration, so that no other user can access <code class="docutils literal notranslate"><span class="pre">zeppelin-test.example.com</span></code>. As the ingress will be configured with an SSL certificate for both <code class="docutils literal notranslate"><span class="pre">example.com</span></code> and <code class="docutils literal notranslate"><span class="pre">*.example.com</span></code>, all connections will be SSL terminated.</p>
+</div>
+<div class="section" id="sso-service">
+<h2>SSO service<a class="headerlink" href="#sso-service" title="Permalink to this headline">¶</a></h2>
+<p>Karvdash implements an OAuth 2.0/OpenID Connect provider, which allows third-party services to request verification of users’ identitities via standard protocols. Note that OAuth 2.0/OpenID provides only authentication information and it is up to the connecting service to define what users are authorized to do, based on their identities (i.e., username, email, etc.). In addition to the integration with Vouch Proxy for authenticating users to services started by the dashboard, Karvdash also acts as an identity provider to <a class="reference external" href="https://argoproj.github.io/workflows">Argo Workflows</a>. Moreover, Karvdash configures appropriate authorization directives in Argo Workflows, so each user will be allowed to access resources in the corresponding Karvdash-defined namespace.</p>
 </div>
 <div class="section" id="registry-gateway">
 <h2>Registry gateway<a class="headerlink" href="#registry-gateway" title="Permalink to this headline">¶</a></h2>

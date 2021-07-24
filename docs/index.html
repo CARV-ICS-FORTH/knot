@@ -159,7 +159,7 @@
            <div itemprop="articleBody">
             
   <div class="figure align-center">
-<a class="reference internal image-reference" href="_images/karvdash-black.png"><img alt="_images/karvdash-black.png" src="_images/karvdash-black.png" style="width: 428.20000000000005px; height: 66.8px;" /></a>
+<a class="reference internal image-reference" href="_images/karvdash-black.png"><img alt="_images/karvdash-black.png" src="_images/karvdash-black.png" style="width: 321.15px; height: 50.1px;" /></a>
 </div>
 <div class="section" id="overview">
 <h1>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h1>
@@ -174,7 +174,7 @@
 <ul class="simple">
 <li><p>Securely provisions multiple services under one externally-accessible HTTPS endpoint.</p></li>
 <li><p>Performs high-level user management and isolates respective services in per-user Kubernetes namespaces.</p></li>
-<li><p>Provides an identity service for authenticating users in OIDC-compatible applications.</p></li>
+<li><p>Provides an identity service for authenticating users in OAuth 2.0/OIDC-compatible applications.</p></li>
 </ul>
 <p>Kubernetes provides all the tools to do data sharing, create namespaces, etc., but the exact implementation and structure of the overall environment is left to the developer. Karvdash implements a “traditional” user scheme, which is then mapped to Kubernetes namespaces and service accounts. Kubernetes does not have “users” and no place to “login into” by default. In addition, Karvdash wires up relevant storage to the appropriate paths inside running containers, which significantly simplifies data management. Private and shared files are automatically accessible in all execution contexts and also available through the dashboard.</p>
 <div class="toctree-wrapper compound">
@@ -196,6 +196,7 @@
 <li class="toctree-l2"><a class="reference internal" href="technical.html#service-templates">Service templates</a></li>
 <li class="toctree-l2"><a class="reference internal" href="technical.html#user-namespaces">User namespaces</a></li>
 <li class="toctree-l2"><a class="reference internal" href="technical.html#service-exposure">Service exposure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="technical.html#sso-service">SSO service</a></li>
 <li class="toctree-l2"><a class="reference internal" href="technical.html#registry-gateway">Registry gateway</a></li>
 </ul>
 </li>

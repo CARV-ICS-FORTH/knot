@@ -165,7 +165,7 @@
   <div class="section" id="api-documentation">
 <h1>API documentation<a class="headerlink" href="#api-documentation" title="Permalink to this headline">¶</a></h1>
 <p>Karvdash (Kubernetes CARV dashboard) provides a REST API for performing service management from external systems.</p>
-<p>The API includes the following methods under the API’s base URL (i.e. <code class="docutils literal notranslate"><span class="pre">http://karvdash.default.svc/api</span></code>):</p>
+<p>The API includes the following methods under the API’s base URL (i.e., <code class="docutils literal notranslate"><span class="pre">http://karvdash.default.svc/api</span></code>):</p>
 <table class="docutils align-default">
 <colgroup>
 <col style="width: 8%" />
@@ -212,7 +212,7 @@
 </tbody>
 </table>
 <p>All methods use a JSON dictionary for input data (if applicable) and respond using JSON formatting. For a detailed description of request and response variables consult the <a class="reference internal" href="#python-library">Python library</a> documentation.</p>
-<p>A Python library called <code class="docutils literal notranslate"><span class="pre">karvdash_client</span></code> has been implemented to easily use the API in any Python script. The library also comes with a CLI utility, <code class="docutils literal notranslate"><span class="pre">karvdashctl</span></code> which allows interfacing with Karvdash through the shell. The client library and CLI utility can be particularly useful for managing services through a Zeppelin notebook.</p>
+<p>A Python library called <code class="docutils literal notranslate"><span class="pre">karvdash_client</span></code> has been implemented to easily use the API in any Python script. The library also comes with a CLI utility, <code class="docutils literal notranslate"><span class="pre">karvdashctl</span></code> which allows interfacing with Karvdash through the shell. The client library and CLI utility can be particularly useful for managing services through a notebook.</p>
 <p>To use the client library you should provide the API endpoint and an authentication token in a configuration file (an example is shown in the <a class="reference internal" href="#python-library">Python library</a> documentation). For services running with the Karvdash mutating admission webhook activated, this file is automatically created and mounted in pods at <code class="docutils literal notranslate"><span class="pre">/var/lib/karvdash/config.ini</span></code>.</p>
 <div class="section" id="command-line-tool">
 <h2>Command line tool<a class="headerlink" href="#command-line-tool" title="Permalink to this headline">¶</a></h2>

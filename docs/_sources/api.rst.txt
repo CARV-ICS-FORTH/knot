@@ -3,7 +3,7 @@ API documentation
 
 Karvdash (Kubernetes CARV dashboard) provides a REST API for performing service management from external systems.
 
-The API includes the following methods under the API's base URL (i.e. ``http://karvdash.default.svc/api``):
+The API includes the following methods under the API's base URL (i.e., ``http://karvdash.default.svc/api``):
 
 ======  =====================  =============================================
 Method  Path                   Description
@@ -20,7 +20,7 @@ DELETE  ``/templates/<id>``    Remove a template
 
 All methods use a JSON dictionary for input data (if applicable) and respond using JSON formatting. For a detailed description of request and response variables consult the `Python library`_ documentation.
 
-A Python library called ``karvdash_client`` has been implemented to easily use the API in any Python script. The library also comes with a CLI utility, ``karvdashctl`` which allows interfacing with Karvdash through the shell. The client library and CLI utility can be particularly useful for managing services through a Zeppelin notebook.
+A Python library called ``karvdash_client`` has been implemented to easily use the API in any Python script. The library also comes with a CLI utility, ``karvdashctl`` which allows interfacing with Karvdash through the shell. The client library and CLI utility can be particularly useful for managing services through a notebook.
 
 To use the client library you should provide the API endpoint and an authentication token in a configuration file (an example is shown in the `Python library`_ documentation). For services running with the Karvdash mutating admission webhook activated, this file is automatically created and mounted in pods at ``/var/lib/karvdash/config.ini``.
 
