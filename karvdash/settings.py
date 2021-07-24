@@ -42,6 +42,8 @@ DEBUG = True if os.getenv('DJANGO_DEBUG', '1') else False
 
 ALLOWED_HOSTS = ['*']
 
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_SCHEME', 'https')
+
 
 # Version
 try:
@@ -199,7 +201,6 @@ if os.path.exists(OIDC_RSA_PRIVATE_KEY_FILE):
     }
 
 VOUCH_URL = os.getenv('KARVDASH_VOUCH_URL')
-VOUCH_SECRET = os.getenv('KARVDASH_VOUCH_SECRET')
 
 
 # Form styling with crispy-forms

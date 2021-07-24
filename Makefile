@@ -29,7 +29,7 @@ all: container
 
 IP_ADDRESS=$(shell ipconfig getifaddr en0 || ipconfig getifaddr en1)
 
-EXTERNAL_URL=localtest.me
+INGRESS_URL=${IP_ADDRESS}.nip.io
 define INGRESS_CERTIFICATE
 apiVersion: cert-manager.io/v1
 kind: Issuer
@@ -45,10 +45,10 @@ metadata:
 spec:
   secretName: ssl-certificate
   duration: 87600h
-  commonName: ${INGRESS_EXTERNAL_ADDRESS}
+  commonName: ${INGRESS_URL}
   dnsNames:
-  - "${INGRESS_EXTERNAL_ADDRESS}"
-  - "*.${INGRESS_EXTERNAL_ADDRESS}"
+  - "${INGRESS_URL}"
+  - "*.${INGRESS_URL}"
   privateKey:
     algorithm: RSA
     size: 2048
@@ -62,6 +62,7 @@ deploy-requirements:
 	helm repo add twuni https://helm.twun.io
 	helm repo add jetstack https://charts.jetstack.io
 	helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
+	helm repo add argo https://argoproj.github.io/argo-helm
 	helm repo update
 	# Deploy registry
 	kubectl create namespace registry || true
@@ -78,11 +79,38 @@ deploy-requirements:
 	# Deploy ingress
 	kubectl create namespace ingress-nginx || true
 	kubectl get secret ssl-certificate -n ingress-nginx || \
+	kubectl wait --for condition=Available -n cert-manager deployment/cert-manager-webhook; \
 	echo "$$INGRESS_CERTIFICATE" | kubectl apply -n ingress-nginx -f -
 	helm list --namespace ingress-nginx -q | grep ingress || \
 	helm install ingress ingress-nginx/ingress-nginx --version 3.19.0 --namespace ingress-nginx \
 	--set controller.extraArgs.default-ssl-certificate=ingress-nginx/ssl-certificate \
 	--set controller.admissionWebhooks.enabled=false
+	# Deploy argo (will start when OAuth secret is created)
+	kubectl create namespace argo || true
+	kubectl get configmap ssl-certificate -n argo || \
+	kubectl -n ingress-nginx wait --for condition=Ready certificate/ssl-certificate; \
+	kubectl create configmap ssl-certificate -n argo --from-literal="ca.crt=`kubectl get secret -n ingress-nginx ssl-certificate -o 'go-template={{index .data \"ca.crt\" | base64decode }}'`"
+	helm list --namespace argo -q | grep argo || \
+	helm install argo argo/argo-workflows --version 0.2.12 --namespace argo \
+	--set controller.image.tag=v3.1.1 \
+	--set controller.containerRuntimeExecutor=k8sapi \
+	--set executor.image.tag=v3.1.1 \
+	--set server.image.tag=v3.1.1 \
+	--set server.extraArgs\[0\]="--auth-mode=sso" \
+	--set server.volumeMounts\[0\].name="ssl-certificate-volume" \
+	--set server.volumeMounts\[0\].mountPath="/etc/ssl/certs/${INGRESS_URL}.crt" \
+	--set server.volumeMounts\[0\].subPath="ca.crt" \
+	--set server.volumes\[0\].name="ssl-certificate-volume" \
+	--set server.volumes\[0\].configMap.name="ssl-certificate" \
+	--set server.ingress.enabled=true \
+	--set server.ingress.hosts\[0\]=argo.${INGRESS_URL} \
+	--set server.sso.issuer=https://${INGRESS_URL}/oauth \
+	--set server.sso.clientId.name=karvdash-oauth-argo \
+	--set server.sso.clientId.key=client-id \
+	--set server.sso.clientSecret.name=karvdash-oauth-argo \
+	--set server.sso.clientSecret.key=client-secret \
+	--set server.sso.redirectUrl=https://argo.${INGRESS_URL}/oauth2/callback \
+	--set server.sso.rbac.enabled=true
 	# Deploy DLF
 	# kubectl apply -f https://raw.githubusercontent.com/datashim-io/datashim/master/release-tools/manifests/dlf.yaml
 	# kubectl wait --timeout=600s --for=condition=ready pods -l app.kubernetes.io/name=dlf -n dlf
@@ -90,6 +118,10 @@ deploy-requirements:
 undeploy-requirements:
 	# Remove DLF
 	# kubectl delete -f https://raw.githubusercontent.com/datashim-io/datashim/master/release-tools/manifests/dlf.yaml || true
+	# Remove argo
+	helm uninstall argo --namespace argo || true
+	kubectl delete configmap ssl-certificate -n argo || true
+	kubectl delete namespace argo || true
 	# Remove ingress
 	helm uninstall ingress --namespace ingress-nginx || true
 	kubectl delete secret ssl-certificate -n ingress-nginx || true
@@ -119,11 +151,12 @@ deploy-local:
 	--set karvdash.djangoSecret='%ad&%4*!xpf*$$wd3^t56+#ode4=@y^ju_t+j9f+20ajsta^gog' \
 	--set karvdash.djangoDebug="1" \
 	--set karvdash.dashboardTitle="Karvdash on Docker Desktop" \
-	--set karvdash.ingressURL="https://${EXTERNAL_URL}" \
+	--set karvdash.ingressURL="https://${INGRESS_URL}" \
 	--set karvdash.registryURL="http://${IP_ADDRESS}:5000" \
-	--set karvdash.datasetsAvailable="0" \
 	--set karvdash.stateHostPath="$(PWD)/db" \
-	--set karvdash.filesURL="file://$(PWD)/files"
+	--set karvdash.filesURL="file://$(PWD)/files" \
+	--set karvdash.argoURL="https://argo.${INGRESS_URL}" \
+	--set karvdash.argoNamespace="argo"
 
 undeploy-local:
 	helm uninstall karvdash --namespace default

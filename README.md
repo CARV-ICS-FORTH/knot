@@ -2,7 +2,7 @@
   <img src="https://github.com/CARV-ICS-FORTH/karvdash/raw/master/docs/images/karvdash-blue.png" alt="Karvdash logo" width="320">
 </p>
 
-Karvdash (Kubernetes CARV dashboard) is a dashboard service for facilitating data science on [Kubernetes](https://kubernetes.io). It supplies the landing page for users, allowing them to launch notebooks and other services, design workflows, and specify parameters related to execution through a user-friendly interface. Karvdash manages users, wires up relevant storage to the appropriate paths inside running containers, securely provisions multiple services under one externally-accessible HTTPS endpoint, while keeping them isolated in per-user namespaces at the Kubernetes level, and provides an identity service for OIDC-compatible applications.
+Karvdash (Kubernetes CARV dashboard) is a dashboard service for facilitating data science on [Kubernetes](https://kubernetes.io). It supplies the landing page for users, allowing them to launch notebooks and other services, design workflows, and specify parameters related to execution through a user-friendly interface. Karvdash manages users, wires up relevant storage to the appropriate paths inside running containers, securely provisions multiple services under one externally-accessible HTTPS endpoint, while keeping them isolated in per-user namespaces at the Kubernetes level, and provides an identity service for OAuth 2.0/OIDC-compatible applications.
 
 Check out the [user guide and API documentation](https://carv-ics-forth.github.io/karvdash/) (also available in Karvdash under "Documentation" at the user menu). Karvdash is written in [Python](https://www.python.org) using [Django](https://www.djangoproject.com).
 
@@ -12,7 +12,7 @@ Check out the [user guide and API documentation](https://carv-ics-forth.github.i
 
 We use Kubernetes 1.19.x to develop, test, and run Karvdash on both `amd64` and `arm64` architectures.
 
-Karvdash includes service templates for [Zeppelin](https://zeppelin.apache.org) 0.9.0, [Jupyter](https://jupyter.org) (Jupyter Core 4.7.0 with Jupyter Notebook 6.1.6, as bundled with [TensorFlow](http://www.tensorflow.org) 2.3.2), [Argo](https://argoproj.github.io) (both [Argo Workflows](https://github.com/argoproj/argo) 2.12.10 and [Argo Events](https://github.com/argoproj/argo-events) 1.2.3), and other applications. The Zeppelin and Jupyter "with GPU support" templates add the necessary directives to place the resulting containers in a node with a GPU.
+Karvdash includes service templates for [Zeppelin](https://zeppelin.apache.org) 0.9.0, [Jupyter](https://jupyter.org) (Jupyter Core 4.7.0 with Jupyter Notebook 6.1.6, as bundled with [TensorFlow](http://www.tensorflow.org) 2.3.2), and other applications. The Zeppelin and Jupyter "with GPU support" templates add the necessary directives to place the resulting containers in a node with a GPU.
 
 If your application requirements differ, you will need to create custom service templates and possibly associated container images.
 
@@ -28,12 +28,16 @@ To install, you need a running Kubernetes environment with the following feature
 * For storage of Karvdash state, an existing persistent volume claim, or a directory in a shared filesystem mounted at the same path across all Kubernetes nodes.
 * For files, either a shared filesystem like the one used for storing the configuration, or an NFS server. If using an NFS server, you should also install the [NFS CSI Driver](https://github.com/kubernetes-csi/csi-driver-nfs). We use [these](https://github.com/kubernetes-csi/csi-driver-nfs/tree/master/charts) instructions to install via Helm.
 
+Also recommended:
+* Karvdash integrates with [Argo Workflows](https://argoproj.github.io/workflows), so both can run side-by-side as top-level services in Kubernetes. In these scheme, Karvdash provides SSO services to Argo Workflows and configures appropriate authorization directives, so each user will be allowed to access resources in the corresponding Karvdash-defined namespace. We use [this](https://github.com/argoproj/argo-helm) Helm chart.
+
 Optionally:
 * A private container registry. You can run the one from Docker using [these](https://docs.docker.com/registry/deploying/) instructions, or [this](https://artifacthub.io/packages/helm/twuni/docker-registry) Helm chart.
 * [Datashim](https://github.com/datashim-io/datashim), in which case Karvdash can be used to configure datasets (references to objects in S3 buckets that will be mounted in user containers as files).
-* The [kube-prometheus-stack](https://github.com/prometheus-community/helm-charts/tree/main/charts/kube-prometheus-stack), for supporting the "Argo Metrics" template (a template that automatically creates a Prometheus/Grafana stack for collecting metrics from Argo). We use [this](https://artifacthub.io/packages/helm/prometheus-community/kube-prometheus-stack) Helm chart.
 
-To deploy, first add the repo and then install. For example:
+Our [Makefile](https://github.com/CARV-ICS-FORTH/karvdash/tree/master/Makefile) deploys all the above for [local development](#Development).
+
+To deploy Karvdash, first add the repo and then install. For example:
 
 ```bash
 helm repo add karvdash https://carv-ics-forth.github.io/karvdash/chart
@@ -92,7 +96,7 @@ make prepare-develop
 ./manage.py runserver
 ```
 
-This will setup all requirements (a private container registry, cert-manager, and an SSL-enabled ingress controller) and set up a virtual environment to run Karvdash from the command line. You need to have [Helm](https://helm.sh) installed (version 3). When done, point your browser to http://127.0.0.1:8000 and login as "admin". Note, however, that when running Karvdash outside Kubernetes, there is no mutating admission webhook to attach file domains and datasets to service containers (use `make deploy-local` after `make deploy-requirements` for running locally in a container).
+This will setup all requirements (a private container registry, cert-manager, an SSL-enabled ingress controller, and Argo Workflows) and set up a virtual environment to run Karvdash from the command line. You need to have [Helm](https://helm.sh) installed (version 3). When done, point your browser to http://127.0.0.1:8000 and login as "admin". Note, however, that when running Karvdash outside Kubernetes, there is no mutating admission webhook to attach file domains and datasets to service containers (use `make deploy-local` after `make deploy-requirements` for running locally in a container).
 
 Also, some versions of Docker Desktop [do not enforce RBAC rules](https://github.com/docker/for-mac/issues/3694), so there is no namespace isolation. Run the following commands to enable namespace isolation and explicitly set permissions for the `default` service account in the `default` namespace (used by Docker Desktop):
 ```bash
@@ -109,7 +113,7 @@ make container
 
 To change the version, edit `VERSION`. The image uses `kubectl` 1.19.8 by default, but this can be changed by setting the `KUBECTL_VERSION` variable before running `make`. You can also set your Docker Hub account or container registry endpoint in `REGISTRY_NAME`.
 
-To test the container in a local Kubernetes environment, run the following and then point your browser to https://localtest.me (provided by [localtest.me](https://readme.localtest.me)):
+To test the container in a local Kubernetes environment, run the following and then point your browser to `https://<your IP address>.nip.io`:
 ```bash
 make deploy-requirements
 make deploy-local

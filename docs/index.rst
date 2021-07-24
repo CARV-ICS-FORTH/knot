@@ -17,7 +17,7 @@ Under the hood, Karvdash:
 
 * Securely provisions multiple services under one externally-accessible HTTPS endpoint.
 * Performs high-level user management and isolates respective services in per-user Kubernetes namespaces.
-* Provides an identity service for authenticating users in OIDC-compatible applications.
+* Provides an identity service for authenticating users in OAuth 2.0/OIDC-compatible applications.
 
 Kubernetes provides all the tools to do data sharing, create namespaces, etc., but the exact implementation and structure of the overall environment is left to the developer. Karvdash implements a "traditional" user scheme, which is then mapped to Kubernetes namespaces and service accounts. Kubernetes does not have "users" and no place to "login into" by default. In addition, Karvdash wires up relevant storage to the appropriate paths inside running containers, which significantly simplifies data management. Private and shared files are automatically accessible in all execution contexts and also available through the dashboard.
 
@@ -27,7 +27,6 @@ Kubernetes provides all the tools to do data sharing, create namespaces, etc., b
 
    user
    technical
-   sso
    api
 
 Indices and tables

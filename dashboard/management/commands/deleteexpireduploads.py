@@ -34,13 +34,11 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         super().add_arguments(parser)
-        parser.add_argument(
-            '--interactive',
-            action='store_true',
-            dest='interactive',
-            default=False,
-            help='Prompt confirmation before each deletion.',
-        )
+        parser.add_argument('--interactive',
+                            action='store_true',
+                            dest='interactive',
+                            default=False,
+                            help='Prompt confirmation before each deletion.')
 
     def handle(self, *args, **options):
         interactive = options.get('interactive')

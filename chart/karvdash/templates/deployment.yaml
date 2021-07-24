@@ -73,7 +73,7 @@ spec:
         - name: KARVDASH_VOUCH_URL
           value: {{ printf "%s://vouch.%s" ($ingressURL | urlParse).scheme (split ":" ($ingressURL | urlParse).host)._0 | quote }}
         - name: KARVDASH_VOUCH_SECRET
-          value: {{ .Release.Name }}-vouch
+          value: {{ .Release.Name }}-oauth-vouch
         - name: KARVDASH_HTPASSWD_EXPORT_DIR
           value: {{ .Values.karvdash.htpasswdExportDir | quote }}
         - name: KARVDASH_DASHBOARD_TITLE
@@ -164,13 +164,13 @@ spec:
         - name: OAUTH_CLIENT_ID
           valueFrom:
             secretKeyRef:
-              name: {{ .Release.Name }}-vouch
-              key: oauth-client-id
+              name: {{ .Release.Name }}-oauth-vouch
+              key: client-id
         - name: OAUTH_CLIENT_SECRET
           valueFrom:
             secretKeyRef:
-              name: {{ .Release.Name }}-vouch
-              key: oauth-client-secret
+              name: {{ .Release.Name }}-oauth-vouch
+              key: client-secret
         - name: OAUTH_CALLBACK_URL
           value: {{ printf "%s://vouch.%s/auth" ($ingressURL | urlParse).scheme (split ":" ($ingressURL | urlParse).host)._0 | quote }}
         ports:

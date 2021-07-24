@@ -46,12 +46,12 @@ class Command(createsuperuser.Command):
         database = options.get('database')
 
         if password and not username:
-            raise CommandError("--username is required if specifying --password")
+            raise CommandError('--username is required if specifying --password')
 
         if username and options.get('preserve'):
             exists = self.UserModel._default_manager.db_manager(database).filter(username=username).exists()
             if exists:
-                self.stdout.write("User exists, exiting normally due to --preserve")
+                self.stdout.write('User exists, exiting normally due to --preserve.')
                 return
 
         super().handle(*args, **options)
