@@ -81,7 +81,7 @@ Files are mounted in containers under ``/private`` and ``/shared`` respectively.
 To add a new folder or upload file(s) at the current path, click on the respective buttons on the right. Note that you can not overwrite an existing folder or file.
 
 .. note::
-   The "Files" screen is meant to provide the very basic of file-related operations. Use the notebook environment of the "Zeppelin" service as you would use a shell on a UNIX-based machine to control the filesystem in a more elaborate manner, or create a "File Browser" service for a web-based management interface on a specific folder.
+   The "Files" screen is meant to provide the very basic of file-related operations. Use the notebook environment as you would use a shell on a UNIX-based machine to control the filesystem in a more elaborate manner, or create a "File Browser" service for a web-based management interface on a specific folder.
 
 Administration
 --------------

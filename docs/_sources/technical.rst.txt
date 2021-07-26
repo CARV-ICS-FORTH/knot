@@ -4,7 +4,7 @@ Technical overview
 Storage management
 ------------------
 
-In a cluster environment, it is common for each user to have a "home folder", usually mounted over NFS, Lustre, Gluster, etc. Karvdash tries to apply this notion in a containerized environment: Given a cluster-wide shared folder, this folder is also mounted inside containers as well. Thus, when running a notebook server (like Zeppelin or Jupyter), user data is available in the containerized environment at a well-known path - as it would be in a bare-metal cluster node. This, in addition to the web-based file browser provided by Karvdash, facilitates easy data management for applications, both for providing inputs and collecting outputs.
+In a cluster environment, it is common for each user to have a "home folder", usually mounted over NFS, Lustre, Gluster, etc. Karvdash tries to apply this notion in a containerized environment: Given a cluster-wide shared folder, this folder is also mounted inside containers as well. Thus, when running a notebook server (like Jupyter), user data is available in the containerized environment at a well-known path - as it would be in a bare-metal cluster node. This, in addition to the web-based file browser provided by Karvdash, facilitates easy data management for applications, both for providing inputs and collecting outputs.
 
 In Karvdash, there are two such folders/data domains:
 
@@ -145,7 +145,7 @@ To expose services to the user, Karvdash makes use of a Kubernetes ingress - a p
 * Protects all services with an authentication/authorization mechanism, by configuring each respective ingress to perform single sing-on through the dashboard. The default deployment integrates `Vouch Proxy <https://github.com/vouch/vouch-proxy>`_ as an OAuth 2.0/OIDC client to the dashboard, which in turn provides credentials to the NGINX-based web proxy implementing the ingress. Thus, each service can only be accessed by its owner. This helps avoiding any external party visiting a user's service frontend without appropriate credentials.
 * Incorporates all services under a common SSL environment, so all data sent back-and-forth through each ingress is encrypted.
 
-Assuming that the dashboard is accessible at ``example.com``, user's "test" Zeppelin service named ``zeppelin`` will be exposed at ``zeppelin-test.example.com``. Karvdash will also inject appropriate rules to the service's ingress configuration, so that no other user can access ``zeppelin-test.example.com``. As the ingress will be configured with an SSL certificate for both ``example.com`` and ``*.example.com``, all connections will be SSL terminated.
+Assuming that the dashboard is accessible at ``example.com``, the "File Browser" service named ``browser`` started by user "test" will be exposed at ``browser-test.example.com``. Karvdash will also inject appropriate rules to the service's ingress configuration, so that no other user can access ``browser-test.example.com``. As the ingress will be configured with an SSL certificate for both ``example.com`` and ``*.example.com``, all connections will be SSL terminated.
 
 SSO service
 -----------
