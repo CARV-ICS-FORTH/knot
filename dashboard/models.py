@@ -242,32 +242,37 @@ class User(AuthUser):
         # Create registry secret.
         kubernetes_client.create_registry_secret(self.namespace, settings.REGISTRY_URL, 'admin@%s' % ingress_host)
 
+        # Create volumes.
+        for name, domain in self.file_domains.items():
+            domain.create_domain()
+
+        # Create directory for notebooks.
+        if settings.JUPYTERHUB_NOTEBOOK_DIR:
+            notebook_dir = settings.JUPYTERHUB_NOTEBOOK_DIR.strip('/')
+            self.file_domains['private'].path_worker([]).mkdir(settings.JUPYTERHUB_NOTEBOOK_DIR)
+
         # Create service account for Argo.
-        if settings.ARGO_NAMESPACE:
+        if settings.ARGO_WORKFLOWS_NAMESPACE:
             argo_service_account_name = self.namespace
-            if argo_service_account_name not in [s.metadata.name for s in kubernetes_client.list_service_accounts(settings.ARGO_NAMESPACE)]:
+            if argo_service_account_name not in [s.metadata.name for s in kubernetes_client.list_service_accounts(settings.ARGO_WORKFLOWS_NAMESPACE)]:
                 argo_template = Template(ARGO_SERVICE_ACCOUNT_TEMPLATE)
                 argo_template.NAME = self.username
                 argo_template.NAMESPACE = self.namespace
                 argo_template.ARGO_SERVICE_ACCOUNT = argo_service_account_name
-                argo_template.ARGO_NAMESPACE = settings.ARGO_NAMESPACE
+                argo_template.ARGO_NAMESPACE = settings.ARGO_WORKFLOWS_NAMESPACE
                 kubernetes_client.apply_yaml_data(argo_template.yaml.encode())
-
-        # Create volumes.
-        for name, domain in self.file_domains.items():
-            domain.create_domain()
 
     def delete_namespace(self):
         kubernetes_client = KubernetesClient()
 
         # Delete service account for Argo.
-        if settings.ARGO_NAMESPACE:
+        if settings.ARGO_WORKFLOWS_NAMESPACE:
             argo_service_account_name = self.namespace
             argo_template = Template(ARGO_SERVICE_ACCOUNT_TEMPLATE)
             argo_template.NAME = self.username
             argo_template.NAMESPACE = self.namespace
             argo_template.ARGO_SERVICE_ACCOUNT = argo_service_account_name
-            argo_template.ARGO_NAMESPACE = settings.ARGO_NAMESPACE
+            argo_template.ARGO_NAMESPACE = settings.ARGO_WORKFLOWS_NAMESPACE
             kubernetes_client.delete_yaml_data(argo_template.yaml.encode())
 
         # Delete service directory.

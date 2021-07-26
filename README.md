@@ -8,19 +8,9 @@ Check out the [user guide and API documentation](https://carv-ics-forth.github.i
 
 ![Karvdash services screen](https://github.com/CARV-ICS-FORTH/karvdash/raw/master/docs/images/services-screen.png)
 
-## Compatibility
-
-We use Kubernetes 1.19.x to develop, test, and run Karvdash on both `amd64` and `arm64` architectures.
-
-Karvdash includes service templates for [Zeppelin](https://zeppelin.apache.org) 0.9.0, [Jupyter](https://jupyter.org) (Jupyter Core 4.7.0 with Jupyter Notebook 6.1.6, as bundled with [TensorFlow](http://www.tensorflow.org) 2.3.2), and other applications. The Zeppelin and Jupyter "with GPU support" templates add the necessary directives to place the resulting containers in a node with a GPU.
-
-If your application requirements differ, you will need to create custom service templates and possibly associated container images.
-
-> :warning: **`arm64` support is experimental:** Zeppelin and some other services do not currently work on `arm64`.
-
 ## Deployment
 
-Karvdash is deployed using [Helm](https://helm.sh) (version 3).
+Karvdash is deployed using [Helm](https://helm.sh) (version 3). We use Kubernetes 1.19.x to develop, test, and run Karvdash on both `amd64` and `arm64` architectures.
 
 To install, you need a running Kubernetes environment with the following features:
 * The [cert-manager](https://cert-manager.io) certificate management controller for Kubernetes. This is used for creating certificates automatically for the admission webhooks. We use [this](https://artifacthub.io/packages/helm/jetstack/cert-manager) Helm chart.
@@ -28,10 +18,9 @@ To install, you need a running Kubernetes environment with the following feature
 * For storage of Karvdash state, an existing persistent volume claim, or a directory in a shared filesystem mounted at the same path across all Kubernetes nodes.
 * For files, either a shared filesystem like the one used for storing the configuration, or an NFS server. If using an NFS server, you should also install the [NFS CSI Driver](https://github.com/kubernetes-csi/csi-driver-nfs). We use [these](https://github.com/kubernetes-csi/csi-driver-nfs/tree/master/charts) instructions to install via Helm.
 
-Also recommended:
-* Karvdash integrates with [Argo Workflows](https://argoproj.github.io/workflows), so both can run side-by-side as top-level services in Kubernetes. In these scheme, Karvdash provides SSO services to Argo Workflows and configures appropriate authorization directives, so each user will be allowed to access resources in the corresponding Karvdash-defined namespace. We use [this](https://github.com/argoproj/argo-helm) Helm chart.
+Karvdash can run side-by-side with [JupyterHub](https://jupyter.org/hub) and [Argo Workflows](https://argoproj.github.io/workflows), providing SSO services to users. For Argo Workflows, Karvdash also configures appropriate authorization directives, so each user will be allowed to access resources in the corresponding Karvdash-defined namespace. We use [this](https://zero-to-jupyterhub.readthedocs.io/en/latest/) Helm chart for JupyterHub and [this](https://github.com/argoproj/argo-helm) one for Argo Workflows.
 
-Optionally:
+Optionally, you can also have Karvdash act as a frontend to:
 * A private container registry. You can run the one from Docker using [these](https://docs.docker.com/registry/deploying/) instructions, or [this](https://artifacthub.io/packages/helm/twuni/docker-registry) Helm chart.
 * [Datashim](https://github.com/datashim-io/datashim), in which case Karvdash can be used to configure datasets (references to objects in S3 buckets that will be mounted in user containers as files).
 
@@ -74,8 +63,11 @@ Some of the variables set above are required. The table below lists all availabl
 | `karvdash.disabledServiceTemplates` |          | List of service templates to disable on deployment (filenames).                          |                                   |
 | `karvdash.disabledDatasetTemplates` |          | List of dataset templates to disable on deployment (identifiers).                        |                                   |
 | `karvdash.serviceURLPrefixes`       |          | List of predefined URL prefixes for services.                                            |                                   |
-| `karvdash.argoURL`                  |          | Argo URL for integration with workflow frontend.                                         |                                   |
-| `karvdash.argoNamespace`            |          | Argo namespace for service account managment.                                            |                                   |
+| `karvdash.jupyterHubURL`            |          | JupyterHub URL for integration with notebook frontend.                                   |                                   |
+| `karvdash.jupyterHubNamespace`      |          | JupyterHub namespace for integration.                                                    |                                   |
+| `karvdash.jupyterHubNotebookDir`    |          | Directory to create in the private file domain for JupyterHub notebooks.                 |                                   |
+| `karvdash.argoWorkflowsURL`         |          | Argo Workflows URL for integration with workflow frontend.                               |                                   |
+| `karvdash.argoWorkflowsNamespace`   |          | Argo Workflows namespace for integration.                                                |                                   |
 
 Set `karvdash.filesURL` to:
 * `file://<path>`, if using a node-wide, shared mountpoint for files.

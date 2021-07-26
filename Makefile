@@ -56,15 +56,27 @@ spec:
     name: selfsigned
 endef
 
+JUPYTERHUB_CLIENT_ID=56kSn87XXbk4GuFBQ7zQrXcVQNyyMWKb1vR2diUZ
+JUPYTERHUB_CLIENT_SECRET=FvxWxBTbhgQbo1sGbc6yLsza0Vwo6jZQBpiOSDYcghCjWWcpRzBygzJSQ8M4CunflPn9pCOr25vVnGr0N2ytR6FjklSesc28BqkHSM6aVIYA5RKFZaOpiMj9Ghc5VDfN
+define JUPYTERHUB_CONFIG
+c.ConfigurableHTTPProxy.api_url = "http://proxy-api.jupyterhub.svc:8001"
+c.JupyterHub.hub_connect_url = "http://hub.jupyterhub.svc:8081"
+c.KubeSpawner.enable_user_namespaces = True
+c.KubeSpawner.user_namespace_template = "karvdash-{username}"
+c.KubeSpawner.notebook_dir = "/private/notebooks"
+endef
+
 export INGRESS_CERTIFICATE
+export JUPYTERHUB_CONFIG
 deploy-requirements:
 	if [[ `helm version --short` != v3* ]]; then echo "Can not find Helm 3 installed"; exit 1; fi
 	helm repo add twuni https://helm.twun.io
 	helm repo add jetstack https://charts.jetstack.io
 	helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
+	helm repo add jupyterhub https://jupyterhub.github.io/helm-chart/
 	helm repo add argo https://argoproj.github.io/argo-helm
 	helm repo update
-	# Deploy registry
+	# Deploy Docker Registry
 	kubectl create namespace registry || true
 	helm list --namespace registry -q | grep registry || \
 	helm install registry twuni/docker-registry --version 1.10.0 --namespace registry \
@@ -76,7 +88,7 @@ deploy-requirements:
 	helm list --namespace cert-manager -q | grep cert-manager || \
 	helm install cert-manager jetstack/cert-manager --version v1.1.0 --namespace cert-manager \
 	--set installCRDs=true
-	# Deploy ingress
+	# Deploy NGINX Ingress Controller
 	kubectl create namespace ingress-nginx || true
 	kubectl get secret ssl-certificate -n ingress-nginx || \
 	kubectl wait --for condition=Available -n cert-manager deployment/cert-manager-webhook; \
@@ -85,11 +97,37 @@ deploy-requirements:
 	helm install ingress ingress-nginx/ingress-nginx --version 3.19.0 --namespace ingress-nginx \
 	--set controller.extraArgs.default-ssl-certificate=ingress-nginx/ssl-certificate \
 	--set controller.admissionWebhooks.enabled=false
-	# Deploy argo (will start when OAuth secret is created)
+	# Deploy JupyterHub
+	kubectl create namespace jupyterhub || true
+	kubectl get secret karvdash-oauth-jupyterhub -n jupyterhub || \
+	kubectl create secret generic karvdash-oauth-jupyterhub -n jupyterhub --from-literal=client-id=${JUPYTERHUB_CLIENT_ID} --from-literal=client-secret=${JUPYTERHUB_CLIENT_SECRET}
+	helm list --namespace jupyterhub -q | grep jupyterhub || \
+	helm install jupyterhub jupyterhub/jupyterhub --version=1.0.1 --namespace jupyterhub \
+	--set hub.config.JupyterHub.authenticator_class=generic-oauth \
+	--set hub.config.Authenticator.auto_login="true" \
+	--set hub.config.GenericOAuthenticator.client_id=${JUPYTERHUB_CLIENT_ID} \
+	--set hub.config.GenericOAuthenticator.client_secret=${JUPYTERHUB_CLIENT_SECRET} \
+	--set hub.config.GenericOAuthenticator.tls_verify="false" \
+	--set hub.config.GenericOAuthenticator.oauth_callback_url=https://jupyterhub.${INGRESS_URL}/hub/oauth_callback \
+	--set hub.config.GenericOAuthenticator.authorize_url=https://${INGRESS_URL}/oauth/authorize/ \
+	--set hub.config.GenericOAuthenticator.token_url=https://${INGRESS_URL}/oauth/token/ \
+	--set hub.config.GenericOAuthenticator.userdata_url=https://${INGRESS_URL}/oauth/userinfo/ \
+	--set hub.config.GenericOAuthenticator.scope\[0\]=openid \
+	--set hub.config.GenericOAuthenticator.scope\[1\]=profile \
+	--set hub.config.GenericOAuthenticator.scope\[2\]=email \
+	--set hub.config.GenericOAuthenticator.username_key=preferred_username \
+	--set hub.extraConfig."myConfig\.py"="$$JUPYTERHUB_CONFIG" \
+	--set singleuser.storage.type=none \
+	--set prePuller.hook.enabled=false \
+	--set prePuller.continuous.enabled=false \
+	--set scheduling.userScheduler.enabled=false \
+	--set ingress.enabled=true \
+	--set ingress.hosts\[0\]=jupyterhub.${INGRESS_URL}
+	# Deploy Argo Workflows
 	kubectl create namespace argo || true
 	kubectl get configmap ssl-certificate -n argo || \
 	kubectl -n ingress-nginx wait --for condition=Ready certificate/ssl-certificate; \
-	kubectl create configmap ssl-certificate -n argo --from-literal="ca.crt=`kubectl get secret -n ingress-nginx ssl-certificate -o 'go-template={{index .data \"ca.crt\" | base64decode }}'`"
+	kubectl create configmap ssl-certificate -n argo --from-literal="ca.crt=`kubectl get secret ssl-certificate -n ingress-nginx -o 'go-template={{index .data \"ca.crt\" | base64decode }}'`"
 	helm list --namespace argo -q | grep argo || \
 	helm install argo argo/argo-workflows --version 0.2.12 --namespace argo \
 	--set controller.image.tag=v3.1.1 \
@@ -118,18 +156,19 @@ deploy-requirements:
 undeploy-requirements:
 	# Remove DLF
 	# kubectl delete -f https://raw.githubusercontent.com/datashim-io/datashim/master/release-tools/manifests/dlf.yaml || true
-	# Remove argo
+	# Remove Argo Workflows
 	helm uninstall argo --namespace argo || true
-	kubectl delete configmap ssl-certificate -n argo || true
 	kubectl delete namespace argo || true
-	# Remove ingress
+	# Remove JupyterHub
+	helm uninstall jupyterhub --namespace jupyterhub || true
+	kubectl delete namespace jupyterhub || true
+	# Remove NGINX Ingress Controller
 	helm uninstall ingress --namespace ingress-nginx || true
-	kubectl delete secret ssl-certificate -n ingress-nginx || true
 	kubectl delete namespace ingress-nginx || true
 	# Remove cert-manager
 	helm uninstall cert-manager --namespace cert-manager || true
 	kubectl delete namespace cert-manager || true
-	# Remove registry
+	# Remove Docker Registry
 	helm uninstall registry --namespace registry || true
 	kubectl delete namespace registry || true
 
@@ -155,8 +194,11 @@ deploy-local:
 	--set karvdash.registryURL="http://${IP_ADDRESS}:5000" \
 	--set karvdash.stateHostPath="$(PWD)/db" \
 	--set karvdash.filesURL="file://$(PWD)/files" \
-	--set karvdash.argoURL="https://argo.${INGRESS_URL}" \
-	--set karvdash.argoNamespace="argo"
+	--set karvdash.jupyterHubURL="https://jupyterhub.${INGRESS_URL}" \
+	--set karvdash.jupyterHubNamespace="jupyterhub" \
+	--set karvdash.jupyterHubNotebookDir="notebooks" \
+	--set karvdash.argoWorkflowsURL="https://argo.${INGRESS_URL}" \
+	--set karvdash.argoWorkflowsNamespace="argo"
 
 undeploy-local:
 	helm uninstall karvdash --namespace default

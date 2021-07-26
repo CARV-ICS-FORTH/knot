@@ -110,10 +110,16 @@ spec:
         - name: KARVDASH_SERVICE_URL_PREFIXES_FILE
           value: /etc/karvdash/service_url_prefixes
         {{- end }}
-        - name: KARVDASH_ARGO_URL
-          value: {{ .Values.karvdash.argoURL | quote }}
-        - name: KARVDASH_ARGO_NAMESPACE
-          value: {{ .Values.karvdash.argoNamespace | quote }}
+        - name: KARVDASH_JUPYTERHUB_URL
+          value: {{ .Values.karvdash.jupyterHubURL | quote }}
+        - name: KARVDASH_JUPYTERHUB_NAMESPACE
+          value: {{ .Values.karvdash.jupyterHubNamespace | quote }}
+        - name: KARVDASH_JUPYTERHUB_NOTEBOOK_DIR
+          value: {{ .Values.karvdash.jupyterHubNotebookDir | quote }}
+        - name: KARVDASH_ARGO_WORKFLOWS_URL
+          value: {{ .Values.karvdash.argoWorkflowsURL | quote }}
+        - name: KARVDASH_ARGO_WORKFLOWS_NAMESPACE
+          value: {{ .Values.karvdash.argoWorkflowsNamespace | quote }}
         ports:
         - containerPort: 8000
           name: http

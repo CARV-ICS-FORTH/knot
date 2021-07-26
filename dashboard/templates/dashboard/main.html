@@ -15,9 +15,16 @@
             <i class="fa fa-tachometer" aria-hidden="true"></i> Dashboard
           </a>
         </li> -->
-        {% if argo_url %}
+        {% if jupyterhub_url %}
         <li class="nav-item">
-          <a class="nav-link" href="{{ argo_url }}/workflows/{{ user.namespace }}" target="_blank">
+          <a class="nav-link" href="{{ jupyterhub_url }}" target="_blank">
+            <i class="fa fa-file-text" aria-hidden="true"></i> Notebooks
+          </a>
+        </li>
+        {% endif %}
+        {% if argo_workflows_url %}
+        <li class="nav-item">
+          <a class="nav-link" href="{{ argo_workflows_url }}/workflows/{{ user.namespace }}" target="_blank">
             <i class="fa fa-code-fork" aria-hidden="true"></i> Workflows
           </a>
         </li>

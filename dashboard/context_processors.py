@@ -21,4 +21,5 @@ def settings(request):
             'issues_url': django_settings.ISSUES_URL,
             'images_available': True if django_settings.REGISTRY_URL else False,
             'datasets_available': django_settings.DATASETS_AVAILABLE,
-            'argo_url': django_settings.ARGO_URL}
+            'jupyterhub_url': django_settings.JUPYTERHUB_URL,
+            'argo_workflows_url': django_settings.ARGO_WORKFLOWS_URL}
