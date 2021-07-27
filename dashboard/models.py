@@ -248,8 +248,10 @@ class User(AuthUser):
 
         # Create directory for notebooks.
         if settings.JUPYTERHUB_NOTEBOOK_DIR:
+            path_worker = self.file_domains['private'].path_worker([])
             notebook_dir = settings.JUPYTERHUB_NOTEBOOK_DIR.strip('/')
-            self.file_domains['private'].path_worker([]).mkdir(settings.JUPYTERHUB_NOTEBOOK_DIR)
+            if not path_worker.exists(notebook_dir):
+                path_worker.mkdir(notebook_dir)
 
         # Create service account for Argo.
         if settings.ARGO_WORKFLOWS_NAMESPACE:
