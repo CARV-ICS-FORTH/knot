@@ -80,6 +80,8 @@ spec:
           value: {{ .Values.karvdash.dashboardTitle | quote }}
         - name: KARVDASH_DASHBOARD_THEME
           value: {{ .Values.karvdash.dashboardTheme | quote }}
+        - name: KARVDASH_DOCUMENTATION_URL
+          value: {{ .Values.karvdash.documentationURL | quote }}
         - name: KARVDASH_ISSUES_URL
           value: {{ .Values.karvdash.issuesURL | quote }}
         - name: KARVDASH_INGRESS_URL

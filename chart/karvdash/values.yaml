@@ -28,6 +28,8 @@ karvdash:
   dashboardTitle: Dashboard
   # The theme of the dashboard.
   dashboardTheme: karvdash
+  # If set, override the internal "Documentation" URL in the user menu.
+  documentationURL:
   # If set, an option to "Report an issue" is shown in the user menu.
   issuesURL:
   # REQUIRED: The ingress URL used.
