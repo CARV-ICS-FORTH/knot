@@ -92,7 +92,7 @@ make prepare-develop
 ./manage.py runserver
 ```
 
-This will setup all requirements (a private container registry, cert-manager, an SSL-enabled ingress controller, and Argo Workflows) and set up a virtual environment to run Karvdash from the command line. You need to have [Helm](https://helm.sh) installed (version 3). When done, point your browser to http://127.0.0.1:8000 and login as "admin". Note, however, that when running Karvdash outside Kubernetes, there is no mutating admission webhook to attach file domains and datasets to service containers (use `make deploy-local` after `make deploy-requirements` for running locally in a container).
+This will setup all requirements (a private container registry, cert-manager, an SSL-enabled ingress controller, JupyterHub, and Argo Workflows) and set up a virtual environment to run Karvdash from the command line. You need to have [Helm](https://helm.sh) installed (version 3). When done, point your browser to http://127.0.0.1:8000 and login as "admin". Note, however, that when running Karvdash outside Kubernetes, there is no mutating admission webhook to attach file domains and datasets to service containers (use `make deploy-local` after `make deploy-requirements` for running locally in a container).
 
 Also, some versions of Docker Desktop [do not enforce RBAC rules](https://github.com/docker/for-mac/issues/3694), so there is no namespace isolation. Run the following commands to enable namespace isolation and explicitly set permissions for the `default` service account in the `default` namespace (used by Docker Desktop):
 ```bash

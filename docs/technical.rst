@@ -150,7 +150,7 @@ Assuming that the dashboard is accessible at ``example.com``, the "File Browser"
 SSO service
 -----------
 
-Karvdash implements an OAuth 2.0/OpenID Connect provider, which allows third-party services to request verification of users' identitities via standard protocols. Note that OAuth 2.0/OpenID provides only authentication information and it is up to the connecting service to define what users are authorized to do, based on their identities (i.e., username, email, etc.). In addition to the integration with Vouch Proxy for authenticating users to services started by the dashboard, Karvdash also acts as an identity provider to `Argo Workflows <https://argoproj.github.io/workflows>`_. Moreover, Karvdash configures appropriate authorization directives in Argo Workflows, so each user will be allowed to access resources in the corresponding Karvdash-defined namespace.
+Karvdash implements an OAuth 2.0/OpenID Connect provider, which allows third-party services to request verification of users' identities via standard protocols. Note that OAuth 2.0/OpenID provides only authentication information and it is up to the connecting service to define what users are authorized to do, based on their identities (i.e., username, email, etc.). In addition to the integration with Vouch Proxy for authenticating users to services started by the dashboard, Karvdash also acts as an identity provider to `JupyterHub <https://jupyter.org/hub>`_ and `Argo Workflows <https://argoproj.github.io/workflows>`_. Moreover, Karvdash configures appropriate authorization directives in Argo Workflows, so each user will be allowed to access resources in the corresponding Karvdash-defined namespace.
 
 Registry gateway
 ----------------
