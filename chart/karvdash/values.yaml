@@ -16,6 +16,11 @@ karvdash:
   # The host path to use for storing logs, when no existing volume claim is set.
   logsHostPath:
 
+  # If set, use this persistent volume claim for overriding the theme files.
+  themeVolumeClaim:
+  # The host path to use for overriding the theme files, when no existing volume claim is set.
+  themeHostPath:
+
   # Secret for Django. Use a random string of 50 characters (a default will be generated if empty).
   djangoSecret:
   # Set to anything to enable, empty to disable.
@@ -25,9 +30,7 @@ karvdash:
   # If set, the path to export the htpasswd file in.
   htpasswdExportDir:
   # The title of the dashboard.
-  dashboardTitle: Dashboard
-  # The theme of the dashboard.
-  dashboardTheme: karvdash
+  dashboardTitle: Karvdash
   # If set, override the internal "Documentation" URL in the user menu.
   documentationURL:
   # If set, an option to "Report an issue" is shown in the user menu.

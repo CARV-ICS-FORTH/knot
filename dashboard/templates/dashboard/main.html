@@ -1,20 +1,17 @@
 {% extends 'dashboard/base.html' %}
 {% load static %}
+{% load dashboard_tags %}
 
 {% block body %}
 <div class="container-fluid min-vh-100">
   <div class="row min-vh-100">
     <nav class="col-md-3 d-block">
       <div class="text-center">
-        <img class="d-block mx-auto my-4" src="{% static 'dashboard/themes/'|add:dashboard_theme|add:'/logo.png' %}" alt="">
+        <img class="d-block mx-auto my-4" src="{% static 'dashboard/theme/logo.png' %}" alt="">
       </div>
 
       <ul class="nav nav-pills flex-column mb-3 mr-auto">
-        <!-- <li class="nav-item">
-          <a class="nav-link {% if title == 'Dashboard' %}active{% endif %}" href="{% url 'dashboard' %}">
-            <i class="fa fa-tachometer" aria-hidden="true"></i> Dashboard
-          </a>
-        </li> -->
+        {% includestatic 'dashboard/theme/menu_pre.html' %}
         {% if jupyterhub_url %}
         <li class="nav-item">
           <a class="nav-link" href="{{ jupyterhub_url }}" target="_blank">
@@ -65,6 +62,7 @@
           </a>
         </li>
         {% endif %}
+        {% includestatic 'dashboard/theme/menu_post.html' %}
       </ul>
     </nav>
 

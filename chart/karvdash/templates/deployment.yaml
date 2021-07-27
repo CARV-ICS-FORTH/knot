@@ -78,8 +78,6 @@ spec:
           value: {{ .Values.karvdash.htpasswdExportDir | quote }}
         - name: KARVDASH_DASHBOARD_TITLE
           value: {{ .Values.karvdash.dashboardTitle | quote }}
-        - name: KARVDASH_DASHBOARD_THEME
-          value: {{ .Values.karvdash.dashboardTheme | quote }}
         - name: KARVDASH_DOCUMENTATION_URL
           value: {{ .Values.karvdash.documentationURL | quote }}
         - name: KARVDASH_ISSUES_URL
@@ -146,6 +144,10 @@ spec:
           mountPath: /etc/karvdash/service_url_prefixes
           subPath: service_url_prefixes
         {{- end }}
+        {{- if or .Values.karvdash.themeVolumeClaim .Values.karvdash.themeHostPath }}
+        - name: {{ .Release.Name }}-theme-volume
+          mountPath: /app/dashboard/static/dashboard/theme
+        {{- end }}
         - name: {{ .Release.Name }}-state-volume
           mountPath: /db
         - name: {{ .Release.Name }}-files-volume
@@ -200,6 +202,15 @@ spec:
         configMap:
           name: {{ .Release.Name }}-webhook
           defaultMode: 0644
+      {{- if .Values.karvdash.themeVolumeClaim }}
+      - name: {{ .Release.Name }}-theme-volume
+        persistentVolumeClaim:
+          claimName: {{ .Values.karvdash.themeVolumeClaim }}
+      {{- else if .Values.karvdash.themeHostPath }}
+      - name: {{ .Release.Name }}-theme-volume
+        persistentVolumeClaim:
+          claimName: {{ .Release.Name }}-theme-pvc
+      {{- end }}
       {{- if .Values.karvdash.logsVolumeClaim }}
       - name: {{ .Release.Name }}-logs-volume
         persistentVolumeClaim:

@@ -4,7 +4,7 @@ from setuptools import setup
 
 setup(name='karvdash-client',
       version='1.3.1',
-      description='Client to the Karvdash (Kubernetes CARV Dashboard) API',
+      description='Client to the Karvdash API',
       long_description=open('README.md').read(),
       long_description_content_type='text/markdown',
       url='https://github.com/CARV-ICS-FORTH/karvdash',

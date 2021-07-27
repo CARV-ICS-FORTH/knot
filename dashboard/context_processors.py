@@ -17,7 +17,6 @@ from django.conf import settings as django_settings
 def settings(request):
     return {'version': django_settings.VERSION,
             'dashboard_title': django_settings.DASHBOARD_TITLE,
-            'dashboard_theme': django_settings.DASHBOARD_THEME,
             'documentation_url': django_settings.DOCUMENTATION_URL,
             'issues_url': django_settings.ISSUES_URL,
             'images_available': True if django_settings.REGISTRY_URL else False,

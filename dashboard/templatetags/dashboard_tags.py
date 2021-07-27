@@ -14,6 +14,8 @@
 
 from django import template
 from django.template.defaultfilters import stringfilter
+from django.contrib.staticfiles import finders
+from django.utils.safestring import mark_safe
 
 
 register = template.Library()
@@ -22,3 +24,8 @@ register = template.Library()
 @stringfilter
 def endswith(value, suffix):
     return value.endswith(suffix)
+
+@register.simple_tag
+def includestatic(path):
+    with open(finders.find(path), 'rb') as f:
+        return mark_safe(f.read().decode())
