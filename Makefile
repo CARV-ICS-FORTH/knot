@@ -20,7 +20,6 @@ KUBECTL_VERSION?=v1.19.8
 KARVDASH_VERSION=$(shell cat VERSION)
 KARVDASH_IMAGE_TAG=$(REGISTRY_NAME)/karvdash:$(KARVDASH_VERSION)
 
-DEPLOY_DIR=deploy
 CHART_DIR=./chart/karvdash
 
 .PHONY: all deploy-requirements undeploy-requirements deploy-crds undeploy-crds deploy-local undeploy-local prepare-develop service-containers service-containers-push container container-push release
@@ -174,10 +173,8 @@ undeploy-requirements:
 
 deploy-crds:
 	kubectl apply -f $(CHART_DIR)/crds/karvdash-crd.yaml
-	kubectl apply -f $(CHART_DIR)/crds/argo-crd.yaml
 
 undeploy-crds:
-	kubectl delete -f $(CHART_DIR)/crds/argo-crd.yaml
 	kubectl delete -f $(CHART_DIR)/crds/karvdash-crd.yaml
 
 deploy-local:
