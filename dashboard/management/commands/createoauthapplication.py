@@ -13,9 +13,7 @@
 # limitations under the License.
 
 from django.core.management.base import BaseCommand
-from django.conf import settings
 from oauth2_provider.models import Application
-from urllib.parse import urlparse
 
 from ...models import User
 from ...utils.kubernetes import KubernetesClient
@@ -69,7 +67,7 @@ class Command(BaseCommand):
             extra_parameters = {}
             if secret_name:
                 for secret in kubernetes_client.list_secrets(secret_namespace):
-                    if secret.metadata.name == secret_name:
+                    if secret.metadata.name == secret_name and secret.data is not None:
                         extra_parameters = {'client_id': base64_decode(secret.data.get('client-id')).decode(),
                                             'client_secret': base64_decode(secret.data.get('client-secret')).decode()}
                         secret_found = True
