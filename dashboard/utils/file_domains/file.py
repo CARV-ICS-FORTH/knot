@@ -112,6 +112,9 @@ class FileDomainPathWorker(object):
             return
         shutil.rmtree(self.path_of(name))
 
+    def chown(self, name, uid, gid):
+        os.chown(self.path_of(name), uid, gid)
+
     def upload(self, file, name):
         shutil.move(file.name, self.path_of(name))
 

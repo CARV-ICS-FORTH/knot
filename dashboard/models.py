@@ -252,6 +252,7 @@ class User(AuthUser):
             notebook_dir = settings.JUPYTERHUB_NOTEBOOK_DIR.strip('/')
             if not path_worker.exists(notebook_dir):
                 path_worker.mkdir(notebook_dir)
+            path_worker.chown(notebook_dir, 1000, 1000) # XXX Hardcoded for JupyterHub.
 
         # Create service account for Argo.
         if settings.ARGO_WORKFLOWS_NAMESPACE:
