@@ -41,7 +41,7 @@ class Command(BaseCommand):
                             help='The name of the Kubernetes secret to store the OAuth secrets in.')
         parser.add_argument('--secret-namespace',
                             dest='secret_namespace',
-                            default=None,
+                            default='default',
                             help='The namespace of the Kubernetes secret.')
 
     def handle(self, *args, **options):
@@ -66,24 +66,22 @@ class Command(BaseCommand):
                 application.save()
         except Application.DoesNotExist:
             # Check if a secret already exists.
-            client_id = None
-            client_secret = None
+            extra_parameters = {}
             if secret_name:
                 for secret in kubernetes_client.list_secrets(secret_namespace):
                     if secret.metadata.name == secret_name:
-                        client_id = base64_decode(secret.data.get('client-id')).decode()
-                        client_secret = base64_decode(secret.data.get('client-secret')).decode()
+                        extra_parameters = {'client_id': base64_decode(secret.data.get('client-id')).decode(),
+                                            'client_secret': base64_decode(secret.data.get('client-secret')).decode()}
                         secret_found = True
                         break
             application = Application(name=name,
                                       user=user,
-                                      client_id=client_id,
-                                      client_secret=client_secret,
                                       client_type=Application.CLIENT_CONFIDENTIAL,
                                       authorization_grant_type=Application.GRANT_AUTHORIZATION_CODE,
                                       algorithm=Application.RS256_ALGORITHM,
                                       skip_authorization=True,
-                                      redirect_uris=redirect_uri)
+                                      redirect_uris=redirect_uri,
+                                      **extra_parameters)
             application.save()
             print('OAuth application created.')
         else:
