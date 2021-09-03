@@ -7,6 +7,7 @@ metadata:
   annotations:
     nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
     nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-body-size: "0"
 spec:
   rules:
   - host: $HOSTNAME
@@ -44,7 +45,7 @@ spec:
           value: ${SECRET_KEY}
       ports:
         - containerPort: 9000
-      command: [minio, server, "${PRIVATE_DIR}/.minio/data"]
+      command: [minio, server, "${FOLDER}"]
 ---
 kind: Template
 name: Minio
@@ -57,8 +58,9 @@ variables:
   default: minio
 - name: HOSTNAME
   default: minio.example.com
-- name: PRIVATE_DIR
-  default: /private
+- name: FOLDER
+  default: /private/minio
+  help: Folder to expose
 - name: ACCESS_KEY
   default: admin
   help: Access key
