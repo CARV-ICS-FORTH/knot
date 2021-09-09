@@ -70,6 +70,8 @@ spec:
             secretKeyRef:
               name: {{ .Release.Name }}-secret
               key: admin-password
+        - name: KARVDASH_NAMESPACE
+          value: {{ .Release.Namespace }}
         - name: KARVDASH_VOUCH_URL
           value: {{ printf "%s://vouch.%s" ($ingressURL | urlParse).scheme (split ":" ($ingressURL | urlParse).host)._0 | quote }}
         - name: KARVDASH_VOUCH_SECRET
