@@ -116,6 +116,7 @@ deploy-requirements:
 	--set hub.config.GenericOAuthenticator.scope\[2\]=email \
 	--set hub.config.GenericOAuthenticator.username_key=preferred_username \
 	--set hub.extraConfig."myConfig\.py"="$$JUPYTERHUB_CONFIG" \
+	--set proxy.service.type=ClusterIP \
 	--set singleuser.storage.type=none \
 	--set prePuller.hook.enabled=false \
 	--set prePuller.continuous.enabled=false \
