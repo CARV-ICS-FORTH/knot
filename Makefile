@@ -90,8 +90,7 @@ deploy-requirements:
 	# Deploy NGINX Ingress Controller
 	kubectl create namespace ingress-nginx || true
 	kubectl get secret ssl-certificate -n ingress-nginx || \
-	kubectl wait --for condition=Available -n cert-manager deployment/cert-manager-webhook; \
-	echo "$$INGRESS_CERTIFICATE" | kubectl apply -n ingress-nginx -f -
+	for i in $$(seq 1 5); do echo "$$INGRESS_CERTIFICATE" | kubectl apply -n ingress-nginx -f - && break || sleep 5; done
 	helm list --namespace ingress-nginx -q | grep ingress || \
 	helm install ingress ingress-nginx/ingress-nginx --version 3.19.0 --namespace ingress-nginx \
 	--set controller.extraArgs.default-ssl-certificate=ingress-nginx/ssl-certificate \
