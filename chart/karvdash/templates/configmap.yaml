@@ -49,7 +49,7 @@ data:
             proxy_set_header    X-Forwarded-Proto $scheme;
 
             proxy_pass          http://127.0.0.1:8000;
-            proxy_read_timeout  30;
+            proxy_read_timeout  180;
 
             proxy_redirect      http://127.0.0.1:8000 http://{{ .Release.Name }}.{{ .Release.Namespace }}.svc;
         }
@@ -88,7 +88,7 @@ data:
             proxy_set_header    X-Forwarded-Proto $scheme;
 
             proxy_pass          http://127.0.0.1:8000;
-            proxy_read_timeout  30;
+            proxy_read_timeout  180;
 
             proxy_redirect      http://127.0.0.1:8000 https://{{ .Release.Name }}.{{ .Release.Namespace }}.svc;
         }
