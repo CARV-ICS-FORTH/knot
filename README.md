@@ -10,6 +10,8 @@ Check out the [user guide and API documentation](https://carv-ics-forth.github.i
 
 ## Deployment
 
+> :warning: **Want to quickly try Karvdash out in the Cloud?** Use the [Kubernetes 1-Click App in the DigitalOcean Marketplace](https://marketplace.digitalocean.com/apps/karvdash?refcode=880f14eedb3a).
+
 Karvdash is deployed using [Helm](https://helm.sh) (version 3). We use Kubernetes 1.19.x to develop, test, and run Karvdash on both `amd64` and `arm64` architectures.
 
 To install, you need a running Kubernetes environment with the following features:
