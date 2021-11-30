@@ -65,6 +65,8 @@ spec:
               key: django-secret
         - name: DJANGO_DEBUG
           value: {{ .Values.karvdash.djangoDebug | quote }}
+        - name: KARVDASH_TIMEOUT
+          value: {{ .Values.karvdash.timeout | quote }}
         - name: KARVDASH_ADMIN_PASSWORD
           valueFrom:
             secretKeyRef:

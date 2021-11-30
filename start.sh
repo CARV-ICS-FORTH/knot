@@ -1,6 +1,7 @@
 #!/bin/bash
 
 ADMIN_PASSWORD=${KARVDASH_ADMIN_PASSWORD:-admin}
+TIMEOUT=${KARVDASH_TIMEOUT:-180}
 
 python manage.py migrate
 python manage.py createadmin --noinput --username admin --password $ADMIN_PASSWORD --email admin@example.com --preserve
@@ -12,4 +13,4 @@ if [[ -n $KARVDASH_ARGO_WORKFLOWS_URL && -n $KARVDASH_ARGO_WORKFLOWS_NAMESPACE ]
     python manage.py createoauthapplication --name argo --redirect-uri $KARVDASH_ARGO_WORKFLOWS_URL/oauth2/callback --secret-name karvdash-oauth-argo --secret-namespace $KARVDASH_ARGO_WORKFLOWS_NAMESPACE
 fi
 
-gunicorn -w 4 -t 180 -b 0.0.0.0:8000 karvdash.wsgi:application
+gunicorn -w 4 -t $TIMEOUT -b 0.0.0.0:8000 karvdash.wsgi:application

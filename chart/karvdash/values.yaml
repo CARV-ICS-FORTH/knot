@@ -25,6 +25,8 @@ karvdash:
   djangoSecret:
   # Set to anything to enable, empty to disable.
   djangoDebug:
+  # Timeout in seconds for gunicorn workers.
+  timeout: 180
   # The default admin password.
   adminPassword: admin
   # If set, the path to export the htpasswd file in.
