@@ -85,7 +85,7 @@ deploy-requirements:
 	# Deploy cert-manager
 	kubectl create namespace cert-manager || true
 	helm list --namespace cert-manager -q | grep cert-manager || \
-	helm install cert-manager jetstack/cert-manager --version v1.1.0 --namespace cert-manager \
+	helm install cert-manager cert-manager/cert-manager --version v1.1.0 --namespace cert-manager \
 	--set installCRDs=true
 	# Deploy NGINX Ingress Controller
 	kubectl create namespace ingress-nginx || true
