@@ -70,7 +70,7 @@ export JUPYTERHUB_CONFIG
 deploy-requirements:
 	if [[ `helm version --short` != v3* ]]; then echo "Can not find Helm 3 installed"; exit 1; fi
 	helm repo add twuni https://helm.twun.io
-	helm repo add jetstack https://charts.jetstack.io
+	helm repo add cert-manager https://charts.jetstack.io
 	helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
 	helm repo add jupyterhub https://jupyterhub.github.io/helm-chart/
 	helm repo add argo https://argoproj.github.io/argo-helm
