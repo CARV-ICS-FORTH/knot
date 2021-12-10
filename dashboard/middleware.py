@@ -12,14 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from django.contrib.auth.backends import ModelBackend
-
 from .models import User
 
 
-class ProxiedModelBackend(ModelBackend):
-    def get_user(self, user_id):
-        try:
-            return User.objects.get(pk=user_id)
-        except User.DoesNotExist:
-            return None
+class ProxyUserMiddleware:
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        if hasattr(request, 'user') and request.user.is_authenticated:
+            print('ASDF')
+            # request.user = User.objects.get(pk=request.user.pk)
+            # request.user.model = User
+            request.user.__class__ = User
+        response = self.get_response(request)
+        return response

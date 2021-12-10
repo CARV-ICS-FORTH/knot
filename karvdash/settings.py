@@ -77,6 +77,7 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'dashboard.middleware.ProxyUserMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'oauth2_provider.middleware.OAuth2TokenMiddleware',
@@ -171,7 +172,8 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
 # Authentication
 
-AUTHENTICATION_BACKENDS = ['dashboard.auth_backends.ProxiedModelBackend']
+# AUTHENTICATION_BACKENDS = ['dashboard.auth_backends.ProxiedModelBackend']
+AUTHENTICATION_BACKENDS = ['django.contrib.auth.backends.ModelBackend']
 LOGIN_URL = '/login'
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'
