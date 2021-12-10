@@ -172,11 +172,28 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
 # Authentication
 
-# AUTHENTICATION_BACKENDS = ['dashboard.auth_backends.ProxiedModelBackend']
 AUTHENTICATION_BACKENDS = ['django.contrib.auth.backends.ModelBackend']
 LOGIN_URL = '/login'
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'
+
+LDAP_SERVER_URL = os.getenv('KARVDASH_LDAP_SERVER_URL')
+if LDAP_SERVER_URL:
+    import json
+
+    from urllib.parse import urlparse
+
+    ldap_server_url = urlparse(LDAP_SERVER_URL)
+    ldap_server_netloc = '%s:%s' % (ldap_server_url.hostname, ldap_server_url.port) if ldap_server_url.port else ldap_server_url.hostname
+
+    AUTH_LDAP_SERVER_URI = ldap_server_url._replace(netloc=ldap_server_netloc).geturl()
+    AUTH_LDAP_BIND_DN = ldap_server_url.username
+    AUTH_LDAP_BIND_PASSWORD = ldap_server_url.password
+    AUTH_LDAP_USER_DN_TEMPLATE = os.getenv('KARVDASH_LDAP_USER_DN_TEMPLATE')
+    AUTH_LDAP_USER_ATTR_MAP = json.loads(os.getenv('KARVDASH_LDAP_USER_ATTR_MAP'))
+    # AUTH_LDAP_ALWAYS_UPDATE_USER = True
+
+    AUTHENTICATION_BACKENDS += ['django_auth_ldap.backend.LDAPBackend']
 
 
 # Enable OIDC

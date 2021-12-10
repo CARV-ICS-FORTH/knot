@@ -74,6 +74,12 @@ spec:
               key: admin-password
         - name: KARVDASH_NAMESPACE
           value: {{ .Release.Namespace }}
+        - name: KARVDASH_LDAP_SERVER_URL
+          value: {{ .Values.karvdash.ldapServerURL | quote }}
+        - name: KARVDASH_LDAP_USER_DN_TEMPLATE
+          value: {{ .Values.karvdash.ldapUserDNTemplate | quote }}
+        - name: KARVDASH_LDAP_USER_ATTR_MAP
+          value: {{ .Values.karvdash.ldapUserAttrMap | quote }}
         - name: KARVDASH_VOUCH_URL
           value: {{ printf "%s://vouch.%s" ($ingressURL | urlParse).scheme (split ":" ($ingressURL | urlParse).host)._0 | quote }}
         - name: KARVDASH_VOUCH_SECRET

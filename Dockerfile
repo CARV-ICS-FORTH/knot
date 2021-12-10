@@ -1,3 +1,9 @@
+FROM python:3.7.9 AS ldap-build
+
+RUN apt-get update -y && \
+    apt-get install -y libsasl2-dev python-dev libldap2-dev libssl-dev && \
+    python -m pip wheel --wheel-dir=/tmp python-ldap==3.4.0
+
 FROM python:3.7.9-slim
 
 ARG TARGETARCH
@@ -31,6 +37,8 @@ RUN if [ "${TARGETARCH}" = "amd64" ]; then \
 COPY . /app
 WORKDIR /app
 
+COPY --from=ldap-build /tmp/*.whl /tmp
+RUN pip install /tmp/*.whl
 RUN pip install -r requirements.txt && \
     python manage.py collectstatic
 RUN (cd client && python setup.py install)
@@ -50,6 +58,9 @@ ENV KARVDASH_DATABASE_DIR /db
 ENV KARVDASH_TIMEOUT 180
 ENV KARVDASH_ADMIN_PASSWORD admin
 ENV KARVDASH_NAMESPACE default
+ENV KARVDASH_LDAP_SERVER_URL=
+ENV KARVDASH_LDAP_USER_DN_TEMPLATE=
+ENV KARVDASH_LDAP_USER_ATTR_MAP=
 ENV KARVDASH_VOUCH_URL=
 ENV KARVDASH_VOUCH_SECRET=
 ENV KARVDASH_HTPASSWD_EXPORT_DIR=

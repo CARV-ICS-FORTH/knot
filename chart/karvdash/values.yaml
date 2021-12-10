@@ -29,7 +29,13 @@ karvdash:
   timeout: 180
   # The default admin password.
   adminPassword: admin
-  # If set, the path to export the htpasswd file in.
+  # The URL of the LDAP server to use for authentication (include DN and password).
+  ldapServerURL:
+  # String template that describes any user’s DN based on the username.
+  ldapUserDNTemplate:
+  # A mapping from user field names to LDAP attribute names (in JSON format).
+  ldapUserAttrMap: '{"username": "cn"}'
+  # If set, the path to export the htpasswd file in (only for local users).
   htpasswdExportDir:
   # The title of the dashboard.
   dashboardTitle: Karvdash

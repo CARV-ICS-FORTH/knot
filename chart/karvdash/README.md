@@ -48,7 +48,10 @@ Some of the variables set above are required. The table below lists all availabl
 | `karvdash.djangoDebug`              |          | Set to anything to enable, empty to disable.                                               |                                   |
 | `karvdash.timeout`                  |          | Timeout in seconds for gunicorn workers.                                                   | `180`                             |
 | `karvdash.adminPassword`            |          | The default admin password.                                                                | `admin`                           |
-| `karvdash.htpasswdExportDir`        |          | If set, the path to export the htpasswd file in.                                           |                                   |
+| `karvdash.ldapServerURL`            |          | The URL of the LDAP server to use for authentication (include DN and password).            |                                   |
+| `karvdash.ldapUserDNTemplate`       |          | String template that describes any user’s DN based on the username.                        |                                   |
+| `karvdash.ldapUserAttrMap`          |          | A mapping from user field names to LDAP attribute names (in JSON format).                  | `{"username": "cn"}`              |
+| `karvdash.htpasswdExportDir`        |          | If set, the path to export the htpasswd file in (only for local users).                    |                                   |
 | `karvdash.dashboardTitle`           |          | The title of the dashboard.                                                                | `Karvdash`                        |
 | `karvdash.documentationURL`         |          | If set, override the internal "Documentation" URL in the user menu.                        |                                   |
 | `karvdash.issuesURL`                |          | If set, an option to "Report an issue" is shown in the user menu.                          |                                   |

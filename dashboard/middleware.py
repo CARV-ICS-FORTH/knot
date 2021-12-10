@@ -21,9 +21,6 @@ class ProxyUserMiddleware:
 
     def __call__(self, request):
         if hasattr(request, 'user') and request.user.is_authenticated:
-            print('ASDF')
-            # request.user = User.objects.get(pk=request.user.pk)
-            # request.user.model = User
             request.user.__class__ = User
         response = self.get_response(request)
         return response
