@@ -1,4 +1,3 @@
-docutils==0.18.1
 Sphinx==4.3.1
 sphinx-rtd-theme==1.0.0
 Pillow==8.4.0
