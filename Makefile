@@ -102,7 +102,7 @@ deploy-requirements:
 	kubectl get secret karvdash-oauth-jupyterhub -n jupyterhub || \
 	kubectl create secret generic karvdash-oauth-jupyterhub -n jupyterhub --from-literal=client-id=${JUPYTERHUB_CLIENT_ID} --from-literal=client-secret=${JUPYTERHUB_CLIENT_SECRET}
 	helm list --namespace jupyterhub -q | grep jupyterhub || \
-	helm install jupyterhub jupyterhub/jupyterhub --version=1.0.1 --namespace jupyterhub \
+	helm install jupyterhub jupyterhub/jupyterhub --version=1.2.0 --namespace jupyterhub \
 	--set hub.config.JupyterHub.authenticator_class=generic-oauth \
 	--set hub.config.Authenticator.auto_login=true \
 	--set hub.config.GenericOAuthenticator.client_id=${JUPYTERHUB_CLIENT_ID} \
@@ -134,11 +134,8 @@ deploy-requirements:
 	kubectl -n ingress-nginx wait --for condition=Ready certificate/ssl-certificate; \
 	kubectl create configmap ssl-certificate -n argo --from-literal="ca.crt=`kubectl get secret ssl-certificate -n ingress-nginx -o 'go-template={{index .data \"ca.crt\" | base64decode }}'`"
 	helm list --namespace argo -q | grep argo || \
-	helm install argo argo/argo-workflows --version 0.2.12 --namespace argo \
-	--set controller.image.tag=v3.1.1 \
+	helm install argo argo/argo-workflows --version 0.9.3 --namespace argo \
 	--set controller.containerRuntimeExecutor=k8sapi \
-	--set executor.image.tag=v3.1.1 \
-	--set server.image.tag=v3.1.1 \
 	--set server.extraArgs\[0\]="--auth-mode=sso" \
 	--set server.volumeMounts\[0\].name="ssl-certificate-volume" \
 	--set server.volumeMounts\[0\].mountPath="/etc/ssl/certs/${INGRESS_URL}.crt" \
