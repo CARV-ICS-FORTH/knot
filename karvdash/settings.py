@@ -129,6 +129,8 @@ DATABASES = {
     }
 }
 
+DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
+
 # Password validation
 # https://docs.djangoproject.com/en/3.0/ref/settings/#auth-password-validators
 
@@ -248,8 +250,8 @@ FILES_MOUNT_DIR = os.getenv('KARVDASH_FILES_MOUNT_DIR', os.path.join(BASE_DIR, '
 
 # Upload path
 
-CHUNKED_UPLOAD_PATH = os.path.join(FILES_MOUNT_DIR, 'uploads')
-MEDIA_ROOT = CHUNKED_UPLOAD_PATH
+MEDIA_ROOT = FILES_MOUNT_DIR
+CHUNKED_UPLOAD_PATH = 'uploads'
 
 
 # Container registry endpoint

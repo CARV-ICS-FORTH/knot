@@ -668,14 +668,16 @@ class UploadCompleteView(ChunkedUploadCompleteView):
         if path_worker.exists(uploaded_file.name):
             messages.error(request, 'Can not add "%s". An item with the same name already exists.' % uploaded_file.name)
             return
-        path_worker.upload(uploaded_file.file, uploaded_file.name)
+        filename = os.path.join(settings.MEDIA_ROOT, uploaded_file.file.name)
+        path_worker.upload(filename, uploaded_file.name)
 
     def get_response_data(self, chunked_upload, request):
         '''
         Data for the response. Should return a dictionary-like object.
         Called *only* if POST is successful.
         '''
-        chunked_upload.delete(delete_file=os.path.exists(chunked_upload.file.name))
+        filename = os.path.join(settings.MEDIA_ROOT, chunked_upload.file.name)
+        chunked_upload.delete(delete_file=os.path.exists(filename))
         return {}
 
 @staff_member_required

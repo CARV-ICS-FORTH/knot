@@ -115,8 +115,8 @@ class FileDomainPathWorker(object):
     def chown(self, name, uid, gid):
         os.chown(self.path_of(name), uid, gid)
 
-    def upload(self, file, name):
-        shutil.move(file.name, self.path_of(name))
+    def upload(self, filename, name):
+        shutil.move(filename, self.path_of(name))
 
     def download(self, name, response):
         zip_path = self.path_of(name)

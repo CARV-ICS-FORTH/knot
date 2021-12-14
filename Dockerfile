@@ -1,10 +1,10 @@
-FROM python:3.7.9 AS ldap-build
+FROM python:3.8.12 AS ldap-build
 
 RUN apt-get update -y && \
     apt-get install -y libsasl2-dev python-dev libldap2-dev libssl-dev && \
     python -m pip wheel --wheel-dir=/tmp python-ldap==3.4.0
 
-FROM python:3.7.9-slim
+FROM python:3.8.12-slim
 
 ARG TARGETARCH
 
