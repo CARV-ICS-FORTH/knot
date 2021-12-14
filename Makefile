@@ -78,21 +78,21 @@ deploy-requirements:
 	# Deploy Docker Registry
 	kubectl create namespace registry || true
 	helm list --namespace registry -q | grep registry || \
-	helm install registry twuni/docker-registry --version 1.10.0 --namespace registry \
+	helm install registry twuni/docker-registry --version 1.16.0 --namespace registry \
 	--set persistence.enabled=true \
 	--set persistence.deleteEnabled=true \
 	--set service.type=LoadBalancer
 	# Deploy cert-manager
 	kubectl create namespace cert-manager || true
 	helm list --namespace cert-manager -q | grep cert-manager || \
-	helm install cert-manager cert-manager/cert-manager --version v1.1.0 --namespace cert-manager \
+	helm install cert-manager cert-manager/cert-manager --version v1.6.1 --namespace cert-manager \
 	--set installCRDs=true
 	# Deploy NGINX Ingress Controller
 	kubectl create namespace ingress-nginx || true
 	kubectl get secret ssl-certificate -n ingress-nginx || \
-	for i in $$(seq 1 5); do echo "$$INGRESS_CERTIFICATE" | kubectl apply -n ingress-nginx -f - && break || sleep 5; done
+	echo "$$INGRESS_CERTIFICATE" | kubectl apply -n ingress-nginx -f -
 	helm list --namespace ingress-nginx -q | grep ingress || \
-	helm install ingress ingress-nginx/ingress-nginx --version 3.19.0 --namespace ingress-nginx \
+	helm install ingress ingress-nginx/ingress-nginx --version 4.0.13 --namespace ingress-nginx \
 	--set controller.extraArgs.default-ssl-certificate=ingress-nginx/ssl-certificate \
 	--set controller.admissionWebhooks.enabled=false
 	# Deploy JupyterHub

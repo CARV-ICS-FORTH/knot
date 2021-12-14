@@ -54,7 +54,7 @@ An example template is::
 
     # hello-kubernetes.template.yaml
 
-    apiVersion: networking.k8s.io/v1beta1
+    apiVersion: networking.k8s.io/v1
     kind: Ingress
     metadata:
       name: $NAME
