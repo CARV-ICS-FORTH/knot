@@ -14,13 +14,13 @@ spec:
     - name: v1
       served: true
       storage: true
-  preserveUnknownFields: false
-  validation:
-    openAPIV3Schema:
-      type: object
-      properties:
-        spec:
+      schema:
+        openAPIV3Schema:
           type: object
           properties:
-            data:
-              type: "string"
+            spec:
+              type: object
+              properties:
+                data:
+                  type: string
+  preserveUnknownFields: false

@@ -22,6 +22,8 @@ webhooks:
     namespaceSelector:
       matchLabels:
         karvdash: enabled
+    admissionReviewVersions: ["v1", "v1beta1"]
+    sideEffects: None
     failurePolicy: Fail
 ---
 apiVersion: admissionregistration.k8s.io/v1
@@ -48,4 +50,6 @@ webhooks:
     namespaceSelector:
       matchLabels:
         karvdash: enabled
+    admissionReviewVersions: ["v1", "v1beta1"]
+    sideEffects: None
     failurePolicy: Fail

@@ -46,7 +46,9 @@ def mutate(request):
     patch = jsonpatch.JsonPatch.from_diff(data['request']['object'], service)
     encoded_patch = base64.b64encode(patch.to_string().encode('utf-8')).decode('utf-8')
 
-    response = JsonResponse({'response': {'uid': uid,
+    response = JsonResponse({'apiVersion': 'admission.k8s.io/v1',
+                             'kind': 'AdmissionReview',
+                             'response': {'uid': uid,
                                           'allowed': True,
                                           'status': {'message': 'Adding Karvdash volumes and API settings'},
                                           'patchType': 'JSONPatch',
@@ -69,7 +71,9 @@ def validate(request):
     except:
         return HttpResponseBadRequest()
 
-    response = JsonResponse({'response': {'uid': uid,
+    response = JsonResponse({'apiVersion': 'admission.k8s.io/v1',
+                             'kind': 'AdmissionReview',
+                             'response': {'uid': uid,
                                           'allowed': validate_hostpath_volumes([service], user.file_domains, other_allowed_paths=settings.ALLOWED_HOSTPATH_DIRS),
                                           'status': {'message': 'Checking for unauthorized volumes'}}})
     response['X-Log-User'] = user.username

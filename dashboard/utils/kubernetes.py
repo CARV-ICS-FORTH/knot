@@ -26,7 +26,7 @@ class KubernetesClient(object):
     def __init__(self):
         self._config_loaded = False
         self._core_client = None
-        self._extensions_client = None
+        self._networking_client = None
         self._custom_objects_client = None
 
     def _load_config(self):
@@ -46,11 +46,11 @@ class KubernetesClient(object):
         return self._core_client
 
     @property
-    def extensions_client(self):
-        if not self._extensions_client:
+    def networking_client(self):
+        if not self._networking_client:
             self._load_config()
-            self._extensions_client = kubernetes.client.ExtensionsV1beta1Api()
-        return self._extensions_client
+            self._networking_client = kubernetes.client.NetworkingV1Api()
+        return self._networking_client
 
     @property
     def custom_objects_client(self):
@@ -76,7 +76,7 @@ class KubernetesClient(object):
         return self.core_client.list_namespaced_service(namespace=namespace, label_selector=label_selector).items
 
     def list_ingresses(self, namespace):
-        return self.extensions_client.list_namespaced_ingress(namespace=namespace).items
+        return self.networking_client.list_namespaced_ingress(namespace=namespace).items
 
     def list_crds(self, group, version, namespace, plural):
         return self.custom_objects_client.list_namespaced_custom_object(group=group, version=version, namespace=namespace, plural=plural)['items']

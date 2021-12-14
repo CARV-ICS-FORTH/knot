@@ -5,7 +5,7 @@ django-chunked-upload==2.0.0
 django-oauth-toolkit==1.5.0
 django-auth-ldap==3.0.0
 python-dxf==7.7.1
-kubernetes==17.17.0
+kubernetes==20.13.0
 PyYAML==5.4.1
 passlib==1.7.4
 restless==2.1.1

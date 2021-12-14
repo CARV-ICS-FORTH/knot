@@ -93,6 +93,8 @@ deploy-requirements:
 	echo "$$INGRESS_CERTIFICATE" | kubectl apply -n ingress-nginx -f -
 	helm list --namespace ingress-nginx -q | grep ingress || \
 	helm install ingress ingress-nginx/ingress-nginx --version 4.0.13 --namespace ingress-nginx \
+	--set controller.watchIngressWithoutClass=true \
+	--set controller.ingressClassResource.default=true \
 	--set controller.extraArgs.default-ssl-certificate=ingress-nginx/ssl-certificate \
 	--set controller.admissionWebhooks.enabled=false
 	# Deploy JupyterHub
@@ -102,10 +104,10 @@ deploy-requirements:
 	helm list --namespace jupyterhub -q | grep jupyterhub || \
 	helm install jupyterhub jupyterhub/jupyterhub --version=1.0.1 --namespace jupyterhub \
 	--set hub.config.JupyterHub.authenticator_class=generic-oauth \
-	--set hub.config.Authenticator.auto_login="true" \
+	--set hub.config.Authenticator.auto_login=true \
 	--set hub.config.GenericOAuthenticator.client_id=${JUPYTERHUB_CLIENT_ID} \
 	--set hub.config.GenericOAuthenticator.client_secret=${JUPYTERHUB_CLIENT_SECRET} \
-	--set hub.config.GenericOAuthenticator.tls_verify="false" \
+	--set hub.config.GenericOAuthenticator.tls_verify=false \
 	--set hub.config.GenericOAuthenticator.oauth_callback_url=https://jupyterhub.${INGRESS_URL}/hub/oauth_callback \
 	--set hub.config.GenericOAuthenticator.authorize_url=https://${INGRESS_URL}/oauth/authorize/ \
 	--set hub.config.GenericOAuthenticator.token_url=https://${INGRESS_URL}/oauth/token/ \
@@ -115,16 +117,17 @@ deploy-requirements:
 	--set hub.config.GenericOAuthenticator.scope\[2\]=email \
 	--set hub.config.GenericOAuthenticator.username_key=preferred_username \
 	--set hub.extraConfig."myConfig\.py"="$$JUPYTERHUB_CONFIG" \
-	--set hub.networkPolicy.enabled="false" \
+	--set hub.networkPolicy.enabled=false \
 	--set proxy.service.type=ClusterIP \
-	--set proxy.chp.networkPolicy.enabled="false" \
-	--set singleuser.networkPolicy.enabled="false" \
+	--set proxy.chp.networkPolicy.enabled=false \
+	--set singleuser.networkPolicy.enabled=false \
 	--set singleuser.storage.type=none \
 	--set prePuller.hook.enabled=false \
 	--set prePuller.continuous.enabled=false \
 	--set scheduling.userScheduler.enabled=false \
 	--set ingress.enabled=true \
 	--set ingress.hosts\[0\]=jupyterhub.${INGRESS_URL}
+	kubectl create clusterrolebinding jupyterhub-cluster-admin --clusterrole=cluster-admin --serviceaccount=jupyterhub:hub
 	# Deploy Argo Workflows
 	kubectl create namespace argo || true
 	kubectl get configmap ssl-certificate -n argo || \
@@ -162,6 +165,7 @@ undeploy-requirements:
 	helm uninstall argo --namespace argo || true
 	kubectl delete namespace argo || true
 	# Remove JupyterHub
+	kubectl delete clusterrolebinding jupyterhub-cluster-admin || true
 	helm uninstall jupyterhub --namespace jupyterhub || true
 	kubectl delete namespace jupyterhub || true
 	# Remove NGINX Ingress Controller
