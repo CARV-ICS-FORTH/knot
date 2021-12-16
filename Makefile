@@ -14,6 +14,8 @@
 
 SHELL=/bin/bash
 
+USE_MINIKUBE?=no
+
 REGISTRY_NAME?=carvicsforth
 KUBECTL_VERSION?=v1.19.8
 
@@ -26,7 +28,11 @@ CHART_DIR=./chart/karvdash
 
 all: container
 
+ifneq (${USE_MINIKUBE}, yes)
 IP_ADDRESS=$(shell ipconfig getifaddr en0 || ipconfig getifaddr en1)
+else
+IP_ADDRESS=$(shell minikube ip)
+endif
 
 INGRESS_URL=${IP_ADDRESS}.nip.io
 define INGRESS_CERTIFICATE
@@ -76,12 +82,16 @@ deploy-requirements:
 	helm repo add argo https://argoproj.github.io/argo-helm
 	helm repo update
 	# Deploy Docker Registry
+ifneq (${USE_MINIKUBE}, yes)
 	kubectl create namespace registry || true
 	helm list --namespace registry -q | grep registry || \
 	helm install registry twuni/docker-registry --version 1.16.0 --namespace registry \
 	--set persistence.enabled=true \
 	--set persistence.deleteEnabled=true \
 	--set service.type=LoadBalancer
+else
+	minikube addons enable registry
+endif
 	# Deploy cert-manager
 	kubectl create namespace cert-manager || true
 	helm list --namespace cert-manager -q | grep cert-manager || \
@@ -97,6 +107,9 @@ deploy-requirements:
 	--set controller.ingressClassResource.default=true \
 	--set controller.extraArgs.default-ssl-certificate=ingress-nginx/ssl-certificate \
 	--set controller.admissionWebhooks.enabled=false
+ifeq (${USE_MINIKUBE}, yes)
+	kubectl patch svc -n ingress-nginx `kubectl get svc -n ingress-nginx -o jsonpath='{.items[0].metadata.name}'` -p '{"spec":{"externalIPs":["'${IP_ADDRESS}'"]}}'
+endif
 	# Deploy JupyterHub
 	kubectl create namespace jupyterhub || true
 	kubectl get secret karvdash-oauth-jupyterhub -n jupyterhub || \
@@ -172,8 +185,12 @@ undeploy-requirements:
 	helm uninstall cert-manager --namespace cert-manager || true
 	kubectl delete namespace cert-manager || true
 	# Remove Docker Registry
+ifneq (${USE_MINIKUBE}, yes)
 	helm uninstall registry --namespace registry || true
 	kubectl delete namespace registry || true
+else
+	minikube addons disable registry
+endif
 
 deploy-crds:
 	kubectl apply -f $(CHART_DIR)/crds/karvdash-crd.yaml
