@@ -6,7 +6,7 @@ Check out the [README](https://github.com/CARV-ICS-FORTH/karvdash/tree/master/RE
 
 ## Deployment
 
-Karvdash is deployed using [Helm](https://helm.sh) (version 3). We use Kubernetes 1.19.x to develop, test, and run Karvdash on both `amd64` and `arm64` architectures.
+Karvdash is deployed using [Helm](https://helm.sh) (version 3). We use Kubernetes 1.22.x to develop, test, and run Karvdash on both `amd64` and `arm64` architectures.
 
 To install, you need a running Kubernetes environment with the following features:
 * The [cert-manager](https://cert-manager.io) certificate management controller for Kubernetes. This is used for creating certificates automatically for the admission webhooks. We use [this](https://artifacthub.io/packages/helm/jetstack/cert-manager) Helm chart.

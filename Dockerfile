@@ -21,7 +21,7 @@ RUN apt-get update && \
         /usr/share/doc \
         /usr/share/doc-base
 
-ARG KUBECTL_VERSION=v1.19.8
+ARG KUBECTL_VERSION=v1.22.4
 RUN curl -Lo /usr/local/bin/kubectl https://storage.googleapis.com/kubernetes-release/release/${KUBECTL_VERSION}/bin/linux/${TARGETARCH}/kubectl && \
     chmod +x /usr/local/bin/kubectl
 

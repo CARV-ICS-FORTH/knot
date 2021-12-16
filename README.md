@@ -12,7 +12,7 @@ Check out the [user guide and API documentation](https://carv-ics-forth.github.i
 
 > :warning: **Want to quickly try Karvdash out in the Cloud?** Use the [Kubernetes 1-Click App in the DigitalOcean Marketplace](https://marketplace.digitalocean.com/apps/karvdash?refcode=880f14eedb3a).
 
-Karvdash is deployed using [Helm](https://helm.sh) (version 3). We use Kubernetes 1.19.x to develop, test, and run Karvdash on both `amd64` and `arm64` architectures.
+Karvdash is deployed using [Helm](https://helm.sh) (version 3). We use Kubernetes 1.22.x to develop, test, and run Karvdash on both `amd64` and `arm64` architectures.
 
 To install, you need a running Kubernetes environment with the following features:
 * The [cert-manager](https://cert-manager.io) certificate management controller for Kubernetes. This is used for creating certificates automatically for the admission webhooks. We use [this](https://artifacthub.io/packages/helm/jetstack/cert-manager) Helm chart.
@@ -91,7 +91,7 @@ To remove Karvdash, uninstall using `helm uninstall karvdash`, which will remove
 
 ## Development
 
-To develop Karvdash in a local Kubernetes environment, like the one provided by [Docker Desktop](https://www.docker.com/products/docker-desktop) for macOS (tested with [versions >= 2.5.x.x](https://docs.docker.com/docker-for-mac/release-notes/) which uses Kubernetes 1.19.3), run:
+To develop Karvdash in a local Kubernetes environment, like the one provided by [Docker Desktop](https://www.docker.com/products/docker-desktop) for macOS (tested with [versions >= 4.3.x](https://docs.docker.com/docker-for-mac/release-notes/) which use Kubernetes 1.22.4), run:
 ```bash
 make deploy-requirements
 make prepare-develop
@@ -100,7 +100,7 @@ make prepare-develop
 
 This will setup all requirements (a private container registry, cert-manager, an SSL-enabled ingress controller, JupyterHub, and Argo Workflows) and set up a virtual environment to run Karvdash from the command line. You need to have [Helm](https://helm.sh) installed (version 3). When done, point your browser to http://127.0.0.1:8000 and login as "admin". Note, however, that when running Karvdash outside Kubernetes, there is no mutating admission webhook to attach file domains and datasets to service containers (use `make deploy-local` after `make deploy-requirements` for running locally in a container).
 
-Also, some versions of Docker Desktop [do not enforce RBAC rules](https://github.com/docker/for-mac/issues/3694), so there is no namespace isolation. Run the following commands to enable namespace isolation and explicitly set permissions for the `default` service account in the `default` namespace (used by Docker Desktop):
+Also, some older versions of Docker Desktop [do not enforce RBAC rules](https://github.com/docker/for-mac/issues/3694), so there is no namespace isolation. Run the following commands to enable namespace isolation and explicitly set permissions for the `default` service account in the `default` namespace (used by Docker Desktop):
 ```bash
 kubectl delete clusterrolebinding docker-for-desktop-binding
 kubectl create clusterrolebinding default-cluster-admin --clusterrole=cluster-admin --serviceaccount=default:default
@@ -113,7 +113,7 @@ Container images for Karvdash are [available](https://hub.docker.com/r/carvicsfo
 make container
 ```
 
-To change the version, edit `VERSION`. The image uses `kubectl` 1.19.8 by default, but this can be changed by setting the `KUBECTL_VERSION` variable before running `make`. You can also set your Docker Hub account or container registry endpoint in `REGISTRY_NAME`.
+To change the version, edit `VERSION`. The image uses `kubectl` 1.22.4 by default, but this can be changed by setting the `KUBECTL_VERSION` variable before running `make`. You can also set your Docker Hub account or container registry endpoint in `REGISTRY_NAME`.
 
 To test the container in a local Kubernetes environment, run the following and then point your browser to `https://<your IP address>.nip.io`:
 ```bash
