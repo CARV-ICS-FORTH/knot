@@ -129,7 +129,7 @@ class User(AuthUser):
             return
         with open(os.path.join(htpasswd_dir, 'htpasswd'), 'w') as f:
             for user in cls.objects.filter(is_active=True):
-                if hasattr(request.user, 'ldap_user'):
+                if hasattr(user, 'ldap_user'):
                     # Users coming from LDAP have unusable passwords.
                     continue
                 f.write('%s:$%s\n' % (user.username, user.password))
