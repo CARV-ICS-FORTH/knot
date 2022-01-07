@@ -11,7 +11,7 @@ ARG TARGETARCH
 ENV PYTHONUNBUFFERED 1
 
 RUN apt-get update && \
-    apt-get install -y make curl && \
+    apt-get install -y make curl vim-tiny procps && \
     apt-get clean \
     && rm -rf \
         /var/lib/apt/lists/* \
