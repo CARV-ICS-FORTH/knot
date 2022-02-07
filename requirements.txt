@@ -1,4 +1,4 @@
-Django==3.2.10
+Django==3.2.12
 django-crispy-forms==1.12.0
 django-impersonate==1.7.3
 django-chunked-upload==2.0.0
