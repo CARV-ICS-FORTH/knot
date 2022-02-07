@@ -1,0 +1,44 @@
+{% extends 'dashboard/main.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block main %}
+<div class="row">
+  <div class="col-md-2 order-md-2">
+  </div>
+
+  <div class="col-md-10 order-md-1">
+    <table class="table table-hover">
+      <thead>
+        <tr>
+          <th scope="col"></th>
+          {% with 'created message' as list %}
+          {% for item in list.split %}
+          <th scope="col">
+            {% if sort_by == item and order == 'asc' %}
+            <a class="text-dark" href="{{ request.path }}?sort_by={{ item }}&amp;order=desc">{{ item|title }}</a>
+            {% else %}
+            <a class="text-dark" href="{{ request.path }}?sort_by={{ item }}&amp;order=asc">{{ item|title }}</a>
+            {% endif %}
+            {% if sort_by == item %}
+            <i class="fa fa-caret-{% if order == 'asc' %}up{% else %}down{% endif %}" aria-hidden="true"></i>
+            {% endif %}
+          </th>
+          {% endfor %}
+          {% endwith %}
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in contents %}
+        <tr>
+          <th scope="row" class="align-middle"><span class="badge badge-{{ item.label }}">{{ item.level }}</span></th>
+          <td class="align-middle">{{ item.created|date:'j/n/Y H:i' }}</td>
+          <td class="align-middle">{{ item.message }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+  </div>
+</div>
+{% endblock %}

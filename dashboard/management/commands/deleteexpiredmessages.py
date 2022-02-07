@@ -12,13 +12,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import base64
+from django.core.management.base import BaseCommand
+from django.utils import timezone
+from datetime import timedelta
+
+from ...models import Message
 
 
-def base64_encode(b):
-    ''' Encode to string. '''
-    return base64.b64encode(b if type(b) == bytes else b.encode()).decode()
+class Command(BaseCommand):
+    help = 'Deletes messages after a week.'
 
-def base64_decode(b):
-    ''' Decode to bytes. '''
-    return base64.b64decode(b if type(b) == bytes else b.encode())
+    def handle(self, *args, **options):
+        expired_messages = Message.objects.filter(created__lt=(timezone.now() - timedelta(days=7)))
+        count = expired_messages.count()
+        expired_messages.delete()
+
+        print('%i messages were deleted.' % count)

@@ -23,10 +23,9 @@ from django.contrib.auth import logout as auth_logout, update_session_auth_hash
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import SetPasswordForm, PasswordChangeForm
 from django.contrib.admin.views.decorators import staff_member_required
-from django.contrib import messages
 from chunked_upload.views import ChunkedUploadView, ChunkedUploadCompleteView
 
-from .models import User
+from .models import User, Message
 from .forms import SignUpForm, EditUserForm, AddServiceForm, CreateServiceForm, AddTemplateForm, AddDatasetForm, CreateDatasetForm, AddFolderForm, AddImageFromFileForm
 from .api import ServiceResource, TemplateResource, DatasetResource
 from .utils.kubernetes import KubernetesClient
@@ -42,14 +41,14 @@ def services(request):
     # Handle changes.
     if request.method == 'POST':
         if 'action' not in request.POST:
-            messages.error(request, 'Invalid action.')
+            Message.add(request, 'error', 'Invalid action.')
         elif request.POST['action'] == 'Create':
             form = AddServiceForm(request.POST, request=request)
             if form.is_valid():
                 identifier = form.cleaned_data['id']
                 return redirect('service_create', identifier)
             else:
-                messages.error(request, 'Failed to create service. Probably invalid service name.')
+                Message.add(request, 'error', 'Failed to create service. Probably invalid service name.')
         elif request.POST['action'] == 'Remove':
             name = request.POST.get('service', None)
             if name:
@@ -58,13 +57,13 @@ def services(request):
                     service_resource.request = request
                     service_resource.delete(name)
                 except restless.exceptions.NotFound:
-                    messages.error(request, 'Service description for "%s" not found.' % name)
+                    Message.add(request, 'error', 'Service description for "%s" not found.' % name)
                 except Exception as e:
-                    messages.error(request, 'Can not remove service "%s": %s' % (name, str(e)))
+                    Message.add(request, 'error', 'Can not remove service "%s": %s' % (name, str(e)))
                 else:
-                    messages.success(request, 'Service "%s" removed.' % name)
+                    Message.add(request, 'success', 'Service "%s" removed.' % name)
         else:
-            messages.error(request, 'Invalid action.')
+            Message.add(request, 'error', 'Invalid action.')
 
         return redirect('services')
 
@@ -79,7 +78,7 @@ def services(request):
         service_resource.request = request
         contents = service_resource.list()
     except:
-        messages.error(request, 'Can not connect to Kubernetes.')
+        Message.add(request, 'error', 'Can not connect to Kubernetes.')
 
     # Sort them up.
     sort_by = request.GET.get('sort_by')
@@ -113,7 +112,7 @@ def service_create(request, identifier=''):
     template_resource.request = request
     template = template_resource.get_template(identifier)
     if not template:
-        messages.error(request, 'Invalid service.')
+        Message.add(request, 'error', 'Invalid service.')
         return redirect('services')
 
     # Handle changes.
@@ -129,15 +128,15 @@ def service_create(request, identifier=''):
             try:
                 service = service_resource.create()
             except restless.exceptions.Conflict:
-                messages.warning(request, 'There can be only one "%s" service running.' % template.name)
+                Message.add(request, 'warning', 'There can be only one "%s" service running.' % template.name)
                 return redirect('services')
             except restless.exceptions.TooManyRequests:
-                messages.warning(request, 'There are no more available service URLs.')
+                Message.add(request, 'warning', 'There are no more available service URLs.')
                 return redirect('services')
             except Exception as e:
-                messages.error(request, 'Can not create service: %s' % str(e))
+                Message.add(request, 'error', 'Can not create service: %s' % str(e))
             else:
-                messages.success(request, 'Service "%s" created.' % service['name'])
+                Message.add(request, 'success', 'Service "%s" created.' % service['name'])
 
             return redirect('services')
     else:
@@ -153,7 +152,7 @@ def templates(request):
     # Handle changes.
     if request.method == 'POST':
         if 'action' not in request.POST:
-            messages.error(request, 'Invalid action.')
+            Message.add(request, 'error', 'Invalid action.')
         elif request.POST['action'] == 'Add':
             form = AddTemplateForm(request.POST, request.FILES)
             files = request.FILES.getlist('file_field')
@@ -168,14 +167,14 @@ def templates(request):
                 try:
                     template = template_resource.add()
                 except restless.exceptions.BadRequest:
-                    messages.error(request, 'Can not add template. Probably invalid file format.')
+                    Message.add(request, 'error', 'Can not add template. Probably invalid file format.')
                     return redirect('templates')
                 except Exception as e:
-                    messages.error(request, 'Can not add template: %s' % str(e))
+                    Message.add(request, 'error', 'Can not add template: %s' % str(e))
                 else:
-                    messages.success(request, 'Template "%s" added.' % template['name'])
+                    Message.add(request, 'success', 'Template "%s" added.' % template['name'])
             else:
-                messages.error(request, 'Failed to add template.')
+                Message.add(request, 'error', 'Failed to add template.')
         elif request.POST['action'] == 'Delete':
             identifier = request.POST.get('id', None)
             if identifier:
@@ -183,17 +182,17 @@ def templates(request):
                 template_resource.request = request
                 template = template_resource.get_template(identifier) # Need the name for error messages.
                 if not template:
-                    messages.error(request, 'Template "%s" not found.' % identifier)
+                    Message.add(request, 'error', 'Template "%s" not found.' % identifier)
                     return redirect('templates')
 
                 try:
                     template_resource.remove(identifier)
                 except Exception as e:
-                    messages.error(request, 'Can not delete template "%s": %s' % (template.name, str(e)))
+                    Message.add(request, 'error', 'Can not delete template "%s": %s' % (template.name, str(e)))
                 else:
-                    messages.success(request, 'Template "%s" deleted.' % template.name)
+                    Message.add(request, 'success', 'Template "%s" deleted.' % template.name)
         else:
-            messages.error(request, 'Invalid action.')
+            Message.add(request, 'error', 'Invalid action.')
 
         return redirect('templates')
 
@@ -208,7 +207,7 @@ def templates(request):
         template_resource.request = request
         contents = template_resource.list()
     except:
-        messages.error(request, 'Can not connect to Kubernetes.')
+        Message.add(request, 'error', 'Can not connect to Kubernetes.')
 
     # Sort them up.
     sort_by = request.GET.get('sort_by')
@@ -240,7 +239,7 @@ def template_download(request, identifier):
     template_resource.request = request
     template = template_resource.get_template(identifier)
     if not template:
-        messages.error(request, 'Invalid service.')
+        Message.add(request, 'error', 'Invalid service.')
         return redirect('services')
 
     response = HttpResponse(template.data, content_type='application/x-yaml')
@@ -260,7 +259,7 @@ def images(request):
         for repository in registry_client.registry().list_repos():
             contents.append({'name': repository})
     except:
-        messages.error(request, 'Can not connect to container registry.')
+        Message.add(request, 'error', 'Can not connect to container registry.')
 
     # Sort them up.
     sort_by = request.GET.get('sort_by')
@@ -291,20 +290,20 @@ def image_info(request, name):
     # Handle changes.
     if request.method == 'POST':
         if 'action' not in request.POST:
-            messages.error(request, 'Invalid action.')
+            Message.add(request, 'error', 'Invalid action.')
         elif request.POST['action'] == 'Delete':
             if not request.user.is_staff:
-                messages.error(request, 'Invalid action.')
+                Message.add(request, 'error', 'Invalid action.')
             else:
                 tag = request.POST.get('tag', None)
                 try:
                     registry_client.registry(name).del_alias(tag)
                 except Exception as e:
-                    messages.error(request, 'Failed to delete image: %s.' % str(e))
+                    Message.add(request, 'error', 'Failed to delete image: %s.' % str(e))
                 else:
-                    messages.success(request, 'Image "%s" deleted. Run garbage collection in the registry to reclaim space.' % name)
+                    Message.add(request, 'success', 'Image "%s" deleted. Run garbage collection in the registry to reclaim space.' % name)
         else:
-            messages.error(request, 'Invalid action.')
+            Message.add(request, 'error', 'Invalid action.')
 
         return redirect('images')
 
@@ -329,7 +328,7 @@ def image_info(request, name):
                              'size': sum([h[1] for h in hashes]),
                              'actions': request.user.is_staff})
     except:
-        messages.error(request, 'Can not connect to container registry.')
+        Message.add(request, 'error', 'Can not connect to container registry.')
     for content in contents:
         content['aliases'].sort()
         content['tag'] = content['aliases'][0] if content['aliases'] else ''
@@ -368,27 +367,27 @@ def datasets(request):
     # Handle changes.
     if request.method == 'POST':
         if 'action' not in request.POST:
-            messages.error(request, 'Invalid action.')
+            Message.add(request, 'error', 'Invalid action.')
         elif request.POST['action'] == 'Add':
             form = AddDatasetForm(request.POST, request=request)
             if form.is_valid():
                 identifier = form.cleaned_data['id']
                 return redirect('dataset_add', identifier)
             else:
-                messages.error(request, 'Failed to add dataset. Probably invalid dataset name.')
+                Message.add(request, 'error', 'Failed to add dataset. Probably invalid dataset name.')
         elif request.POST['action'] == 'Delete':
             name = request.POST.get('name', None)
             if name:
                 try:
                     dataset_resource.remove(name)
                 except restless.exceptions.NotFound:
-                    messages.error(request, 'Dataset "%s" not found.' % name)
+                    Message.add(request, 'error', 'Dataset "%s" not found.' % name)
                 except Exception as e:
-                    messages.error(request, 'Can not delete dataset "%s": %s' % (name, str(e)))
+                    Message.add(request, 'error', 'Can not delete dataset "%s": %s' % (name, str(e)))
                 else:
-                    messages.success(request, 'Dataset "%s" deleted.' % name)
+                    Message.add(request, 'success', 'Dataset "%s" deleted.' % name)
         else:
-            messages.error(request, 'Invalid action.')
+            Message.add(request, 'error', 'Invalid action.')
 
         return redirect('datasets')
 
@@ -415,7 +414,7 @@ def datasets(request):
             except:
                 pass
     except:
-        messages.error(request, 'Can not connect to Kubernetes.')
+        Message.add(request, 'error', 'Can not connect to Kubernetes.')
 
     # Sort them up.
     sort_by = request.GET.get('sort_by')
@@ -449,7 +448,7 @@ def dataset_add(request, identifier=''):
     dataset_resource.request = request
     template = {t.identifier: t for t in dataset_resource.dataset_templates}.get(identifier, None)
     if not template:
-        messages.error(request, 'Invalid dataset.')
+        Message.add(request, 'error', 'Invalid dataset.')
         return redirect('datasets')
 
     # Handle changes.
@@ -462,9 +461,9 @@ def dataset_add(request, identifier=''):
             try:
                 dataset = dataset_resource.add(template)
             except Exception as e:
-                messages.error(request, 'Can not create dataset: %s' % str(e))
+                Message.add(request, 'error', 'Can not create dataset: %s' % str(e))
             else:
-                messages.success(request, 'Dataset "%s" created.' % dataset['name'])
+                Message.add(request, 'success', 'Dataset "%s" created.' % dataset['name'])
 
             return redirect('datasets')
     else:
@@ -485,7 +484,7 @@ def dataset_download(request, name):
     dataset_resource.request = request
     dataset = dataset_resource.get_dataset(name)
     if not dataset:
-        messages.error(request, 'Invalid dataset.')
+        Message.add(request, 'error', 'Invalid dataset.')
         return redirect('datasets')
 
     # Get a dataset template and fill it in.
@@ -511,7 +510,7 @@ def files(request, path='/'):
 
     # Figure out the real path we are working on.
     if path_components[0] not in file_domains.keys():
-        messages.error(request, 'Invalid path.')
+        Message.add(request, 'error', 'Invalid path.')
         request.session.pop('files_path', None)
         return redirect('files')
 
@@ -522,23 +521,23 @@ def files(request, path='/'):
     # Handle changes.
     if request.method == 'POST':
         if 'action' not in request.POST:
-            messages.error(request, 'Invalid action.')
+            Message.add(request, 'error', 'Invalid action.')
         elif request.POST['action'] == 'Create':
             form = AddFolderForm(request.POST)
             if form.is_valid():
                 name = form.cleaned_data['name']
                 if path_worker.exists(name):
-                    messages.error(request, 'Can not add "%s". An item with the same name already exists.' % name)
+                    Message.add(request, 'error', 'Can not add "%s". An item with the same name already exists.' % name)
                 else:
                     path_worker.mkdir(name)
-                    messages.success(request, 'Folder "%s" created.' % name)
+                    Message.add(request, 'success', 'Folder "%s" created.' % name)
             else:
                 # XXX Show form errors in messages.
                 pass
         elif request.POST['action'] == 'Download':
             name = request.POST['name']
             if not path_worker.isdir(name):
-                messages.error(request, 'Can not download "%s".' % name)
+                Message.add(request, 'error', 'Can not download "%s".' % name)
             else:
                 response = HttpResponse(content_type='application/zip')
                 path_worker.download(name, response)
@@ -548,7 +547,7 @@ def files(request, path='/'):
             name = request.POST.get('filename', None)
             if name:
                 if not path_worker.exists(name):
-                    messages.error(request, 'Item "%s" not found in folder.' % name)
+                    Message.add(request, 'error', 'Item "%s" not found in folder.' % name)
                 else:
                     try:
                         if path_worker.isfile(name):
@@ -556,10 +555,10 @@ def files(request, path='/'):
                         else:
                             path_worker.rmdir(name)
                     except Exception as e: # noqa: F841
-                        # messages.error(request, 'Failed to delete "%s": %s.' % (name, str(e)))
-                        messages.error(request, 'Failed to delete "%s". Probably not permitted or directory not empty.' % name)
+                        # Message.add(request, 'error', 'Failed to delete "%s": %s.' % (name, str(e)))
+                        Message.add(request, 'error', 'Failed to delete "%s". Probably not permitted or directory not empty.' % name)
                     else:
-                        messages.success(request, 'Item "%s" deleted.' % name)
+                        Message.add(request, 'success', 'Item "%s" deleted.' % name)
         elif request.POST['action'] == 'Add image':
             form = AddImageFromFileForm(request.POST)
             name = request.POST.get('filename', None)
@@ -570,11 +569,11 @@ def files(request, path='/'):
                     registry_client = RegistryClient(settings.REGISTRY_URL, settings.REGISTRY_CERT_FILE)
                     registry_client.add_image(path_worker.path_of(name), image_name, image_tag)
                 except Exception as e:
-                    messages.error(request, 'Failed to add image: %s.' % str(e))
+                    Message.add(request, 'error', 'Failed to add image: %s.' % str(e))
                 else:
-                    messages.success(request, 'Image "%s:%s" added.' % (image_name, image_tag))
+                    Message.add(request, 'success', 'Image "%s:%s" added.' % (image_name, image_tag))
             else:
-                messages.error(request, 'Failed to add image. Probably invalid characters in name or tag.')
+                Message.add(request, 'error', 'Failed to add image. Probably invalid characters in name or tag.')
         elif request.POST['action'] == 'Add template':
             name = request.POST.get('filename', None)
             if name:
@@ -589,14 +588,14 @@ def files(request, path='/'):
                 try:
                     template = template_resource.add()
                 except restless.exceptions.BadRequest:
-                    messages.error(request, 'Can not add template. Probably invalid file format.')
+                    Message.add(request, 'error', 'Can not add template. Probably invalid file format.')
                     return redirect('templates')
                 except Exception as e:
-                    messages.error(request, 'Can not add template: %s' % str(e))
+                    Message.add(request, 'error', 'Can not add template: %s' % str(e))
                 else:
-                    messages.success(request, 'Template "%s" added.' % template['name'])
+                    Message.add(request, 'success', 'Template "%s" added.' % template['name'])
         else:
-            messages.error(request, 'Invalid action.')
+            Message.add(request, 'error', 'Invalid action.')
 
         return redirect('files', path)
 
@@ -608,7 +607,7 @@ def files(request, path='/'):
         return FileResponse(parent_path_worker.open(name, 'rb'), as_attachment=True, filename=name)
     if not path_worker.isdir():
         request.session.pop('files_path', None)
-        # messages.error(request, 'Invalid path.')
+        # Message.add(request, 'error', 'Invalid path.')
         return redirect('files')
 
     # This is a directory. Leave a trail of breadcrumbs.
@@ -666,7 +665,7 @@ class UploadCompleteView(ChunkedUploadCompleteView):
 
         path_worker = file_domains[request.POST['domain']].path_worker(request.POST['path'].split('/'))
         if path_worker.exists(uploaded_file.name):
-            messages.error(request, 'Can not add "%s". An item with the same name already exists.' % uploaded_file.name)
+            Message.add(request, 'error', 'Can not add "%s". An item with the same name already exists.' % uploaded_file.name)
             return
         filename = os.path.join(settings.MEDIA_ROOT, uploaded_file.file.name)
         path_worker.upload(filename, uploaded_file.name)
@@ -685,7 +684,7 @@ def users(request):
     # Handle changes.
     if request.method == 'POST':
         if 'action' not in request.POST:
-            messages.error(request, 'Invalid action.')
+            Message.add(request, 'error', 'Invalid action.')
         elif request.POST['action'] in ('Activate', 'Deactivate', 'Promote', 'Demote'):
             action = request.POST['action']
             username = request.POST.get('username', None)
@@ -703,11 +702,11 @@ def users(request):
                         user.is_staff = True if action == 'Promote' else False
                     user.save()
                     User.export_to_htpasswd(settings.HTPASSWD_EXPORT_DIR)
-                    messages.success(request, 'User "%s" %s.' % (username, action.lower() + 'd'))
+                    Message.add(request, 'success', 'User "%s" %s.' % (username, action.lower() + 'd'))
                 except User.DoesNotExist:
                     pass
             else:
-                messages.error(request, 'Invalid username')
+                Message.add(request, 'error', 'Invalid username')
         elif request.POST['action'] == 'Delete':
             username = request.POST.get('username', None)
             if username and username != request.user.username:
@@ -716,17 +715,17 @@ def users(request):
                     try:
                         user.delete_namespace()
                     except Exception as e:
-                        messages.error(request, 'Failed to delete user "%s": %s.' % (username, str(e)))
+                        Message.add(request, 'error', 'Failed to delete user "%s": %s.' % (username, str(e)))
                     else:
                         user.delete()
                         User.export_to_htpasswd(settings.HTPASSWD_EXPORT_DIR)
-                        messages.success(request, 'User "%s" deleted.' % username)
+                        Message.add(request, 'success', 'User "%s" deleted.' % username)
                 except User.DoesNotExist:
                     pass
             else:
-                messages.error(request, 'Invalid username')
+                Message.add(request, 'error', 'Invalid username')
         else:
-            messages.error(request, 'Invalid action.')
+            Message.add(request, 'error', 'Invalid action.')
 
         return redirect('users')
 
@@ -765,12 +764,12 @@ def users(request):
 def user_edit(request, username):
     # Validate given username.
     if username == request.user.username:
-        messages.error(request, 'Invalid username.')
+        Message.add(request, 'error', 'Invalid username.')
         return redirect('users')
     try:
         user = User.objects.get(username=username)
     except User.DoesNotExist:
-        messages.error(request, 'Invalid username.')
+        Message.add(request, 'error', 'Invalid username.')
         return redirect('users')
 
     if request.method == 'POST':
@@ -779,7 +778,7 @@ def user_edit(request, username):
             email = form.cleaned_data['email']
             user.email = email
             user.save()
-            messages.success(request, 'User "%s" edited.' % username)
+            Message.add(request, 'success', 'User "%s" edited.' % username)
             return redirect('users')
     else:
         form = EditUserForm()
@@ -794,12 +793,12 @@ def user_edit(request, username):
 def user_change_password(request, username):
     # Validate given username.
     if username == request.user.username:
-        messages.error(request, 'Invalid username.')
+        Message.add(request, 'error', 'Invalid username.')
         return redirect('users')
     try:
         user = User.objects.get(username=username)
     except User.DoesNotExist:
-        messages.error(request, 'Invalid username.')
+        Message.add(request, 'error', 'Invalid username.')
         return redirect('users')
 
     if request.method == 'POST':
@@ -808,7 +807,7 @@ def user_change_password(request, username):
             form.save()
             user.update_kubernetes_credentials()
             User.export_to_htpasswd(settings.HTPASSWD_EXPORT_DIR)
-            messages.success(request, 'Password changed for user "%s".' % username)
+            Message.add(request, 'success', 'Password changed for user "%s".' % username)
             return redirect('users')
     else:
         form = SetPasswordForm(user)
@@ -835,6 +834,37 @@ def signup(request):
                                                      'next': settings.LOGIN_REDIRECT_URL})
 
 @login_required
+def messages(request):
+    # Fill in the contents.
+    contents = []
+    for message in request.user.messages.filter():
+        contents.append({'label': message.label,
+                         'level': message.level,
+                         'message': message.message,
+                         'created': message.created})
+
+    # Sort them up.
+    sort_by = request.GET.get('sort_by')
+    if sort_by and sort_by in ('created'):
+        request.session['messages_sort_by'] = sort_by
+    else:
+        sort_by = request.session.get('messages_sort_by', 'created')
+    order = request.GET.get('order')
+    if order and order in ('asc', 'desc'):
+        request.session['messages_order'] = order
+    else:
+        order = request.session.get('messages_order', 'desc')
+
+    contents = sorted(contents,
+                      key=lambda x: x[sort_by],
+                      reverse=True if order == 'desc' else False)
+
+    return render(request, 'dashboard/messages.html', {'title': 'Messages',
+                                                       'contents': contents,
+                                                       'sort_by': sort_by,
+                                                       'order': order})
+
+@login_required
 def change_password(request):
     next_url = request.GET.get('next', settings.LOGIN_REDIRECT_URL)
 
@@ -845,7 +875,7 @@ def change_password(request):
             update_session_auth_hash(request, user)
             user.update_kubernetes_credentials()
             User.export_to_htpasswd(settings.HTPASSWD_EXPORT_DIR)
-            messages.success(request, 'Password successfully changed.')
+            Message.add(request, 'success', 'Password successfully changed.')
             return redirect(next_url)
     else:
         form = PasswordChangeForm(request.user)

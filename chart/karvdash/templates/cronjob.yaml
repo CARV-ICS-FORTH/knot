@@ -21,5 +21,6 @@ spec:
             args:
             - POD_NAME=$(kubectl get pods -l app={{ .Release.Name }} -o=jsonpath='{.items[0].metadata.name}');
               kubectl exec $POD_NAME -c karvdash -- python manage.py deleteexpireduploads;
+              kubectl exec $POD_NAME -c karvdash -- python manage.py deleteexpiredmessages;
               sleep 120
           restartPolicy: OnFailure

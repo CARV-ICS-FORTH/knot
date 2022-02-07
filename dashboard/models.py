@@ -20,6 +20,7 @@ import random
 from django.db import models
 from django.contrib.auth.models import User as AuthUser
 from django.contrib.auth.signals import user_logged_in
+from django.contrib import messages
 from django.dispatch import receiver
 from django.conf import settings
 from urllib.parse import urlparse
@@ -301,6 +302,25 @@ def generate_token():
 class APIToken(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
     token = models.CharField(max_length=64, blank=False, null=False, default=generate_token)
+
+class Message(models.Model):
+    user = models.ForeignKey(User, related_name='messages', on_delete=models.CASCADE)
+    level = models.CharField(max_length=8, choices=[(k.lower(), k.lower()) for k in messages.DEFAULT_LEVELS.keys()], blank=False, null=False)
+    message = models.TextField()
+    created = models.DateTimeField(auto_now_add=True)
+
+    @classmethod
+    def add(cls, request, level, message):
+        cls.objects.create(user=request.user, level=level, message=message)
+        messages.add_message(request, messages.DEFAULT_LEVELS[level.upper()], message)
+
+    @property
+    def label(self):
+        if self.level == 'debug':
+            return 'secondary'
+        if self.level == 'error':
+            return 'danger'
+        return self.level
 
 @receiver(user_logged_in)
 def create_user_namespace(sender, user, request, **kwargs):

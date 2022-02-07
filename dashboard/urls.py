@@ -42,6 +42,7 @@ urlpatterns = [
 
     path('signup', views.signup, name='signup'),
     path('login', auth_views.LoginView.as_view(template_name='dashboard/login.html'), name='login'),
+    path('messages', views.messages, name='messages'),
     path('change_password', views.change_password, name='change_password'),
     path('logout', views.logout, {'next_url': settings.LOGOUT_REDIRECT_URL}, name='logout'),
 
