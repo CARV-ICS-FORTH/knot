@@ -14,7 +14,8 @@
 
 SHELL=/bin/bash
 
-USE_MINIKUBE?=no
+MINIKUBE?=no
+BAREMETAL?=no
 
 REGISTRY_NAME?=carvicsforth
 KUBECTL_VERSION?=v1.22.4
@@ -28,10 +29,13 @@ CHART_DIR=./chart/karvdash
 
 all: container
 
-ifneq (${USE_MINIKUBE}, yes)
-IP_ADDRESS=$(shell ipconfig getifaddr en0 || ipconfig getifaddr en1)
-else
+ifeq (${MINIKUBE}, yes)
 IP_ADDRESS=$(shell minikube ip)
+else ifneq (${BAREMETAL}, yes)
+IP_ADDRESS=$(shell ipconfig getifaddr en0 || ipconfig getifaddr en1)
+endif
+ifndef IP_ADDRESS
+$(error IP_ADDRESS is not set)
 endif
 
 INGRESS_URL=${IP_ADDRESS}.nip.io
@@ -60,6 +64,7 @@ spec:
   issuerRef:
     name: selfsigned
 endef
+export INGRESS_CERTIFICATE
 
 JUPYTERHUB_CLIENT_ID=56kSn87XXbk4GuFBQ7zQrXcVQNyyMWKb1vR2diUZ
 JUPYTERHUB_CLIENT_SECRET=FvxWxBTbhgQbo1sGbc6yLsza0Vwo6jZQBpiOSDYcghCjWWcpRzBygzJSQ8M4CunflPn9pCOr25vVnGr0N2ytR6FjklSesc28BqkHSM6aVIYA5RKFZaOpiMj9Ghc5VDfN
@@ -70,9 +75,8 @@ c.KubeSpawner.enable_user_namespaces = True
 c.KubeSpawner.user_namespace_template = "karvdash-{username}"
 c.KubeSpawner.notebook_dir = "/private/notebooks"
 endef
-
-export INGRESS_CERTIFICATE
 export JUPYTERHUB_CONFIG
+
 deploy-requirements:
 	if [[ `helm version --short` != v3* ]]; then echo "Can not find Helm 3 installed"; exit 1; fi
 	helm repo add twuni https://helm.twun.io
@@ -82,15 +86,32 @@ deploy-requirements:
 	helm repo add argo https://argoproj.github.io/argo-helm
 	helm repo update
 	# Deploy Docker Registry
-ifneq (${USE_MINIKUBE}, yes)
+ifeq (${MINIKUBE}, yes)
+	minikube addons enable registry
+else
 	kubectl create namespace registry || true
+ifeq (${BAREMETAL}, yes)
+	mkdir -p db/registry
+	helm list --namespace registry -q | grep registry || \
+	helm install registry twuni/docker-registry --version 1.16.0 --namespace registry \
+	--set persistence.enabled=false \
+	--set persistence.deleteEnabled=true \
+	--set service.type=NodePort \
+	--set storage="custom" \
+	--set extraVolumes\[0\].name="registry-volume" \
+	--set extraVolumes\[0\].hostPath.path="${PWD}/db/registry" \
+	--set extraVolumeMounts\[0\].name="registry-volume" \
+	--set extraVolumeMounts\[0\].mountPath="/var/lib/registry" \
+	--set extraEnvVars\[0\].name="REGISTRY_STORAGE_FILESYSTEM_ROOTDIRECTORY" \
+	--set extraEnvVars\[0\].value="/var/lib/registry"
+	kubectl patch svc -n registry `kubectl get svc -n registry -o jsonpath='{.items[0].metadata.name}'` -p '{"spec":{"externalIPs":["'${IP_ADDRESS}'"]}}'
+else
 	helm list --namespace registry -q | grep registry || \
 	helm install registry twuni/docker-registry --version 1.16.0 --namespace registry \
 	--set persistence.enabled=true \
 	--set persistence.deleteEnabled=true \
 	--set service.type=LoadBalancer
-else
-	minikube addons enable registry
+endif
 endif
 	# Deploy cert-manager
 	kubectl create namespace cert-manager || true
@@ -107,8 +128,12 @@ endif
 	--set controller.ingressClassResource.default=true \
 	--set controller.extraArgs.default-ssl-certificate=ingress-nginx/ssl-certificate \
 	--set controller.admissionWebhooks.enabled=false
-ifeq (${USE_MINIKUBE}, yes)
+ifeq (${MINIKUBE}, yes)
 	kubectl patch svc -n ingress-nginx `kubectl get svc -n ingress-nginx -o jsonpath='{.items[0].metadata.name}'` -p '{"spec":{"externalIPs":["'${IP_ADDRESS}'"]}}'
+else ifeq (${BAREMETAL}, yes)
+	helm upgrade ingress ingress-nginx/ingress-nginx --version 4.0.13 --namespace ingress-nginx --reuse-values \
+	--set controller.service.externalIPs[0]=${IP_ADDRESS} \
+	--set controller.service.type=NodePort
 endif
 	# Deploy JupyterHub
 	kubectl create namespace jupyterhub || true
@@ -140,6 +165,18 @@ endif
 	--set scheduling.userScheduler.enabled=false \
 	--set ingress.enabled=true \
 	--set ingress.hosts\[0\]=jupyterhub.${INGRESS_URL}
+ifeq (${BAREMETAL}, yes)
+	mkdir -p db/jupyterhub
+	chown 1000:1000 db/jupyterhub
+	helm upgrade jupyterhub jupyterhub/jupyterhub --version=1.2.0 --namespace jupyterhub --reuse-values \
+	--set hub.db.type=other \
+	--set hub.db.upgrade=true \
+	--set hub.db.url="sqlite:///jupyterhub.sqlite" \
+	--set hub.extraVolumes\[0\].name="jupyterhub-volume" \
+	--set hub.extraVolumes\[0\].hostPath.path="${PWD}/db/jupyterhub" \
+	--set hub.extraVolumeMounts\[0\].name="jupyterhub-volume" \
+	--set hub.extraVolumeMounts\[0\].mountPath="/srv/jupyterhub"
+endif
 	kubectl create clusterrolebinding jupyterhub-cluster-admin --clusterrole=cluster-admin --serviceaccount=jupyterhub:hub
 	# Deploy Argo Workflows
 	kubectl create namespace argo || true
@@ -185,11 +222,11 @@ undeploy-requirements:
 	helm uninstall cert-manager --namespace cert-manager || true
 	kubectl delete namespace cert-manager || true
 	# Remove Docker Registry
-ifneq (${USE_MINIKUBE}, yes)
+ifeq (${MINIKUBE}, yes)
+	minikube addons disable registry
+else
 	helm uninstall registry --namespace registry || true
 	kubectl delete namespace registry || true
-else
-	minikube addons disable registry
 endif
 
 deploy-crds:

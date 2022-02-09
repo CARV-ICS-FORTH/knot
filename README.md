@@ -106,6 +106,8 @@ kubectl delete clusterrolebinding docker-for-desktop-binding
 kubectl create clusterrolebinding default-cluster-admin --clusterrole=cluster-admin --serviceaccount=default:default
 ```
 
+For development on bare metal, check out [these](https://github.com/CARV-ICS-FORTH/karvdash/tree/master/INSTALL.md) instructions that show how to install *everything*, including Docker and Kubernetes.
+
 ## Building images
 
 Container images for Karvdash are [available](https://hub.docker.com/r/carvicsforth/karvdash). To build your own locally, run:
