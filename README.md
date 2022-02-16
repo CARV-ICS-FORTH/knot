@@ -23,12 +23,12 @@ To install, you need a running Kubernetes environment with the following feature
 Karvdash can run side-by-side with [JupyterHub](https://jupyter.org/hub), [Argo Workflows](https://argoproj.github.io/workflows), and [Grafana](https://grafana.com)/[Prometheus](https://prometheus.io), providing SSO services to users. For Argo Workflows, Karvdash also configures appropriate authorization directives, so each user will be allowed to access resources in the corresponding Karvdash-defined namespace.
 
 Optionally, you can also have Karvdash act as a frontend to:
-* A private container registry. You can run the one from Docker using [these](https://docs.docker.com/registry/deploying/) instructions, or [this](https://artifacthub.io/packages/helm/twuni/docker-registry) Helm chart.
+* A private container registry (like [the one](https://docs.docker.com/registry/) provided by Docker).
 * [Datashim](https://github.com/datashim-io/datashim), in which case Karvdash can be used to configure datasets (references to objects in S3 buckets that will be mounted in user containers as files).
 
-Our [Makefile](https://github.com/CARV-ICS-FORTH/karvdash/tree/master/Makefile) deploys all the above for [local development](#Development), using [this](https://github.com/CARV-ICS-FORTH/karvdash/tree/master/helmfile.yaml) configuration for [Helmfile](https://github.com/roboll/helmfile).
+Our [Makefile](https://github.com/CARV-ICS-FORTH/karvdash/blob/master/Makefile) deploys all the above for [local development](#Development), using [this](https://github.com/CARV-ICS-FORTH/karvdash/blob/master/helmfile.yaml) configuration for [Helmfile](https://github.com/roboll/helmfile).
 
-Consult the Karvdash [Helm chart README](https://github.com/CARV-ICS-FORTH/karvdash/tree/master/chart/README.md) for all deployment options.
+Consult the Karvdash [Helm chart README](https://github.com/CARV-ICS-FORTH/karvdash/blob/master/chart/karvdash/README.md) for all deployment options.
 
 ## Development
 
@@ -48,7 +48,7 @@ make develop
 
 When done, point your browser to `https://<your IP address>.nip.io` and login as "admin".
 
-For development on bare metal, check out [these](https://github.com/CARV-ICS-FORTH/karvdash/tree/master/INSTALL.md) instructions that show how to install *everything*, including Docker and Kubernetes.
+For development on bare metal, check out [these](https://github.com/CARV-ICS-FORTH/karvdash/blob/master/INSTALL.md) instructions that show how to install *everything*, including Docker and Kubernetes.
 
 ## Building images
 
