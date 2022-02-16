@@ -55,6 +55,8 @@ Some of the variables set above are required. The table below lists all availabl
 | `karvdash.jupyterHubNotebookDir`    |          | Directory to create in the private file domain for JupyterHub notebooks.                   |                                   |
 | `karvdash.argoWorkflowsURL`         |          | Argo Workflows URL for integration with the workflow frontend.                             |                                   |
 | `karvdash.argoWorkflowsNamespace`   |          | Argo Workflows namespace for integration.                                                  |                                   |
+| `karvdash.grafanaURL`               |          | Grafana URL for integration with the metrics frontend.                                     |                                   |
+| `karvdash.grafanaNamespace`         |          | Grafana namespace for integration.                                                         |                                   |
 
 Set `karvdash.filesURL` to:
 * `file://<path>`, if using a node-wide, shared mountpoint for files.

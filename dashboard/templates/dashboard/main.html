@@ -55,6 +55,13 @@
             <i class="fa fa-folder" aria-hidden="true"></i> Files
           </a>
         </li>
+        {% if grafana_url %}
+        <li class="nav-item">
+          <a class="nav-link" href="{{ grafana_url }}" target="_blank">
+            <i class="fa fa-area-chart" aria-hidden="true"></i> Metrics
+          </a>
+        </li>
+        {% endif %}
         {% if user.is_staff %}
         <li class="nav-item">
           <a class="nav-link {% if title == 'Users' %}active{% endif %}" href="{% url 'users' %}">

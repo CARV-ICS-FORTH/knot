@@ -23,6 +23,10 @@ environments:
         enabled: true
         clientID: T8DrPY49xlYvjsJ1nUIhxs17fG07gMZpQSOM7d3K
         clientSecret: 6TjANPj1oe59MexsTYdMV5yiSyOYULDEzkyxfff4CmAPFa8mQ1dhYE7BHeEEVyg1tRgTkXRWYj2zhiKLiLZvhUGDnrixQQDshrWVtWCgQX23Vmdo37ktuVmsgOEfO2eG
+    - grafana:
+        enabled: true
+        clientID: tSlY0FSd7tmS7jR0J6KLyIhisd9yYitlmyx3oVb3
+        clientSecret: eYLaIV2NtZHhR7M9zh1ouLl4LpuwwpcrYBspXbS2gTCm61Hn01ghmZf7iBxxk5r3SdPHnlg6Ovm6IKK4CmJKNl8gnkvxjmOt7YOxZJR0BJH8DPHnA9Nh6pHpmESM8mfE
   # Minimal deployment for development with minikube.
   minikube:
     values:
@@ -39,6 +43,8 @@ environments:
         enabled: true
         clientID: T8DrPY49xlYvjsJ1nUIhxs17fG07gMZpQSOM7d3K
         clientSecret: 6TjANPj1oe59MexsTYdMV5yiSyOYULDEzkyxfff4CmAPFa8mQ1dhYE7BHeEEVyg1tRgTkXRWYj2zhiKLiLZvhUGDnrixQQDshrWVtWCgQX23Vmdo37ktuVmsgOEfO2eG
+    - grafana:
+        enabled: false
   # Use local folders instead of volumes for development on baremetal.
   baremetal:
     values:
@@ -74,6 +80,10 @@ environments:
         enabled: true
         clientID: T8DrPY49xlYvjsJ1nUIhxs17fG07gMZpQSOM7d3K
         clientSecret: 6TjANPj1oe59MexsTYdMV5yiSyOYULDEzkyxfff4CmAPFa8mQ1dhYE7BHeEEVyg1tRgTkXRWYj2zhiKLiLZvhUGDnrixQQDshrWVtWCgQX23Vmdo37ktuVmsgOEfO2eG
+    - grafana:
+        enabled: true
+        clientID: tSlY0FSd7tmS7jR0J6KLyIhisd9yYitlmyx3oVb3
+        clientSecret: eYLaIV2NtZHhR7M9zh1ouLl4LpuwwpcrYBspXbS2gTCm61Hn01ghmZf7iBxxk5r3SdPHnlg6Ovm6IKK4CmJKNl8gnkvxjmOt7YOxZJR0BJH8DPHnA9Nh6pHpmESM8mfE
 ---
 repositories:
 - name: cert-manager
@@ -95,6 +105,10 @@ repositories:
   url: https://emberstack.github.io/helm-charts
 - name: argo
   url: https://argoproj.github.io/argo-helm
+{{- end }}
+{{- if .Values.grafana.enabled }}
+- name: prometheus-community
+  url: https://prometheus-community.github.io/helm-charts
 {{- end }}
 releases:
 - name: cert-manager
@@ -389,4 +403,62 @@ releases:
       data:
         client-id: {{ .Values.argo.clientID | b64enc }}
         client-secret: {{ .Values.argo.clientSecret | b64enc }}
+{{- end }}
+{{- if .Values.grafana.enabled }}
+- name: monitoring
+  namespace: monitoring
+  createNamespace: true
+  chart: prometheus-community/kube-prometheus-stack
+  version: 32.2.0
+  values:
+  - alertmanager:
+      enabled: false
+  - grafana:
+      ingress:
+        enabled: true
+        annotations:
+          "nginx.ingress.kubernetes.io/force-ssl-redirect": "true"
+        hosts:
+        - grafana.{{ .Values.ingress.host }}
+      "grafana.ini":
+        auth:
+          oauth_auto_login: true
+          disable_login_form: true
+          disable_signout_menu: false
+        "auth.generic_oauth":
+          enabled: true
+          allow_sign_up: true
+          client_id: {{ .Values.grafana.clientID }}
+          client_secret: {{ .Values.grafana.clientSecret }}
+          {{- if .Values.ingress.createSelfsignedCertificate }}
+          tls_skip_verify_insecure: true
+          {{- end }}
+          auth_url: https://{{ .Values.ingress.host }}/oauth/authorize/
+          token_url: https://{{ .Values.ingress.host }}/oauth/token/
+          api_url: https://{{ .Values.ingress.host }}/oauth/userinfo/
+          scopes: "openid profile email"
+          login_attribute_path: preferred_username
+          name_attribute_path: name
+          email_attribute_name: email
+        server:
+          root_url: https://grafana.{{ .Values.ingress.host }}
+        users:
+          allow_sign_up: false
+  - prometheus-node-exporter:
+      hostRootFsMount: false
+- name: grafana-oauth-secret
+  namespace: monitoring
+  createNamespace: true
+  chart: bedag/raw
+  version: 1.1.0
+  values:
+  - resources:
+    - apiVersion: v1
+      kind: Secret
+      metadata:
+        name: karvdash-oauth-grafana
+      type: Opaque
+      data:
+        client-id: {{ .Values.grafana.clientID | b64enc }}
+        client-secret: {{ .Values.grafana.clientSecret | b64enc }}
 {{- end }}

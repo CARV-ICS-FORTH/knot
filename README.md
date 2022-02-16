@@ -20,7 +20,7 @@ To install, you need a running Kubernetes environment with the following feature
 * For storage of Karvdash state, an existing persistent volume claim, or a directory in a shared filesystem mounted at the same path across all Kubernetes nodes.
 * For files, either a shared filesystem like the one used for storing the configuration, or an NFS server. If using an NFS server, you should also install the [NFS CSI Driver](https://github.com/kubernetes-csi/csi-driver-nfs).
 
-Karvdash can run side-by-side with [JupyterHub](https://jupyter.org/hub) and [Argo Workflows](https://argoproj.github.io/workflows), providing SSO services to users. For Argo Workflows, Karvdash also configures appropriate authorization directives, so each user will be allowed to access resources in the corresponding Karvdash-defined namespace.
+Karvdash can run side-by-side with [JupyterHub](https://jupyter.org/hub), [Argo Workflows](https://argoproj.github.io/workflows), and [Grafana](https://grafana.com)/[Prometheus](https://prometheus.io), providing SSO services to users. For Argo Workflows, Karvdash also configures appropriate authorization directives, so each user will be allowed to access resources in the corresponding Karvdash-defined namespace.
 
 Optionally, you can also have Karvdash act as a frontend to:
 * A private container registry. You can run the one from Docker using [these](https://docs.docker.com/registry/deploying/) instructions, or [this](https://artifacthub.io/packages/helm/twuni/docker-registry) Helm chart.
@@ -39,7 +39,7 @@ DEVELOPMENT=yes make deploy-local
 make prepare-develop
 ```
 
-This will setup all requirements (cert-manager and an SSL-enabled ingress controller), as well as optional integrations (JupyterHub, Argo Workflows, a private container registry), and set up a virtual environment to run Karvdash from the command line. You need to have [Helm](https://helm.sh), the [Helm diff plugin](https://github.com/databus23/helm-diff), and [Helmfile](https://github.com/roboll/helmfile) installed. A proxy will forward all requests locally, including requests to the mutating admission webhook to attach file domains and datasets to service containers.
+This will setup all requirements (cert-manager and an SSL-enabled ingress controller), as well as optional integrations (JupyterHub, Argo Workflows, Grafana/Prometheus, a private container registry), and set up a virtual environment to run Karvdash from the command line. You need to have [Helm](https://helm.sh), the [Helm diff plugin](https://github.com/databus23/helm-diff), and [Helmfile](https://github.com/roboll/helmfile) installed. A proxy will forward all requests locally, including requests to the mutating admission webhook to attach file domains and datasets to service containers.
 
 Then, start the local server with:
 ```bash

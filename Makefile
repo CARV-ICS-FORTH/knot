@@ -97,7 +97,9 @@ deploy-local:
 	--set karvdash.jupyterHubNamespace="jupyterhub" \
 	--set karvdash.jupyterHubNotebookDir="notebooks" \
 	--set karvdash.argoWorkflowsURL="https://argo.${INGRESS_URL}" \
-	--set karvdash.argoWorkflowsNamespace="argo"
+	--set karvdash.argoWorkflowsNamespace="argo" \
+	--set karvdash.grafanaURL="https://grafana.${INGRESS_URL}" \
+	--set karvdash.grafanaNamespace="monitoring"
 
 undeploy-local:
 	helm uninstall karvdash --namespace default
@@ -125,6 +127,8 @@ develop:
 	export KARVDASH_JUPYTERHUB_NOTEBOOK_DIR="notebooks"; \
 	export KARVDASH_ARGO_WORKFLOWS_URL="https://argo.${INGRESS_URL}"; \
 	export KARVDASH_ARGO_WORKFLOWS_NAMESPACE="argo"; \
+	export KARVDASH_GRAFANA_URL="https://grafana.${INGRESS_URL}"; \
+	export KARVDASH_GRAFANA_NAMESPACE="monitoring"; \
 	./manage.py runserver 0.0.0.0:8000
 
 container:

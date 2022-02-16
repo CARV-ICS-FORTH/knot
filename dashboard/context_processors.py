@@ -22,4 +22,5 @@ def settings(request):
             'images_available': True if django_settings.REGISTRY_URL else False,
             'datasets_available': django_settings.DATASETS_AVAILABLE,
             'jupyterhub_url': django_settings.JUPYTERHUB_URL,
-            'argo_workflows_url': django_settings.ARGO_WORKFLOWS_URL}
+            'argo_workflows_url': django_settings.ARGO_WORKFLOWS_URL,
+            'grafana_url': django_settings.GRAFANA_URL}

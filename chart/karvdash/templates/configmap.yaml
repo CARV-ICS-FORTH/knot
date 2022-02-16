@@ -102,6 +102,8 @@ data:
   KARVDASH_JUPYTERHUB_NOTEBOOK_DIR: {{- if .Values.karvdash.jupyterHubNotebookDir }} {{ .Values.karvdash.jupyterHubNotebookDir | quote }} {{- else }} "" {{- end }}
   KARVDASH_ARGO_WORKFLOWS_URL: {{- if .Values.karvdash.argoWorkflowsURL }} {{ .Values.karvdash.argoWorkflowsURL | quote }} {{- else }} "" {{- end }}
   KARVDASH_ARGO_WORKFLOWS_NAMESPACE: {{- if .Values.karvdash.argoWorkflowsNamespace }} {{ .Values.karvdash.argoWorkflowsNamespace | quote }} {{- else }} "" {{- end }}
+  KARVDASH_GRAFANA_URL: {{- if .Values.karvdash.grafanaURL }} {{ .Values.karvdash.grafanaURL | quote }} {{- else }} "" {{- end }}
+  KARVDASH_GRAFANA_NAMESPACE: {{- if .Values.karvdash.grafanaNamespace }} {{ .Values.karvdash.grafanaNamespace | quote }} {{- else }} "" {{- end }}
 ---
 apiVersion: v1
 kind: ConfigMap

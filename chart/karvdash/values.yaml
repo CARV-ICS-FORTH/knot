@@ -79,3 +79,8 @@ karvdash:
   argoWorkflowsURL:
   # Argo Workflows namespace for integration.
   argoWorkflowsNamespace:
+
+  # Grafana URL for integration with the metrics frontend.
+  grafanaURL:
+  # Grafana namespace for integration.
+  grafanaNamespace:

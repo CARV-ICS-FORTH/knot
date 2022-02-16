@@ -12,5 +12,8 @@ fi
 if [[ -n $KARVDASH_ARGO_WORKFLOWS_URL && -n $KARVDASH_ARGO_WORKFLOWS_NAMESPACE ]]; then
     python manage.py createoauthapplication --name argo --redirect-uri $KARVDASH_ARGO_WORKFLOWS_URL/oauth2/callback --secret-name karvdash-oauth-argo --secret-namespace $KARVDASH_ARGO_WORKFLOWS_NAMESPACE
 fi
+if [[ -n $KARVDASH_GRAFANA_URL && -n $KARVDASH_GRAFANA_NAMESPACE ]]; then
+    python manage.py createoauthapplication --name grafana --redirect-uri $KARVDASH_GRAFANA_URL/login/generic_oauth --secret-name karvdash-oauth-grafana --secret-namespace $KARVDASH_GRAFANA_NAMESPACE
+fi
 
 gunicorn -w 4 -t $TIMEOUT -b 0.0.0.0:8000 karvdash.wsgi:application
