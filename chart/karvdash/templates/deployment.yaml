@@ -56,58 +56,17 @@ spec:
           subPath: webhook
         {{- end }}
       - image: {{- if .Values.image }} {{ .Values.image }} {{- else }} carvicsforth/karvdash:v{{ .Chart.Version }} {{- end }}
-        name: karvdash
+        name: dashboard
+        envFrom:
+        - secretRef:
+            name: {{ .Release.Name }}-secret
+        - configMapRef:
+            name: {{ .Release.Name }}-env
         env:
-        - name: DJANGO_SECRET
-          valueFrom:
-            secretKeyRef:
-              name: {{ .Release.Name }}-secret
-              key: django-secret
-        - name: DJANGO_DEBUG
-          value: {{ .Values.karvdash.djangoDebug | quote }}
-        - name: KARVDASH_TIMEOUT
-          value: {{ .Values.karvdash.timeout | quote }}
-        - name: KARVDASH_ADMIN_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              name: {{ .Release.Name }}-secret
-              key: admin-password
-        - name: KARVDASH_NAMESPACE
-          value: {{ .Release.Namespace }}
-        - name: KARVDASH_LDAP_SERVER_URL
-          value: {{ .Values.karvdash.ldapServerURL | quote }}
-        - name: KARVDASH_LDAP_USER_DN_TEMPLATE
-          value: {{ .Values.karvdash.ldapUserDNTemplate | quote }}
-        - name: KARVDASH_LDAP_USER_ATTR_MAP
-          value: {{ .Values.karvdash.ldapUserAttrMap | quote }}
-        - name: KARVDASH_VOUCH_URL
-          value: {{ printf "%s://vouch.%s" ($ingressURL | urlParse).scheme (split ":" ($ingressURL | urlParse).host)._0 | quote }}
-        - name: KARVDASH_VOUCH_SECRET
-          value: {{ .Release.Name }}-oauth-vouch
-        - name: KARVDASH_HTPASSWD_EXPORT_DIR
-          value: {{ .Values.karvdash.htpasswdExportDir | quote }}
-        - name: KARVDASH_DASHBOARD_TITLE
-          value: {{ .Values.karvdash.dashboardTitle | quote }}
-        - name: KARVDASH_DOCUMENTATION_URL
-          value: {{ .Values.karvdash.documentationURL | quote }}
-        - name: KARVDASH_ISSUES_URL
-          value: {{ .Values.karvdash.issuesURL | quote }}
-        - name: KARVDASH_INGRESS_URL
-          value: {{ $ingressURL | quote }}
-        - name: KARVDASH_REGISTRY_URL
-          value: {{ .Values.karvdash.registryURL | quote }}
         {{- if .Values.karvdash.registryCert }}
         - name: KARVDASH_REGISTRY_CERT_FILE
           value: /etc/karvdash/registry_cert_file
         {{- end }}
-        - name: KARVDASH_DATASETS_AVAILABLE
-          value: {{ .Values.karvdash.datasetsAvailable | quote }}
-        - name: KARVDASH_SERVICE_DOMAIN
-          value: {{ printf "%s.%s.svc" .Release.Name .Release.Namespace | quote }}
-        - name: KARVDASH_FILES_URL
-          value: {{ .Values.karvdash.filesURL | quote }}
-        - name: KARVDASH_ALLOWED_HOSTPATH_DIRS
-          value: {{ .Values.karvdash.allowedHostPathDirs | quote }}
         {{- if .Values.karvdash.disabledServiceTemplates }}
         - name: KARVDASH_DISABLED_SERVICE_TEMPLATES_FILE
           value: /etc/karvdash/disabled_service_templates
@@ -120,37 +79,27 @@ spec:
         - name: KARVDASH_SERVICE_URL_PREFIXES_FILE
           value: /etc/karvdash/service_url_prefixes
         {{- end }}
-        - name: KARVDASH_JUPYTERHUB_URL
-          value: {{ .Values.karvdash.jupyterHubURL | quote }}
-        - name: KARVDASH_JUPYTERHUB_NAMESPACE
-          value: {{ .Values.karvdash.jupyterHubNamespace | quote }}
-        - name: KARVDASH_JUPYTERHUB_NOTEBOOK_DIR
-          value: {{ .Values.karvdash.jupyterHubNotebookDir | quote }}
-        - name: KARVDASH_ARGO_WORKFLOWS_URL
-          value: {{ .Values.karvdash.argoWorkflowsURL | quote }}
-        - name: KARVDASH_ARGO_WORKFLOWS_NAMESPACE
-          value: {{ .Values.karvdash.argoWorkflowsNamespace | quote }}
         ports:
         - containerPort: 8000
           name: http
         volumeMounts:
         {{- if .Values.karvdash.registryCert }}
-        - name: {{ .Release.Name }}-config
+        - name: {{ .Release.Name }}-files-config
           mountPath: /etc/karvdash/registry_cert_file
           subPath: registry_cert_file
         {{- end }}
         {{- if .Values.karvdash.disabledServiceTemplates }}
-        - name: {{ .Release.Name }}-config
+        - name: {{ .Release.Name }}-files-config
           mountPath: /etc/karvdash/disabled_service_templates
           subPath: disabled_service_templates
         {{- end }}
         {{- if .Values.karvdash.disabledDatasetTemplates }}
-        - name: {{ .Release.Name }}-config
+        - name: {{ .Release.Name }}-files-config
           mountPath: /etc/karvdash/disabled_dataset_templates
           subPath: disabled_dataset_templates
         {{- end }}
         {{- if .Values.karvdash.serviceURLPrefixes }}
-        - name: {{ .Release.Name }}-config
+        - name: {{ .Release.Name }}-files-config
           mountPath: /etc/karvdash/service_url_prefixes
           subPath: service_url_prefixes
         {{- end }}
@@ -164,23 +113,10 @@ spec:
           mountPath: /files
       - image: voucher/vouch-proxy:0.27.1
         name: vouch-proxy
+        envFrom:
+        - configMapRef:
+            name: {{ .Release.Name }}-vouch-proxy
         env:
-        - name: VOUCH_ALLOWALLUSERS
-          value: "true"
-        - name: VOUCH_COOKIE_DOMAIN
-          value: {{ (split ":" ($ingressURL | urlParse).host)._0 }}
-        - name: VOUCH_COOKIE_SECURE
-          value: "false"
-        - name: VOUCH_HEADERS_CLAIMS
-          value: "preferred_username"
-        - name: OAUTH_PROVIDER
-          value: oidc
-        - name: OAUTH_AUTH_URL
-          value: {{ $ingressURL }}/oauth/authorize/
-        - name: OAUTH_TOKEN_URL
-          value: http://127.0.0.1/oauth/token/
-        - name: OAUTH_USER_INFO_URL
-          value: http://127.0.0.1/oauth/userinfo/
         - name: OAUTH_CLIENT_ID
           valueFrom:
             secretKeyRef:
@@ -191,15 +127,13 @@ spec:
             secretKeyRef:
               name: {{ .Release.Name }}-oauth-vouch
               key: client-secret
-        - name: OAUTH_CALLBACK_URL
-          value: {{ printf "%s://vouch.%s/auth" ($ingressURL | urlParse).scheme (split ":" ($ingressURL | urlParse).host)._0 | quote }}
         ports:
         - containerPort: 9090
           name: vouch-proxy
       volumes:
-      - name: {{ .Release.Name }}-config
+      - name: {{ .Release.Name }}-files-config
         configMap:
-          name: {{ .Release.Name }}
+          name: {{ .Release.Name }}-files
           defaultMode: 0644
       - name: {{ .Release.Name }}-proxy-config
         configMap:

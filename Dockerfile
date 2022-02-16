@@ -37,7 +37,7 @@ RUN if [ "${TARGETARCH}" = "amd64" ]; then \
 COPY . /app
 WORKDIR /app
 
-COPY --from=ldap-build /tmp/*.whl /tmp
+COPY --from=ldap-build /tmp/*.whl /tmp/
 RUN pip install /tmp/*.whl
 RUN pip install -r requirements.txt && \
     python manage.py collectstatic

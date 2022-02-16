@@ -13,6 +13,6 @@ spec:
   - port: 443
     name: https
   - port: 9090
-    name: vouch
+    name: vouch-proxy
   selector:
     app: {{ .Release.Name }}

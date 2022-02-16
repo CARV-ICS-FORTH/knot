@@ -65,14 +65,17 @@ karvdash:
   # List of predefined URL prefixes for services.
   serviceURLPrefixes:
 
-  # JupyterHub URL for integration with notebook frontend.
+  # If enabled, forward requests to another Karvdash instance.
+  developmentURL:
+
+  # JupyterHub URL for integration with the notebook frontend.
   jupyterHubURL:
   # JupyterHub namespace for integration.
   jupyterHubNamespace:
   # Directory to create in the private file domain for JupyterHub notebooks.
   jupyterHubNotebookDir:
 
-  # Argo Workflows URL for integration with workflow frontend.
+  # Argo Workflows URL for integration with the workflow frontend.
   argoWorkflowsURL:
   # Argo Workflows namespace for integration.
   argoWorkflowsNamespace:

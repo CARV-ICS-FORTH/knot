@@ -16,6 +16,7 @@ SHELL=/bin/bash
 
 MINIKUBE?=no
 BAREMETAL?=no
+DEVELOPMENT?=no
 
 REGISTRY_NAME?=carvicsforth
 KUBECTL_VERSION?=v1.22.4
@@ -25,182 +26,37 @@ KARVDASH_IMAGE_TAG=$(REGISTRY_NAME)/karvdash:$(KARVDASH_VERSION)
 
 CHART_DIR=./chart/karvdash
 
-.PHONY: all deploy-requirements undeploy-requirements deploy-crds undeploy-crds deploy-local undeploy-local prepare-develop container container-push release
+.PHONY: all deploy-requirements undeploy-requirements undeploy-crds deploy-local undeploy-local prepare-develop develop container container-push release
 
 all: container
 
 ifeq (${MINIKUBE}, yes)
 IP_ADDRESS=$(shell minikube ip)
+HELMFILE_ENV=minikube
 else ifneq (${BAREMETAL}, yes)
 IP_ADDRESS=$(shell ipconfig getifaddr en0 || ipconfig getifaddr en1)
-endif
+HELMFILE_ENV=default
+else
 ifndef IP_ADDRESS
 $(error IP_ADDRESS is not set)
 endif
+HELMFILE_ENV=baremetal
+endif
+
+ifneq (${DEVELOPMENT}, yes)
+DEVELOPMENT_URL=
+else
+DEVELOPMENT_URL=http://${IP_ADDRESS}:8000
+endif
 
 INGRESS_URL=${IP_ADDRESS}.nip.io
-define INGRESS_CERTIFICATE
-apiVersion: cert-manager.io/v1
-kind: Issuer
-metadata:
-  name: selfsigned
-spec:
-  selfSigned: {}
----
-apiVersion: cert-manager.io/v1
-kind: Certificate
-metadata:
-  name: ssl-certificate
-spec:
-  secretName: ssl-certificate
-  duration: 87600h
-  commonName: ${INGRESS_URL}
-  dnsNames:
-  - "${INGRESS_URL}"
-  - "*.${INGRESS_URL}"
-  privateKey:
-    algorithm: RSA
-    size: 2048
-  issuerRef:
-    name: selfsigned
-endef
-export INGRESS_CERTIFICATE
-
-JUPYTERHUB_CLIENT_ID=56kSn87XXbk4GuFBQ7zQrXcVQNyyMWKb1vR2diUZ
-JUPYTERHUB_CLIENT_SECRET=FvxWxBTbhgQbo1sGbc6yLsza0Vwo6jZQBpiOSDYcghCjWWcpRzBygzJSQ8M4CunflPn9pCOr25vVnGr0N2ytR6FjklSesc28BqkHSM6aVIYA5RKFZaOpiMj9Ghc5VDfN
-define JUPYTERHUB_CONFIG
-c.ConfigurableHTTPProxy.api_url = "http://proxy-api.jupyterhub.svc:8001"
-c.JupyterHub.hub_connect_url = "http://hub.jupyterhub.svc:8081"
-c.KubeSpawner.enable_user_namespaces = True
-c.KubeSpawner.user_namespace_template = "karvdash-{username}"
-c.KubeSpawner.notebook_dir = "/private/notebooks"
-endef
-export JUPYTERHUB_CONFIG
 
 deploy-requirements:
-	if [[ `helm version --short` != v3* ]]; then echo "Can not find Helm 3 installed"; exit 1; fi
-	helm repo add twuni https://helm.twun.io
-	helm repo add cert-manager https://charts.jetstack.io
-	helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
-	helm repo add jupyterhub https://jupyterhub.github.io/helm-chart/
-	helm repo add argo https://argoproj.github.io/argo-helm
-	helm repo update
-	# Deploy Docker Registry
-ifeq (${MINIKUBE}, yes)
-	minikube addons enable registry
-else
-	kubectl create namespace registry || true
+	export IP_ADDRESS="${IP_ADDRESS}"; \
+	helmfile -e ${HELMFILE_ENV} sync
 ifeq (${BAREMETAL}, yes)
-	mkdir -p db/registry
-	helm list --namespace registry -q | grep registry || \
-	helm install registry twuni/docker-registry --version 1.16.0 --namespace registry \
-	--set persistence.enabled=false \
-	--set persistence.deleteEnabled=true \
-	--set service.type=NodePort \
-	--set storage="custom" \
-	--set extraVolumes\[0\].name="registry-volume" \
-	--set extraVolumes\[0\].hostPath.path="${PWD}/db/registry" \
-	--set extraVolumeMounts\[0\].name="registry-volume" \
-	--set extraVolumeMounts\[0\].mountPath="/var/lib/registry" \
-	--set extraEnvVars\[0\].name="REGISTRY_STORAGE_FILESYSTEM_ROOTDIRECTORY" \
-	--set extraEnvVars\[0\].value="/var/lib/registry"
 	kubectl patch svc -n registry `kubectl get svc -n registry -o jsonpath='{.items[0].metadata.name}'` -p '{"spec":{"externalIPs":["'${IP_ADDRESS}'"]}}'
-else
-	helm list --namespace registry -q | grep registry || \
-	helm install registry twuni/docker-registry --version 1.16.0 --namespace registry \
-	--set persistence.enabled=true \
-	--set persistence.deleteEnabled=true \
-	--set service.type=LoadBalancer
 endif
-endif
-	# Deploy cert-manager
-	kubectl create namespace cert-manager || true
-	helm list --namespace cert-manager -q | grep cert-manager || \
-	helm install cert-manager cert-manager/cert-manager --version v1.6.1 --namespace cert-manager \
-	--set installCRDs=true
-	# Deploy NGINX Ingress Controller
-	kubectl create namespace ingress-nginx || true
-	kubectl get secret ssl-certificate -n ingress-nginx || \
-	echo "$$INGRESS_CERTIFICATE" | kubectl apply -n ingress-nginx -f -
-	helm list --namespace ingress-nginx -q | grep ingress || \
-	helm install ingress ingress-nginx/ingress-nginx --version 4.0.13 --namespace ingress-nginx \
-	--set controller.watchIngressWithoutClass=true \
-	--set controller.ingressClassResource.default=true \
-	--set controller.extraArgs.default-ssl-certificate=ingress-nginx/ssl-certificate \
-	--set controller.admissionWebhooks.enabled=false
-ifeq (${MINIKUBE}, yes)
-	kubectl patch svc -n ingress-nginx `kubectl get svc -n ingress-nginx -o jsonpath='{.items[0].metadata.name}'` -p '{"spec":{"externalIPs":["'${IP_ADDRESS}'"]}}'
-else ifeq (${BAREMETAL}, yes)
-	helm upgrade ingress ingress-nginx/ingress-nginx --version 4.0.13 --namespace ingress-nginx --reuse-values \
-	--set controller.service.externalIPs[0]=${IP_ADDRESS} \
-	--set controller.service.type=NodePort
-endif
-	# Deploy JupyterHub
-	kubectl create namespace jupyterhub || true
-	kubectl get secret karvdash-oauth-jupyterhub -n jupyterhub || \
-	kubectl create secret generic karvdash-oauth-jupyterhub -n jupyterhub --from-literal=client-id=${JUPYTERHUB_CLIENT_ID} --from-literal=client-secret=${JUPYTERHUB_CLIENT_SECRET}
-	helm list --namespace jupyterhub -q | grep jupyterhub || \
-	helm install jupyterhub jupyterhub/jupyterhub --version=1.2.0 --namespace jupyterhub \
-	--set hub.config.JupyterHub.authenticator_class=generic-oauth \
-	--set hub.config.Authenticator.auto_login=true \
-	--set hub.config.GenericOAuthenticator.client_id=${JUPYTERHUB_CLIENT_ID} \
-	--set hub.config.GenericOAuthenticator.client_secret=${JUPYTERHUB_CLIENT_SECRET} \
-	--set hub.config.GenericOAuthenticator.tls_verify=false \
-	--set hub.config.GenericOAuthenticator.oauth_callback_url=https://jupyterhub.${INGRESS_URL}/hub/oauth_callback \
-	--set hub.config.GenericOAuthenticator.authorize_url=https://${INGRESS_URL}/oauth/authorize/ \
-	--set hub.config.GenericOAuthenticator.token_url=https://${INGRESS_URL}/oauth/token/ \
-	--set hub.config.GenericOAuthenticator.userdata_url=https://${INGRESS_URL}/oauth/userinfo/ \
-	--set hub.config.GenericOAuthenticator.scope\[0\]=openid \
-	--set hub.config.GenericOAuthenticator.scope\[1\]=profile \
-	--set hub.config.GenericOAuthenticator.scope\[2\]=email \
-	--set hub.config.GenericOAuthenticator.username_key=preferred_username \
-	--set hub.extraConfig."myConfig\.py"="$$JUPYTERHUB_CONFIG" \
-	--set hub.networkPolicy.enabled=false \
-	--set proxy.service.type=ClusterIP \
-	--set proxy.chp.networkPolicy.enabled=false \
-	--set singleuser.networkPolicy.enabled=false \
-	--set singleuser.storage.type=none \
-	--set prePuller.hook.enabled=false \
-	--set prePuller.continuous.enabled=false \
-	--set scheduling.userScheduler.enabled=false \
-	--set ingress.enabled=true \
-	--set ingress.hosts\[0\]=jupyterhub.${INGRESS_URL}
-ifeq (${BAREMETAL}, yes)
-	mkdir -p db/jupyterhub
-	chown 1000:1000 db/jupyterhub
-	helm upgrade jupyterhub jupyterhub/jupyterhub --version=1.2.0 --namespace jupyterhub --reuse-values \
-	--set hub.db.type=other \
-	--set hub.db.upgrade=true \
-	--set hub.db.url="sqlite:///jupyterhub.sqlite" \
-	--set hub.extraVolumes\[0\].name="jupyterhub-volume" \
-	--set hub.extraVolumes\[0\].hostPath.path="${PWD}/db/jupyterhub" \
-	--set hub.extraVolumeMounts\[0\].name="jupyterhub-volume" \
-	--set hub.extraVolumeMounts\[0\].mountPath="/srv/jupyterhub"
-endif
-	kubectl create clusterrolebinding jupyterhub-cluster-admin --clusterrole=cluster-admin --serviceaccount=jupyterhub:hub
-	# Deploy Argo Workflows
-	kubectl create namespace argo || true
-	kubectl get configmap ssl-certificate -n argo || \
-	kubectl -n ingress-nginx wait --for condition=Ready certificate/ssl-certificate; \
-	kubectl create configmap ssl-certificate -n argo --from-literal="ca.crt=`kubectl get secret ssl-certificate -n ingress-nginx -o 'go-template={{index .data \"ca.crt\" | base64decode }}'`"
-	helm list --namespace argo -q | grep argo || \
-	helm install argo argo/argo-workflows --version 0.9.3 --namespace argo \
-	--set controller.containerRuntimeExecutor=k8sapi \
-	--set server.extraArgs\[0\]="--auth-mode=sso" \
-	--set server.volumeMounts\[0\].name="ssl-certificate-volume" \
-	--set server.volumeMounts\[0\].mountPath="/etc/ssl/certs/${INGRESS_URL}.crt" \
-	--set server.volumeMounts\[0\].subPath="ca.crt" \
-	--set server.volumes\[0\].name="ssl-certificate-volume" \
-	--set server.volumes\[0\].configMap.name="ssl-certificate" \
-	--set server.ingress.enabled=true \
-	--set server.ingress.hosts\[0\]=argo.${INGRESS_URL} \
-	--set server.sso.issuer=https://${INGRESS_URL}/oauth \
-	--set server.sso.clientId.name=karvdash-oauth-argo \
-	--set server.sso.clientId.key=client-id \
-	--set server.sso.clientSecret.name=karvdash-oauth-argo \
-	--set server.sso.clientSecret.key=client-secret \
-	--set server.sso.redirectUrl=https://argo.${INGRESS_URL}/oauth2/callback \
-	--set server.sso.rbac.enabled=true
 	# Deploy DLF
 	# kubectl apply -f https://raw.githubusercontent.com/datashim-io/datashim/master/release-tools/manifests/dlf.yaml
 	# kubectl wait --timeout=600s --for=condition=ready pods -l app.kubernetes.io/name=dlf -n dlf
@@ -208,29 +64,16 @@ endif
 undeploy-requirements:
 	# Remove DLF
 	# kubectl delete -f https://raw.githubusercontent.com/datashim-io/datashim/master/release-tools/manifests/dlf.yaml || true
-	# Remove Argo Workflows
-	helm uninstall argo --namespace argo || true
+	export IP_ADDRESS="${IP_ADDRESS}"; \
+	helmfile -e ${HELMFILE_ENV} delete
+	# Remove namespaces
+	kubectl delete namespace monitoring || true
 	kubectl delete namespace argo || true
-	# Remove JupyterHub
-	kubectl delete clusterrolebinding jupyterhub-cluster-admin || true
-	helm uninstall jupyterhub --namespace jupyterhub || true
+	kubectl delete namespace reflector || true
 	kubectl delete namespace jupyterhub || true
-	# Remove NGINX Ingress Controller
-	helm uninstall ingress --namespace ingress-nginx || true
-	kubectl delete namespace ingress-nginx || true
-	# Remove cert-manager
-	helm uninstall cert-manager --namespace cert-manager || true
-	kubectl delete namespace cert-manager || true
-	# Remove Docker Registry
-ifeq (${MINIKUBE}, yes)
-	minikube addons disable registry
-else
-	helm uninstall registry --namespace registry || true
 	kubectl delete namespace registry || true
-endif
-
-deploy-crds:
-	kubectl apply -f $(CHART_DIR)/crds/karvdash-crd.yaml
+	kubectl delete namespace ingress-nginx || true
+	kubectl delete namespace cert-manager || true
 
 undeploy-crds:
 	kubectl delete -f $(CHART_DIR)/crds/karvdash-crd.yaml
@@ -249,6 +92,7 @@ deploy-local:
 	--set karvdash.registryURL="http://${IP_ADDRESS}:5000" \
 	--set karvdash.stateHostPath="$(PWD)/db" \
 	--set karvdash.filesURL="file://$(PWD)/files" \
+	--set karvdash.developmentURL="${DEVELOPMENT_URL}" \
 	--set karvdash.jupyterHubURL="https://jupyterhub.${INGRESS_URL}" \
 	--set karvdash.jupyterHubNamespace="jupyterhub" \
 	--set karvdash.jupyterHubNotebookDir="notebooks" \
@@ -258,18 +102,30 @@ deploy-local:
 undeploy-local:
 	helm uninstall karvdash --namespace default
 
-prepare-develop: deploy-crds
+prepare-develop:
 	# Create necessary directories
 	mkdir -p db
 	mkdir -p files
 	# Create the Python environment and prepare the application
 	if [[ ! -d venv ]]; then python3 -m venv venv; fi
-	if [[ -z "$${VIRTUAL_ENV}" ]]; then \
-		source venv/bin/activate; \
-		pip install -r requirements.txt; \
-		./manage.py migrate; \
-		./manage.py createadmin --noinput --username admin --password admin --email admin@example.com --preserve; \
-	fi
+	source venv/bin/activate; \
+	pip install -r requirements.txt; \
+	./manage.py migrate; \
+	./manage.py createadmin --noinput --username admin --password admin --email admin@example.com --preserve
+
+develop:
+	source venv/bin/activate; \
+	export DJANGO_SECRET='%ad&%4*!xpf*$$wd3^t56+#ode4=@y^ju_t+j9f+20ajsta^gog'; \
+	export DJANGO_DEBUG=1; \
+	export KARVDASH_VOUCH_URL="https://vouch.${INGRESS_URL}"; \
+	export KARVDASH_DASHBOARD_TITLE="Karvdash on Docker Desktop"; \
+	export KARVDASH_INGRESS_URL="https://${INGRESS_URL}"; \
+	export KARVDASH_REGISTRY_URL="http://${IP_ADDRESS}:5000"; \
+	export KARVDASH_JUPYTERHUB_URL="https://jupyterhub.${INGRESS_URL}"; \
+	export KARVDASH_JUPYTERHUB_NOTEBOOK_DIR="notebooks"; \
+	export KARVDASH_ARGO_WORKFLOWS_URL="https://argo.${INGRESS_URL}"; \
+	export KARVDASH_ARGO_WORKFLOWS_NAMESPACE="argo"; \
+	./manage.py runserver 0.0.0.0:8000
 
 container:
 	docker build -f Dockerfile --build-arg TARGETARCH=amd64 --build-arg KUBECTL_VERSION=$(KUBECTL_VERSION) -t $(KARVDASH_IMAGE_TAG) .

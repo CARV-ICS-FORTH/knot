@@ -1,28 +1,5 @@
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: {{ .Release.Name }}
-  labels:
-    app: {{ .Release.Name }}
-    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
-data:
-  registry_cert_file: |
-    {{- if .Values.karvdash.registryCert }}
-    {{- .Values.karvdash.registryCert | nindent 4 }}
-    {{- end }}
-  disabled_service_templates: |
-    {{- range $val := .Values.karvdash.disabledServiceTemplates }}
-    {{ $val }}
-    {{- end }}
-  disabled_dataset_templates: |
-    {{- range $val := .Values.karvdash.disabledDatasetTemplates }}
-    {{ $val }}
-    {{- end }}
-  service_url_prefixes: |
-    {{- range $val := .Values.karvdash.serviceURLPrefixes }}
-    {{ $val }}
-    {{- end }}
----
+{{- $ingressURL := (required "You must set karvdash.ingressURL to the ingress URL used" .Values.karvdash.ingressURL) }}
+{{- $karvdashURL := default "http://127.0.0.1:8000" .Values.karvdash.developmentURL }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -48,10 +25,10 @@ data:
             proxy_set_header    X-Forwarded-For $proxy_add_x_forwarded_for;
             proxy_set_header    X-Forwarded-Proto $scheme;
 
-            proxy_pass          http://127.0.0.1:8000;
+            proxy_pass          {{ $karvdashURL }};
             proxy_read_timeout  {{ .Values.karvdash.timeout }};
 
-            proxy_redirect      http://127.0.0.1:8000 http://{{ .Release.Name }}.{{ .Release.Namespace }}.svc;
+            proxy_redirect      {{ $karvdashURL }} http://{{ .Release.Name }}.{{ .Release.Namespace }}.svc;
         }
     }
 ---
@@ -87,9 +64,84 @@ data:
             proxy_set_header    X-Forwarded-For $proxy_add_x_forwarded_for;
             proxy_set_header    X-Forwarded-Proto $scheme;
 
-            proxy_pass          http://127.0.0.1:8000;
+            proxy_pass          {{ $karvdashURL }};
             proxy_read_timeout  {{ .Values.karvdash.timeout }};
 
-            proxy_redirect      http://127.0.0.1:8000 https://{{ .Release.Name }}.{{ .Release.Namespace }}.svc;
+            proxy_redirect      {{ $karvdashURL }} https://{{ .Release.Name }}.{{ .Release.Namespace }}.svc;
         }
     }
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-env
+  labels:
+    app: {{ .Release.Name }}
+    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+data:
+  DJANGO_DEBUG: {{- if .Values.karvdash.djangoDebug }} {{ .Values.karvdash.djangoDebug | quote }} {{- else }} "" {{- end }}
+  KARVDASH_TIMEOUT: {{- if .Values.karvdash.timeout }} {{ .Values.karvdash.timeout | quote }} {{- else }} "" {{- end }}
+  KARVDASH_NAMESPACE: {{ .Release.Namespace }}
+  KARVDASH_LDAP_SERVER_URL: {{- if .Values.karvdash.ldapServerURL }} {{ .Values.karvdash.ldapServerURL | quote }} {{- else }} "" {{- end }}
+  KARVDASH_LDAP_USER_DN_TEMPLATE: {{- if .Values.karvdash.ldapUserDNTemplate }} {{ .Values.karvdash.ldapUserDNTemplate | quote }} {{- else }} "" {{- end }}
+  KARVDASH_LDAP_USER_ATTR_MAP: {{- if .Values.karvdash.ldapUserAttrMap }} {{ .Values.karvdash.ldapUserAttrMap | quote }} {{- else }} "" {{- end }}
+  KARVDASH_VOUCH_URL: {{ printf "%s://vouch.%s" ($ingressURL | urlParse).scheme (split ":" ($ingressURL | urlParse).host)._0 | quote }}
+  KARVDASH_VOUCH_SECRET: {{ .Release.Name }}-oauth-vouch
+  KARVDASH_HTPASSWD_EXPORT_DIR: {{- if .Values.karvdash.htpasswdExportDir }} {{ .Values.karvdash.htpasswdExportDir | quote }} {{- else }} "" {{- end }}
+  KARVDASH_DASHBOARD_TITLE: {{- if .Values.karvdash.dashboardTitle }} {{ .Values.karvdash.dashboardTitle | quote }} {{- else }} "" {{- end }}
+  KARVDASH_DOCUMENTATION_URL: {{- if .Values.karvdash.documentationURL }} {{ .Values.karvdash.documentationURL | quote }} {{- else }} "" {{- end }}
+  KARVDASH_ISSUES_URL: {{- if .Values.karvdash.issuesURL }} {{ .Values.karvdash.issuesURL | quote }} {{- else }} "" {{- end }}
+  KARVDASH_INGRESS_URL: {{ $ingressURL | quote }}
+  KARVDASH_REGISTRY_URL: {{- if .Values.karvdash.registryURL }} {{ .Values.karvdash.registryURL | quote }} {{- else }} "" {{- end }}
+  KARVDASH_DATASETS_AVAILABLE: {{- if .Values.karvdash.datasetsAvailable }} {{ .Values.karvdash.datasetsAvailable | quote }} {{- else }} "" {{- end }}
+  KARVDASH_SERVICE_DOMAIN: {{ printf "%s.%s.svc" .Release.Name .Release.Namespace | quote }}
+  KARVDASH_FILES_URL: {{- if .Values.karvdash.filesURL }} {{ .Values.karvdash.filesURL | quote }} {{- else }} "" {{- end }}
+  KARVDASH_ALLOWED_HOSTPATH_DIRS: {{- if .Values.karvdash.allowedHostPathDirs }} {{ .Values.karvdash.allowedHostPathDirs | quote }} {{- else }} "" {{- end }}
+  KARVDASH_JUPYTERHUB_URL: {{- if .Values.karvdash.jupyterHubURL }} {{ .Values.karvdash.jupyterHubURL | quote }} {{- else }} "" {{- end }}
+  KARVDASH_JUPYTERHUB_NAMESPACE: {{- if .Values.karvdash.jupyterHubNamespace }} {{ .Values.karvdash.jupyterHubNamespace | quote }} {{- else }} "" {{- end }}
+  KARVDASH_JUPYTERHUB_NOTEBOOK_DIR: {{- if .Values.karvdash.jupyterHubNotebookDir }} {{ .Values.karvdash.jupyterHubNotebookDir | quote }} {{- else }} "" {{- end }}
+  KARVDASH_ARGO_WORKFLOWS_URL: {{- if .Values.karvdash.argoWorkflowsURL }} {{ .Values.karvdash.argoWorkflowsURL | quote }} {{- else }} "" {{- end }}
+  KARVDASH_ARGO_WORKFLOWS_NAMESPACE: {{- if .Values.karvdash.argoWorkflowsNamespace }} {{ .Values.karvdash.argoWorkflowsNamespace | quote }} {{- else }} "" {{- end }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-files
+  labels:
+    app: {{ .Release.Name }}
+    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+data:
+  registry_cert_file: |
+    {{- if .Values.karvdash.registryCert }}
+    {{- .Values.karvdash.registryCert | nindent 4 }}
+    {{- end }}
+  disabled_service_templates: |
+    {{- range $val := .Values.karvdash.disabledServiceTemplates }}
+    {{ $val }}
+    {{- end }}
+  disabled_dataset_templates: |
+    {{- range $val := .Values.karvdash.disabledDatasetTemplates }}
+    {{ $val }}
+    {{- end }}
+  service_url_prefixes: |
+    {{- range $val := .Values.karvdash.serviceURLPrefixes }}
+    {{ $val }}
+    {{- end }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-vouch-proxy
+  labels:
+    app: {{ .Release.Name }}
+    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+data:
+  VOUCH_ALLOWALLUSERS: "true"
+  VOUCH_COOKIE_DOMAIN: {{ (split ":" ($ingressURL | urlParse).host)._0 }}
+  VOUCH_COOKIE_SECURE: "false"
+  VOUCH_HEADERS_CLAIMS: "preferred_username"
+  OAUTH_PROVIDER: oidc
+  OAUTH_AUTH_URL: {{ $ingressURL }}/oauth/authorize/
+  OAUTH_TOKEN_URL: http://127.0.0.1/oauth/token/
+  OAUTH_USER_INFO_URL: http://127.0.0.1/oauth/userinfo/
+  OAUTH_CALLBACK_URL: {{ printf "%s://vouch.%s/auth" ($ingressURL | urlParse).scheme (split ":" ($ingressURL | urlParse).host)._0 | quote }}

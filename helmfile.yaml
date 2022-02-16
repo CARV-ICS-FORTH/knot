@@ -1,0 +1,392 @@
+environments:
+  # Default deployment for development with Docker Desktop.
+  default:
+    values:
+    - ingress:
+        host: {{ env "IP_ADDRESS" | default "192.168.1.1" }}.nip.io
+        service:
+          type: LoadBalancer
+        createSelfsignedCertificate: true
+    - registry:
+        enabled: true
+        service:
+          type: LoadBalancer
+        persistence:
+          provisioning: auto
+    - jupyterHub:
+        enabled: true
+        persistence:
+          provisioning: auto
+        clientID: 56kSn87XXbk4GuFBQ7zQrXcVQNyyMWKb1vR2diUZ
+        clientSecret: FvxWxBTbhgQbo1sGbc6yLsza0Vwo6jZQBpiOSDYcghCjWWcpRzBygzJSQ8M4CunflPn9pCOr25vVnGr0N2ytR6FjklSesc28BqkHSM6aVIYA5RKFZaOpiMj9Ghc5VDfN
+    - argo:
+        enabled: true
+        clientID: T8DrPY49xlYvjsJ1nUIhxs17fG07gMZpQSOM7d3K
+        clientSecret: 6TjANPj1oe59MexsTYdMV5yiSyOYULDEzkyxfff4CmAPFa8mQ1dhYE7BHeEEVyg1tRgTkXRWYj2zhiKLiLZvhUGDnrixQQDshrWVtWCgQX23Vmdo37ktuVmsgOEfO2eG
+  # Minimal deployment for development with minikube.
+  minikube:
+    values:
+    - ingress:
+        host: {{ env "IP_ADDRESS" | default "192.168.1.1" }}.nip.io
+        service:
+          type: LoadBalancer
+        createSelfsignedCertificate: true
+    - registry:
+        enabled: false
+    - jupyterHub:
+        enabled: false
+    - argo:
+        enabled: true
+        clientID: T8DrPY49xlYvjsJ1nUIhxs17fG07gMZpQSOM7d3K
+        clientSecret: 6TjANPj1oe59MexsTYdMV5yiSyOYULDEzkyxfff4CmAPFa8mQ1dhYE7BHeEEVyg1tRgTkXRWYj2zhiKLiLZvhUGDnrixQQDshrWVtWCgQX23Vmdo37ktuVmsgOEfO2eG
+  # Use local folders instead of volumes for development on baremetal.
+  baremetal:
+    values:
+    - ingress:
+        host: {{ env "IP_ADDRESS" | default "192.168.1.1" }}.nip.io
+        service:
+          type: NodePort
+          externalIPs:
+          - {{ env "IP_ADDRESS" | default "192.168.1.1" }}
+          # nodePorts:
+          #   http: 30080
+          #   https: 30443
+        createSelfsignedCertificate: true
+    - registry:
+        enabled: true
+        service:
+          type: NodePort
+        persistence:
+          provisioning: local
+          path: {{ requiredEnv "PWD" }}/db/registry
+    - jupyterHub:
+        enabled: true
+        persistence:
+          provisioning: local
+          path: {{ requiredEnv "PWD" }}/db/jupyterhub
+        # singleuserExtra: # Use to set a custom image.
+        #   image:
+        #     name: jupyterhub/k8s-singleuser-sample
+        #     tag: "1.2.0"
+        clientID: 56kSn87XXbk4GuFBQ7zQrXcVQNyyMWKb1vR2diUZ
+        clientSecret: FvxWxBTbhgQbo1sGbc6yLsza0Vwo6jZQBpiOSDYcghCjWWcpRzBygzJSQ8M4CunflPn9pCOr25vVnGr0N2ytR6FjklSesc28BqkHSM6aVIYA5RKFZaOpiMj9Ghc5VDfN
+    - argo:
+        enabled: true
+        clientID: T8DrPY49xlYvjsJ1nUIhxs17fG07gMZpQSOM7d3K
+        clientSecret: 6TjANPj1oe59MexsTYdMV5yiSyOYULDEzkyxfff4CmAPFa8mQ1dhYE7BHeEEVyg1tRgTkXRWYj2zhiKLiLZvhUGDnrixQQDshrWVtWCgQX23Vmdo37ktuVmsgOEfO2eG
+---
+repositories:
+- name: cert-manager
+  url: https://charts.jetstack.io
+- name: ingress-nginx
+  url: https://kubernetes.github.io/ingress-nginx
+- name: bedag
+  url: https://bedag.github.io/helm-charts
+{{- if .Values.registry.enabled }}
+- name: twuni
+  url: https://helm.twun.io
+{{- end }}
+{{- if .Values.jupyterHub.enabled }}
+- name: jupyterhub
+  url: https://jupyterhub.github.io/helm-chart/
+{{- end }}
+{{- if .Values.argo.enabled }}
+- name: emberstack
+  url: https://emberstack.github.io/helm-charts
+- name: argo
+  url: https://argoproj.github.io/argo-helm
+{{- end }}
+releases:
+- name: cert-manager
+  namespace: cert-manager
+  createNamespace: true
+  chart: cert-manager/cert-manager
+  version: 1.6.1
+  values:
+  - installCRDs: true
+- name: ingress
+  namespace: ingress-nginx
+  createNamespace: true
+  chart: ingress-nginx/ingress-nginx
+  version: 4.0.13
+  values:
+  - controller:
+      watchIngressWithoutClass: true
+      ingressClassResource:
+        default: true
+      {{- if eq .Values.ingress.service.type "NodePort" }}
+      service:
+        type: NodePort
+        externalIPs:
+        {{ toYaml .Values.ingress.service.externalIPs | nindent 8 }}
+        {{- if sprigGet .Values.ingress.service "nodePorts" }}
+        nodePorts:
+          {{ toYaml .Values.ingress.service.nodePorts | nindent 10 }}
+        {{- end }}
+      {{- end }}
+      admissionWebhooks:
+        enabled: false
+      extraArgs:
+        default-ssl-certificate: ingress-nginx/ssl-certificate
+{{- if .Values.ingress.createSelfsignedCertificate }}
+- name: ingress-cert
+  namespace: ingress-nginx
+  createNamespace: true
+  chart: bedag/raw
+  needs:
+  - cert-manager/cert-manager
+  version: 1.1.0
+  values:
+  - resources:
+    - apiVersion: cert-manager.io/v1
+      kind: Issuer
+      metadata:
+        name: selfsigned
+      spec:
+        selfSigned: {}
+    - apiVersion: cert-manager.io/v1
+      kind: Certificate
+      metadata:
+        name: ssl-certificate
+      spec:
+        secretName: ssl-certificate
+        {{- if .Values.argo.enabled }}
+        secretTemplate:
+          annotations:
+            "reflector.v1.k8s.emberstack.com/reflection-allowed": "true"
+            "reflector.v1.k8s.emberstack.com/reflection-allowed-namespaces": "default,argo"
+            "reflector.v1.k8s.emberstack.com/reflection-auto-enabled": "true"
+            "reflector.v1.k8s.emberstack.com/reflection-auto-namespaces": "default,argo"
+        {{- end }}
+        duration: 87600h
+        commonName: {{ .Values.ingress.host }}
+        dnsNames:
+        - "{{ .Values.ingress.host }}"
+        - "*.{{ .Values.ingress.host }}"
+        privateKey:
+          algorithm: RSA
+          size: 2048
+        issuerRef:
+          name: selfsigned
+{{- end }}
+{{- if .Values.registry.enabled }}
+- name: registry
+  namespace: registry
+  createNamespace: true
+  chart: twuni/docker-registry
+  version: 1.16.0
+  values:
+  {{- if eq .Values.registry.persistence.provisioning "local" }}
+  - persistence:
+      enabled: false
+      deleteEnabled: true
+  - storage: custom
+  - extraVolumes:
+    - name: registry-volume
+      hostPath:
+        path: {{ .Values.registry.persistence.path | quote }}
+  - extraVolumeMounts:
+    - name: registry-volume
+      mountPath: /var/lib/registry
+  - extraEnvVars:
+    - name: REGISTRY_STORAGE_FILESYSTEM_ROOTDIRECTORY
+      value: /var/lib/registry
+  {{- else }}
+  - persistence:
+      enabled: true
+      deleteEnabled: true
+  {{- end }}
+  - service:
+      type: {{ .Values.registry.service.type }}
+  {{- if eq .Values.registry.persistence.provisioning "local" }}
+  hooks:
+  - events: ["presync"]
+    showlogs: true
+    command: "/bin/bash"
+    args:
+    - "-c"
+    - "mkdir -p {{ .Values.registry.persistence.path }} && chown 1000:1000 {{ .Values.registry.persistence.path }}"
+  {{- end }}
+{{- end }}
+{{- if .Values.jupyterHub.enabled }}
+- name: jupyterhub
+  namespace: jupyterhub
+  createNamespace: true
+  chart: jupyterhub/jupyterhub
+  version: 1.2.0
+  values:
+  - hub:
+      config:
+        JupyterHub:
+          authenticator_class: generic-oauth
+        Authenticator:
+          auto_login: true
+        GenericOAuthenticator:
+          client_id: {{ .Values.jupyterHub.clientID }}
+          client_secret: {{ .Values.jupyterHub.clientSecret }}
+          {{- if .Values.ingress.createSelfsignedCertificate }}
+          tls_verify: false
+          {{- end }}
+          oauth_callback_url: https://jupyterhub.{{ .Values.ingress.host }}/hub/oauth_callback
+          authorize_url: https://{{ .Values.ingress.host }}/oauth/authorize/
+          token_url: https://{{ .Values.ingress.host }}/oauth/token/
+          userdata_url: https://{{ .Values.ingress.host }}/oauth/userinfo/
+          scope:
+          - openid
+          - profile
+          - email
+          username_key: preferred_username
+      extraConfig:
+        "myConfig.py": |-
+          c.ConfigurableHTTPProxy.api_url = "http://proxy-api.jupyterhub.svc:8001"
+          c.JupyterHub.hub_connect_url = "http://hub.jupyterhub.svc:8081"
+          c.KubeSpawner.enable_user_namespaces = True
+          c.KubeSpawner.user_namespace_template = "karvdash-{username}"
+          c.KubeSpawner.notebook_dir = "/private/notebooks"
+      networkPolicy:
+        enabled: false
+      {{- if eq .Values.jupyterHub.persistence.provisioning "local" }}
+      db:
+        type: other
+        upgrade: true
+        url: sqlite:///jupyterhub.sqlite
+      extraVolumes:
+      - name: jupyterhub-volume
+        hostPath:
+          path: {{ .Values.jupyterHub.persistence.path | quote }}
+      extraVolumeMounts:
+      - name: jupyterhub-volume
+        mountPath: /srv/jupyterhub
+      {{- end }}
+  - proxy:
+      service:
+        type: ClusterIP
+      chp:
+        networkPolicy:
+          enabled: false
+  - singleuser:
+      networkPolicy:
+        enabled: false
+      storage:
+        type: none
+      {{- if sprigGet .Values.jupyterHub "singleuserExtra" }}
+      {{ toYaml .Values.jupyterHub.singleuserExtra | nindent 6 }}
+      {{- end }}
+  - prePuller:
+      hook:
+        enabled: false
+      continuous:
+        enabled: false
+  - scheduling:
+      userScheduler:
+        enabled: false
+  - ingress:
+      enabled: true
+      hosts:
+      - jupyterhub.{{ .Values.ingress.host }}
+      annotations:
+        "nginx.ingress.kubernetes.io/force-ssl-redirect": "true"
+  {{- if eq .Values.jupyterHub.persistence.provisioning "local" }}
+  hooks:
+  - events: ["presync"]
+    showlogs: true
+    command: "/bin/bash"
+    args:
+    - "-c"
+    - "mkdir -p {{ .Values.jupyterHub.persistence.path }} && chown 1000:1000 {{ .Values.jupyterHub.persistence.path }}"
+  {{- end }}
+- name: jupyterhub-oauth-secret
+  namespace: jupyterhub
+  createNamespace: true
+  chart: bedag/raw
+  version: 1.1.0
+  values:
+  - resources:
+    - apiVersion: v1
+      kind: Secret
+      metadata:
+        name: karvdash-oauth-jupyterhub
+      type: Opaque
+      data:
+        client-id: {{ .Values.jupyterHub.clientID | b64enc }}
+        client-secret: {{ .Values.jupyterHub.clientSecret | b64enc }}
+- name: jupyterhub-clusterrolebinding
+  namespace: jupyterhub
+  createNamespace: true
+  chart: bedag/raw
+  version: 1.1.0
+  values:
+  - resources:
+    - apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRoleBinding
+      metadata:
+        name: jupyterhub-cluster-admin
+      roleRef:
+        apiGroup: rbac.authorization.k8s.io
+        kind: ClusterRole
+        name: cluster-admin
+      subjects:
+      - kind: ServiceAccount
+        name: hub
+        namespace: jupyterhub
+{{- end }}
+{{- if .Values.argo.enabled }}
+- name: reflector
+  namespace: reflector
+  createNamespace: true
+  chart: emberstack/reflector
+  version: 6.1.23
+- name: argo
+  namespace: argo
+  createNamespace: true
+  chart: argo/argo-workflows
+  version: 0.9.3
+  values:
+  - controller:
+      containerRuntimeExecutor: k8sapi
+  - server:
+      extraArgs:
+      - "--auth-mode=sso"
+      {{- if .Values.ingress.createSelfsignedCertificate }}
+      volumeMounts:
+      - name: ssl-certificate-volume
+        mountPath: /etc/ssl/certs/{{ .Values.ingress.host }}.crt
+        subPath: ca.crt
+      volumes:
+      - name: ssl-certificate-volume
+        secret:
+          secretName: ssl-certificate
+      {{- end }}
+      ingress:
+        enabled: true
+        hosts:
+        - argo.{{ .Values.ingress.host }}
+        annotations:
+          "nginx.ingress.kubernetes.io/force-ssl-redirect": "true"
+      sso:
+        issuer: https://{{ .Values.ingress.host }}/oauth
+        clientId:
+          name: karvdash-oauth-argo
+          key: client-id
+        clientSecret:
+          name: karvdash-oauth-argo
+          key: client-secret
+        redirectUrl: https://argo.{{ .Values.ingress.host }}/oauth2/callback
+        rbac:
+          enabled: true
+- name: argo-oauth-secret
+  namespace: argo
+  createNamespace: true
+  chart: bedag/raw
+  version: 1.1.0
+  values:
+  - resources:
+    - apiVersion: v1
+      kind: Secret
+      metadata:
+        name: karvdash-oauth-argo
+      type: Opaque
+      data:
+        client-id: {{ .Values.argo.clientID | b64enc }}
+        client-secret: {{ .Values.argo.clientSecret | b64enc }}
+{{- end }}

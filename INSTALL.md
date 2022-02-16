@@ -66,7 +66,7 @@ Follow [these](https://v1-22.docs.kubernetes.io/docs/setup/production-environmen
 ```bash
 kubeadm init --pod-network-cidr=10.244.0.0/16 --kubernetes-version=${KUBERNETES_VERSION}
 mkdir -p $HOME/.kube
-cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+cp /etc/kubernetes/admin.conf $HOME/.kube/config
 kubectl taint nodes --all node-role.kubernetes.io/master-
 ```
 
@@ -87,6 +87,18 @@ curl -LO https://get.helm.sh/helm-v${HELM_VERSION}-linux-amd64.tar.gz
 tar -zxvf helm-v${HELM_VERSION}-linux-amd64.tar.gz
 cp linux-amd64/helm /usr/local/bin/
 rm -rf helm-v${HELM_VERSION}-linux-amd64.tar.gz linux-amd64
+helm plugin install https://github.com/databus23/helm-diff
+```
+
+## Helmfile
+
+Download and install the [Helmfile](https://github.com/roboll/helmfile) binary:
+
+```bash
+HELMFILE_VERSION="0.143.0"
+curl -LO https://github.com/roboll/helmfile/releases/download/v${HELMFILE_VERSION}/helmfile_linux_amd64
+cp helmfile_linux_amd64 /usr/local/bin/helmfile
+rm -f helmfile_linux_amd64
 ```
 
 ## Karvdash
