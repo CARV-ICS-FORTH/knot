@@ -50,13 +50,11 @@ DEVELOPMENT_URL=http://${IP_ADDRESS}:8000
 endif
 
 INGRESS_URL=${IP_ADDRESS}.nip.io
+HARBOR_ADMIN_PASSWORD=Harbor12345
 
 deploy-requirements:
 	export IP_ADDRESS="${IP_ADDRESS}"; \
 	helmfile -e ${HELMFILE_ENV} sync
-ifeq (${BAREMETAL}, yes)
-	kubectl patch svc -n registry `kubectl get svc -n registry -o jsonpath='{.items[0].metadata.name}'` -p '{"spec":{"externalIPs":["'${IP_ADDRESS}'"]}}'
-endif
 	# Deploy DLF
 	# kubectl apply -f https://raw.githubusercontent.com/datashim-io/datashim/master/release-tools/manifests/dlf.yaml
 	# kubectl wait --timeout=600s --for=condition=ready pods -l app.kubernetes.io/name=dlf -n dlf
@@ -68,10 +66,10 @@ undeploy-requirements:
 	helmfile -e ${HELMFILE_ENV} delete
 	# Remove namespaces
 	kubectl delete namespace monitoring || true
+	kubectl delete namespace harbor || true
 	kubectl delete namespace argo || true
 	kubectl delete namespace reflector || true
 	kubectl delete namespace jupyterhub || true
-	kubectl delete namespace registry || true
 	kubectl delete namespace ingress-nginx || true
 	kubectl delete namespace cert-manager || true
 
@@ -89,7 +87,8 @@ deploy-local:
 	--set karvdash.djangoDebug="1" \
 	--set karvdash.dashboardTitle="Karvdash on Docker Desktop" \
 	--set karvdash.ingressURL="https://${INGRESS_URL}" \
-	--set karvdash.registryURL="http://${IP_ADDRESS}:5000" \
+	--set karvdash.certificateSecretName="ssl-certificate" \
+	--set karvdash.certificateSecretKey="ca.crt" \
 	--set karvdash.stateHostPath="$(PWD)/db" \
 	--set karvdash.filesURL="file://$(PWD)/files" \
 	--set karvdash.developmentURL="${DEVELOPMENT_URL}" \
@@ -98,6 +97,9 @@ deploy-local:
 	--set karvdash.jupyterHubNotebookDir="notebooks" \
 	--set karvdash.argoWorkflowsURL="https://argo.${INGRESS_URL}" \
 	--set karvdash.argoWorkflowsNamespace="argo" \
+	--set karvdash.harborURL="https://harbor.${INGRESS_URL}" \
+	--set karvdash.harborNamespace="harbor" \
+	--set karvdash.harborAdminPassword="${HARBOR_ADMIN_PASSWORD}" \
 	--set karvdash.grafanaURL="https://grafana.${INGRESS_URL}" \
 	--set karvdash.grafanaNamespace="monitoring"
 
@@ -122,13 +124,17 @@ develop:
 	export KARVDASH_VOUCH_URL="https://vouch.${INGRESS_URL}"; \
 	export KARVDASH_DASHBOARD_TITLE="Karvdash on Docker Desktop"; \
 	export KARVDASH_INGRESS_URL="https://${INGRESS_URL}"; \
-	export KARVDASH_REGISTRY_URL="http://${IP_ADDRESS}:5000"; \
 	export KARVDASH_JUPYTERHUB_URL="https://jupyterhub.${INGRESS_URL}"; \
 	export KARVDASH_JUPYTERHUB_NOTEBOOK_DIR="notebooks"; \
 	export KARVDASH_ARGO_WORKFLOWS_URL="https://argo.${INGRESS_URL}"; \
 	export KARVDASH_ARGO_WORKFLOWS_NAMESPACE="argo"; \
+	export KARVDASH_HARBOR_URL="https://harbor.${INGRESS_URL}"; \
+	export KARVDASH_HARBOR_NAMESPACE="harbor"; \
+	export KARVDASH_HARBOR_ADMIN_PASSWORD="${HARBOR_ADMIN_PASSWORD}"; \
 	export KARVDASH_GRAFANA_URL="https://grafana.${INGRESS_URL}"; \
 	export KARVDASH_GRAFANA_NAMESPACE="monitoring"; \
+	kubectl port-forward deployment/karvdash 6379:6379 & \
+	celery -A karvdash worker -l info & \
 	./manage.py runserver 0.0.0.0:8000
 
 container:

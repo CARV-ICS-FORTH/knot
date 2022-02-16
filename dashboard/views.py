@@ -29,7 +29,6 @@ from .models import User, Message
 from .forms import SignUpForm, EditUserForm, AddServiceForm, CreateServiceForm, AddTemplateForm, AddDatasetForm, CreateDatasetForm, AddFolderForm, AddImageFromFileForm
 from .api import ServiceResource, TemplateResource, DatasetResource
 from .utils.kubernetes import KubernetesClient
-from .utils.registry import RegistryClient
 
 
 @login_required
@@ -247,115 +246,6 @@ def template_download(request, identifier):
     return response
 
 @login_required
-def images(request):
-    registry_client = RegistryClient(settings.REGISTRY_URL, settings.REGISTRY_CERT_FILE)
-
-    # There is no hierarchy here.
-    trail = [{'name': '<i class="fa fa-archive" aria-hidden="true"></i> %s' % registry_client.safe_registry_url}]
-
-    # Fill in the contents.
-    contents = []
-    try:
-        for repository in registry_client.registry().list_repos():
-            contents.append({'name': repository})
-    except:
-        Message.add(request, 'error', 'Can not connect to container registry.')
-
-    # Sort them up.
-    sort_by = request.GET.get('sort_by')
-    if sort_by and sort_by in ('name'):
-        request.session['images_sort_by'] = sort_by
-    else:
-        sort_by = request.session.get('images_sort_by', 'name')
-    order = request.GET.get('order')
-    if order and order in ('asc', 'desc'):
-        request.session['images_order'] = order
-    else:
-        order = request.session.get('images_order', 'asc')
-
-    contents = sorted(contents,
-                      key=lambda x: x[sort_by],
-                      reverse=True if order == 'desc' else False)
-
-    return render(request, 'dashboard/images.html', {'title': 'Images',
-                                                     'trail': trail,
-                                                     'contents': contents,
-                                                     'sort_by': sort_by,
-                                                     'order': order})
-
-@login_required
-def image_info(request, name):
-    registry_client = RegistryClient(settings.REGISTRY_URL, settings.REGISTRY_CERT_FILE)
-
-    # Handle changes.
-    if request.method == 'POST':
-        if 'action' not in request.POST:
-            Message.add(request, 'error', 'Invalid action.')
-        elif request.POST['action'] == 'Delete':
-            if not request.user.is_staff:
-                Message.add(request, 'error', 'Invalid action.')
-            else:
-                tag = request.POST.get('tag', None)
-                try:
-                    registry_client.registry(name).del_alias(tag)
-                except Exception as e:
-                    Message.add(request, 'error', 'Failed to delete image: %s.' % str(e))
-                else:
-                    Message.add(request, 'success', 'Image "%s" deleted. Run garbage collection in the registry to reclaim space.' % name)
-        else:
-            Message.add(request, 'error', 'Invalid action.')
-
-        return redirect('images')
-
-    # There is no hierarchy here.
-    trail = [{'name': '<i class="fa fa-archive" aria-hidden="true"></i> %s' % registry_client.safe_registry_url}]
-
-    # Fill in the contents.
-    contents = []
-    try:
-        registry = registry_client.registry(name)
-        for alias in registry.list_aliases():
-            digest = registry.get_digest(alias)
-            existing_content = next((c for c in contents if c['digest'] == digest), None)
-            if existing_content:
-                existing_content['aliases'].append(alias)
-                continue
-            hashes = registry.get_alias(alias, sizes=True)
-            contents.append({'name': name,
-                             'tag': str(alias),
-                             'digest': digest,
-                             'aliases': [str(alias)],
-                             'size': sum([h[1] for h in hashes]),
-                             'actions': request.user.is_staff})
-    except:
-        Message.add(request, 'error', 'Can not connect to container registry.')
-    for content in contents:
-        content['aliases'].sort()
-        content['tag'] = content['aliases'][0] if content['aliases'] else ''
-
-    # Sort them up.
-    sort_by = request.GET.get('sort_by')
-    if sort_by and sort_by in ('name', 'tag', 'size'):
-        request.session['image_info_sort_by'] = sort_by
-    else:
-        sort_by = request.session.get('image_info_sort_by', 'name')
-    order = request.GET.get('order')
-    if order and order in ('asc', 'desc'):
-        request.session['image_info_order'] = order
-    else:
-        order = request.session.get('image_info_order', 'asc')
-
-    contents = sorted(contents,
-                      key=lambda x: x[sort_by],
-                      reverse=True if order == 'desc' else False)
-
-    return render(request, 'dashboard/image.html', {'title': 'Image Info',
-                                                    'trail': trail,
-                                                    'contents': contents,
-                                                    'sort_by': sort_by,
-                                                    'order': order})
-
-@login_required
 def datasets(request):
     if not settings.DATASETS_AVAILABLE:
         return redirect('dashboard')
@@ -559,21 +449,6 @@ def files(request, path='/'):
                         Message.add(request, 'error', 'Failed to delete "%s". Probably not permitted or directory not empty.' % name)
                     else:
                         Message.add(request, 'success', 'Item "%s" deleted.' % name)
-        elif request.POST['action'] == 'Add image':
-            form = AddImageFromFileForm(request.POST)
-            name = request.POST.get('filename', None)
-            if form.is_valid() and name and settings.REGISTRY_URL:
-                image_name = form.cleaned_data['name']
-                image_tag = form.cleaned_data['tag']
-                try:
-                    registry_client = RegistryClient(settings.REGISTRY_URL, settings.REGISTRY_CERT_FILE)
-                    registry_client.add_image(path_worker.path_of(name), image_name, image_tag)
-                except Exception as e:
-                    Message.add(request, 'error', 'Failed to add image: %s.' % str(e))
-                else:
-                    Message.add(request, 'success', 'Image "%s:%s" added.' % (image_name, image_tag))
-            else:
-                Message.add(request, 'error', 'Failed to add image. Probably invalid characters in name or tag.')
         elif request.POST['action'] == 'Add template':
             name = request.POST.get('filename', None)
             if name:

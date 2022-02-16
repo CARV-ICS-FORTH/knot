@@ -40,8 +40,8 @@ Some of the variables set above are required. The table below lists all availabl
 | `karvdash.documentationURL`         |          | If set, override the internal "Documentation" URL in the user menu.                        |                                   |
 | `karvdash.issuesURL`                |          | If set, an option to "Report an issue" is shown in the user menu.                          |                                   |
 | `karvdash.ingressURL`               | &check;  | The ingress URL used.                                                                      |                                   |
-| `karvdash.registryURL`              |          | The URL of the container registry.                                                         |                                   |
-| `karvdash.registryCert`             |          | The container registry certificate (use if self-signed).                                   |                                   |
+| `karvdash.certificateSecretName`    |          | The name of the secret containing the self-signed certificate for the ingress.             |                                   |
+| `karvdash.certificateSecretKey`     |          | The key in the secret holding the self-signed certificate for the ingress.                 |                                   |
 | `karvdash.datasetsAvailable`        |          | Set to anything to enable dataset management.                                              |                                   |
 | `karvdash.filesURL`                 | &check;  | The base URL for the private and shared file domains.                                      |                                   |
 | `karvdash.filesSize`                |          | The size for the files persistent volume.                                                  | `1Pi`                             |
@@ -55,6 +55,9 @@ Some of the variables set above are required. The table below lists all availabl
 | `karvdash.jupyterHubNotebookDir`    |          | Directory to create in the private file domain for JupyterHub notebooks.                   |                                   |
 | `karvdash.argoWorkflowsURL`         |          | Argo Workflows URL for integration with the workflow frontend.                             |                                   |
 | `karvdash.argoWorkflowsNamespace`   |          | Argo Workflows namespace for integration.                                                  |                                   |
+| `karvdash.harborURL`                |          | Harbor URL for integration with the container registry.                                    |                                   |
+| `karvdash.harborNamespace`          |          | Harbor namespace for integration.                                                          |                                   |
+| `karvdash.harborAdminPassword`      |          | Harbor admin password for fetching CLI secrets.                                            |                                   |
 | `karvdash.grafanaURL`               |          | Grafana URL for integration with the metrics frontend.                                     |                                   |
 | `karvdash.grafanaNamespace`         |          | Grafana namespace for integration.                                                         |                                   |
 

@@ -25,15 +25,6 @@ ARG KUBECTL_VERSION=v1.22.4
 RUN curl -Lo /usr/local/bin/kubectl https://storage.googleapis.com/kubernetes-release/release/${KUBECTL_VERSION}/bin/linux/${TARGETARCH}/kubectl && \
     chmod +x /usr/local/bin/kubectl
 
-ARG GO_CONTAINERREGISTRY_VERSION=v0.5.1
-RUN if [ "${TARGETARCH}" = "amd64" ]; then \
-    curl -Lo /tmp/go-containerregistry.tar.gz https://github.com/google/go-containerregistry/releases/download/${GO_CONTAINERREGISTRY_VERSION}/go-containerregistry_Linux_x86_64.tar.gz; \
-    else \
-    curl -Lo /tmp/go-containerregistry.tar.gz https://github.com/google/go-containerregistry/releases/download/${GO_CONTAINERREGISTRY_VERSION}/go-containerregistry_Linux_${TARGETARCH}.tar.gz; \
-    fi && \
-    (cd /usr/local/bin && tar zxvf /tmp/go-containerregistry.tar.gz crane) && \
-    rm -rf /tmp/go-containerregistry.tar.gz
-
 COPY . /app
 WORKDIR /app
 
@@ -68,8 +59,6 @@ ENV KARVDASH_DASHBOARD_TITLE Karvdash
 ENV KARVDASH_DOCUMENTATION_URL=
 ENV KARVDASH_ISSUES_URL=
 ENV KARVDASH_INGRESS_URL http://localtest.me
-ENV KARVDASH_REGISTRY_URL=
-ENV KARVDASH_REGISTRY_CERT_FILE=
 ENV KARVDASH_DATASETS_AVAILABLE=
 ENV KARVDASH_SERVICE_DOMAIN=
 ENV KARVDASH_FILES_URL=
@@ -83,6 +72,9 @@ ENV KARVDASH_JUPYTERHUB_NAMESPACE=
 ENV KARVDASH_JUPYTERHUB_NOTEBOOK_DIR=
 ENV KARVDASH_ARGO_WORKFLOWS_URL=
 ENV KARVDASH_ARGO_WORKFLOWS_NAMESPACE=
+ENV KARVDASH_HARBOR_URL=
+ENV KARVDASH_HARBOR_NAMESPACE=
+ENV KARVDASH_HARBOR_ADMIN_PASSWORD=
 ENV KARVDASH_GRAFANA_URL=
 ENV KARVDASH_GRAFANA_NAMESPACE=
 

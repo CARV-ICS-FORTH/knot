@@ -63,10 +63,6 @@ spec:
         - configMapRef:
             name: {{ .Release.Name }}-env
         env:
-        {{- if .Values.karvdash.registryCert }}
-        - name: KARVDASH_REGISTRY_CERT_FILE
-          value: /etc/karvdash/registry_cert_file
-        {{- end }}
         {{- if .Values.karvdash.disabledServiceTemplates }}
         - name: KARVDASH_DISABLED_SERVICE_TEMPLATES_FILE
           value: /etc/karvdash/disabled_service_templates
@@ -83,11 +79,6 @@ spec:
         - containerPort: 8000
           name: http
         volumeMounts:
-        {{- if .Values.karvdash.registryCert }}
-        - name: {{ .Release.Name }}-files-config
-          mountPath: /etc/karvdash/registry_cert_file
-          subPath: registry_cert_file
-        {{- end }}
         {{- if .Values.karvdash.disabledServiceTemplates }}
         - name: {{ .Release.Name }}-files-config
           mountPath: /etc/karvdash/disabled_service_templates
@@ -111,6 +102,30 @@ spec:
           mountPath: /db
         - name: {{ .Release.Name }}-files-volume
           mountPath: /files
+        {{- if and .Values.karvdash.certificateSecretName .Values.karvdash.certificateSecretKey }}
+        - name: ssl-certificate-volume
+          mountPath: /usr/local/share/ca-certificates/{{ (split ":" ($ingressURL | urlParse).host)._0 }}.crt
+          subPath: {{ .Values.karvdash.certificateSecretKey }}
+        {{- end }}
+      {{- if not .Values.karvdash.developmentURL }}
+      - image: {{- if .Values.image }} {{ .Values.image }} {{- else }} carvicsforth/karvdash:v{{ .Chart.Version }} {{- end }}
+        name: worker
+        command: ["./start.sh"]
+        args: ["worker"]
+        envFrom:
+        - secretRef:
+            name: {{ .Release.Name }}-secret
+        - configMapRef:
+            name: {{ .Release.Name }}-env
+        volumeMounts:
+        - name: {{ .Release.Name }}-state-volume
+          mountPath: /db
+        {{- if and .Values.karvdash.certificateSecretName .Values.karvdash.certificateSecretKey }}
+        - name: ssl-certificate-volume
+          mountPath: /usr/local/share/ca-certificates/{{ (split ":" ($ingressURL | urlParse).host)._0 }}.crt
+          subPath: {{ .Values.karvdash.certificateSecretKey }}
+        {{- end }}
+      {{- end }}
       - image: voucher/vouch-proxy:0.27.1
         name: vouch-proxy
         envFrom:
@@ -130,6 +145,11 @@ spec:
         ports:
         - containerPort: 9090
           name: vouch-proxy
+      - image: redis:6.2.6
+        name: redis
+        ports:
+        - containerPort: 6379
+          name: redis
       volumes:
       - name: {{ .Release.Name }}-files-config
         configMap:
@@ -170,3 +190,8 @@ spec:
       - name: {{ .Release.Name }}-files-volume
         persistentVolumeClaim:
           claimName: {{ .Release.Name }}-files-pvc
+      {{- if and .Values.karvdash.certificateSecretName .Values.karvdash.certificateSecretKey }}
+      - name: ssl-certificate-volume
+        secret:
+          secretName: ssl-certificate
+      {{- end }}

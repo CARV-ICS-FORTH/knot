@@ -30,6 +30,7 @@ from .utils.template import Template
 from .utils.kubernetes import KubernetesClient
 from .utils.file_domains.file import PrivateFileDomain, SharedFileDomain
 from .utils.file_domains.nfs import PrivateNFSDomain, SharedNFSDomain
+from .utils.harbor import HarborClient
 
 
 NAMESPACE_TEMPLATE = '''
@@ -212,10 +213,31 @@ class User(AuthUser):
             kubernetes_client = KubernetesClient()
         kubernetes_client.delete_secret(self.namespace, 'karvdash-auth')
 
-    def create_namespace(self, request):
+    def update_registry_credentials(self, kubernetes_client=None):
+        if not settings.HARBOR_URL or not settings.HARBOR_ADMIN_PASSWORD:
+            return
+
+        from .utils.kubernetes import KubernetesClient
+
+        if not kubernetes_client:
+            kubernetes_client = KubernetesClient()
+
         ingress_url = urlparse(settings.INGRESS_URL)
         ingress_host = '%s:%s' % (ingress_url.hostname, ingress_url.port) if ingress_url.port else ingress_url.hostname
 
+        harbor_client = HarborClient(settings.HARBOR_URL, settings.HARBOR_ADMIN_PASSWORD)
+        harbor_cli_url = harbor_client.get_cli_url(self.username)
+        if not harbor_cli_url:
+            return
+        kubernetes_client.update_registry_secret(self.namespace, harbor_cli_url, '%s@%s' % (self.username, ingress_host))
+
+        # Add user to public project as developer.
+        harbor_client.add_user_to_project('library', self.username, HarborClient.ROLE_DEVELOPER, public=True)
+
+        # Create private project.
+        harbor_client.add_user_to_project(self.username, self.username, HarborClient.ROLE_ADMIN, public=False)
+
+    def create_namespace(self, request):
         # Create service directory.
         if not os.path.exists(settings.SERVICE_DATABASE_DIR):
             os.makedirs(settings.SERVICE_DATABASE_DIR)
@@ -243,8 +265,8 @@ class User(AuthUser):
             api_template.TOKEN = self.api_token.token # Get or create
             kubernetes_client.apply_yaml_data(api_template.yaml.encode(), namespace=self.namespace)
 
-        # Create registry secret.
-        kubernetes_client.create_registry_secret(self.namespace, settings.REGISTRY_URL, 'admin@%s' % ingress_host)
+        # Create or update registry secret.
+        self.update_registry_credentials(kubernetes_client)
 
         # Create volumes.
         for name, domain in self.file_domains.items():

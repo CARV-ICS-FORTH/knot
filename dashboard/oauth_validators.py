@@ -13,22 +13,28 @@
 # limitations under the License.
 
 from django.conf import settings
-from urllib.parse import urlparse
 from oauth2_provider.oauth2_validators import OAuth2Validator
+
+from .models import User
+from .tasks import update_user_registry_credentials
 
 
 class CustomOAuth2Validator(OAuth2Validator):
     def get_additional_claims(self, request):
-        registry_url = urlparse(settings.REGISTRY_URL)
+        user = User.objects.get(pk=request.user.pk)
+
+        if request.client.is_usable(request) and request.redirect_uri and request.redirect_uri.startswith(settings.HARBOR_URL):
+            update_user_registry_credentials.apply_async((user.pk,), countdown=3)
+
         return {
-            'sub': request.user.username,
-            'preferred_username': request.user.username,
-            'email': request.user.email,
-            'name': request.user.get_full_name(),
-            'given_name': request.user.first_name,
-            'family_name': request.user.last_name,
-            'karvdash_namespace': 'karvdash-%s' % request.user.username,
+            'sub': user.username,
+            'preferred_username': user.username,
+            'email': user.email,
+            'name': user.get_full_name(),
+            'given_name': user.first_name,
+            'family_name': user.last_name,
+            'karvdash_namespace': user.namespace,
             'karvdash_ingress_url': settings.INGRESS_URL,
-            'karvdash_registry_url': '%s://%s:%s' % (registry_url.scheme, registry_url.hostname, registry_url.port),
+            'karvdash_registry_url': settings.HARBOR_URL,
             'karvdash_argo_workflows_url': settings.ARGO_WORKFLOWS_URL
         }

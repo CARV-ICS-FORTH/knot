@@ -19,8 +19,8 @@ def settings(request):
             'dashboard_title': django_settings.DASHBOARD_TITLE,
             'documentation_url': django_settings.DOCUMENTATION_URL,
             'issues_url': django_settings.ISSUES_URL,
-            'images_available': True if django_settings.REGISTRY_URL else False,
             'datasets_available': django_settings.DATASETS_AVAILABLE,
             'jupyterhub_url': django_settings.JUPYTERHUB_URL,
             'argo_workflows_url': django_settings.ARGO_WORKFLOWS_URL,
+            'harbor_url': django_settings.HARBOR_URL,
             'grafana_url': django_settings.GRAFANA_URL}

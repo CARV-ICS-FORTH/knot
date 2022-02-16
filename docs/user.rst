@@ -39,18 +39,6 @@ The templates screen is accessed by selecting "Templates" from the menu on the l
 
 To add a new template, click on the respective button on the right. The template file format is described in the :ref:`Service templates` chapter.
 
-Images screen
--------------
-
-.. note::
-   Image management is an optional Karvdash feature that may have not been enabled in your deployment.
-
-The images screen is accessed by selecting "Images" from the menu on the left. You are presented with a list of container images in the preconfigured private container registry. Select an image to view available tags.
-
-.. figure:: images/images-screen.png
-
-To add a new image, first upload the saved image in "Files" in ``.tar`` format (using the :ref:`Files screen`). Then, select the "Add image" item from the "Actions" button of that file. You will be asked to provide a name and tag for the new image. Note that you must provide a unique name and tag combination, to avoid overwriting other users' images.
-
 Datasets screen
 ---------------
 
@@ -72,7 +60,7 @@ Files screen
 
 The files screen is accessed by selecting "Files" from the menu on the left. You are presented with a list of folders and files in the respective domain. Change domain ("private" or "shared") by clicking on the corresponding buttons on the upper-right of the screen. The "private" domain contains private user files, while "shared" is common across all users. Any user can add or remove files in "shared".
 
-Select a folder to navigate into that path (the current path is shown above the list), or a file to download it. Select the "Actions" button to download a folder as an archive or delete an object. Respective actions are also available to add templates (ending in ``.template.yaml``) or saved container images (ending in ``.tar``).
+Select a folder to navigate into that path (the current path is shown above the list), or a file to download it. Select the "Actions" button to download a folder as an archive or delete an object. An action is also available to add a template (ending in ``.template.yaml``).
 
 Files are mounted in containers under ``/private`` and ``/shared`` respectively.
 
@@ -89,7 +77,7 @@ Administration
 .. note::
    The information in this section applies only to administrators.
 
-The "admin" user has access to an additional screen named "Users". Moreover, in the "Images" screen, the administrator has the option to use the "Actions" button to delete an image.
+The "admin" user has access to an additional screen named "Users".
 
 The users screen is accessed by selecting "Users" from the menu on the left. You are presented with a list of users, by username. Each user can be "active", meaning with access to the dashboard and services. Each user can also be promoted to an administrator. The respective actions are available in the menu presented when selecting the "Actions" button. An administrator can edit a user's email, change a user's password, impersonate, and delete a user.
 

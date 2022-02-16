@@ -7,12 +7,6 @@ environments:
         service:
           type: LoadBalancer
         createSelfsignedCertificate: true
-    - registry:
-        enabled: true
-        service:
-          type: LoadBalancer
-        persistence:
-          provisioning: auto
     - jupyterHub:
         enabled: true
         persistence:
@@ -23,6 +17,14 @@ environments:
         enabled: true
         clientID: T8DrPY49xlYvjsJ1nUIhxs17fG07gMZpQSOM7d3K
         clientSecret: 6TjANPj1oe59MexsTYdMV5yiSyOYULDEzkyxfff4CmAPFa8mQ1dhYE7BHeEEVyg1tRgTkXRWYj2zhiKLiLZvhUGDnrixQQDshrWVtWCgQX23Vmdo37ktuVmsgOEfO2eG
+    - harbor:
+        enabled: true
+        persistence:
+          provisioning: auto
+        adminPassword: Harbor12345
+        secretKey: 4sdcg3urQQd00vHU
+        clientID: XAOdj9vN5BAjKJD0XjRMlqNybdlRKCF1XcOJHmPT
+        clientSecret: rgRQVzfZnoU9WAOqfni5hyC0bXZHjKPyLKOCUVfmBBWbVdaMRQfuep7lPKDjef5bZDxYc4OpiVjGMpXuRye872ATHejjMRKvfPAOA482uh2SjpwmIKUBigBZaVKFkYF3
     - grafana:
         enabled: true
         clientID: tSlY0FSd7tmS7jR0J6KLyIhisd9yYitlmyx3oVb3
@@ -35,14 +37,14 @@ environments:
         service:
           type: LoadBalancer
         createSelfsignedCertificate: true
-    - registry:
-        enabled: false
     - jupyterHub:
         enabled: false
     - argo:
         enabled: true
         clientID: T8DrPY49xlYvjsJ1nUIhxs17fG07gMZpQSOM7d3K
         clientSecret: 6TjANPj1oe59MexsTYdMV5yiSyOYULDEzkyxfff4CmAPFa8mQ1dhYE7BHeEEVyg1tRgTkXRWYj2zhiKLiLZvhUGDnrixQQDshrWVtWCgQX23Vmdo37ktuVmsgOEfO2eG
+    - harbor:
+        enabled: false
     - grafana:
         enabled: false
   # Use local folders instead of volumes for development on baremetal.
@@ -58,13 +60,6 @@ environments:
           #   http: 30080
           #   https: 30443
         createSelfsignedCertificate: true
-    - registry:
-        enabled: true
-        service:
-          type: NodePort
-        persistence:
-          provisioning: local
-          path: {{ requiredEnv "PWD" }}/db/registry
     - jupyterHub:
         enabled: true
         persistence:
@@ -80,6 +75,15 @@ environments:
         enabled: true
         clientID: T8DrPY49xlYvjsJ1nUIhxs17fG07gMZpQSOM7d3K
         clientSecret: 6TjANPj1oe59MexsTYdMV5yiSyOYULDEzkyxfff4CmAPFa8mQ1dhYE7BHeEEVyg1tRgTkXRWYj2zhiKLiLZvhUGDnrixQQDshrWVtWCgQX23Vmdo37ktuVmsgOEfO2eG
+    - harbor:
+        enabled: true
+        persistence:
+          provisioning: local
+          path: {{ requiredEnv "PWD" }}/db/harbor
+        adminPassword: Harbor12345
+        secretKey: 4sdcg3urQQd00vHU
+        clientID: XAOdj9vN5BAjKJD0XjRMlqNybdlRKCF1XcOJHmPT
+        clientSecret: rgRQVzfZnoU9WAOqfni5hyC0bXZHjKPyLKOCUVfmBBWbVdaMRQfuep7lPKDjef5bZDxYc4OpiVjGMpXuRye872ATHejjMRKvfPAOA482uh2SjpwmIKUBigBZaVKFkYF3
     - grafana:
         enabled: true
         clientID: tSlY0FSd7tmS7jR0J6KLyIhisd9yYitlmyx3oVb3
@@ -92,10 +96,6 @@ repositories:
   url: https://kubernetes.github.io/ingress-nginx
 - name: bedag
   url: https://bedag.github.io/helm-charts
-{{- if .Values.registry.enabled }}
-- name: twuni
-  url: https://helm.twun.io
-{{- end }}
 {{- if .Values.jupyterHub.enabled }}
 - name: jupyterhub
   url: https://jupyterhub.github.io/helm-chart/
@@ -105,6 +105,10 @@ repositories:
   url: https://emberstack.github.io/helm-charts
 - name: argo
   url: https://argoproj.github.io/argo-helm
+{{- end }}
+{{- if .Values.harbor.enabled }}
+- name: harbor
+  url: https://helm.goharbor.io
 {{- end }}
 {{- if .Values.grafana.enabled }}
 - name: prometheus-community
@@ -168,9 +172,9 @@ releases:
         secretTemplate:
           annotations:
             "reflector.v1.k8s.emberstack.com/reflection-allowed": "true"
-            "reflector.v1.k8s.emberstack.com/reflection-allowed-namespaces": "default,argo"
+            "reflector.v1.k8s.emberstack.com/reflection-allowed-namespaces": "default,argo,harbor"
             "reflector.v1.k8s.emberstack.com/reflection-auto-enabled": "true"
-            "reflector.v1.k8s.emberstack.com/reflection-auto-namespaces": "default,argo"
+            "reflector.v1.k8s.emberstack.com/reflection-auto-namespaces": "default,argo,harbor"
         {{- end }}
         duration: 87600h
         commonName: {{ .Values.ingress.host }}
@@ -182,45 +186,6 @@ releases:
           size: 2048
         issuerRef:
           name: selfsigned
-{{- end }}
-{{- if .Values.registry.enabled }}
-- name: registry
-  namespace: registry
-  createNamespace: true
-  chart: twuni/docker-registry
-  version: 1.16.0
-  values:
-  {{- if eq .Values.registry.persistence.provisioning "local" }}
-  - persistence:
-      enabled: false
-      deleteEnabled: true
-  - storage: custom
-  - extraVolumes:
-    - name: registry-volume
-      hostPath:
-        path: {{ .Values.registry.persistence.path | quote }}
-  - extraVolumeMounts:
-    - name: registry-volume
-      mountPath: /var/lib/registry
-  - extraEnvVars:
-    - name: REGISTRY_STORAGE_FILESYSTEM_ROOTDIRECTORY
-      value: /var/lib/registry
-  {{- else }}
-  - persistence:
-      enabled: true
-      deleteEnabled: true
-  {{- end }}
-  - service:
-      type: {{ .Values.registry.service.type }}
-  {{- if eq .Values.registry.persistence.provisioning "local" }}
-  hooks:
-  - events: ["presync"]
-    showlogs: true
-    command: "/bin/bash"
-    args:
-    - "-c"
-    - "mkdir -p {{ .Values.registry.persistence.path }} && chown 1000:1000 {{ .Values.registry.persistence.path }}"
-  {{- end }}
 {{- end }}
 {{- if .Values.jupyterHub.enabled }}
 - name: jupyterhub
@@ -403,6 +368,106 @@ releases:
       data:
         client-id: {{ .Values.argo.clientID | b64enc }}
         client-secret: {{ .Values.argo.clientSecret | b64enc }}
+{{- end }}
+{{- if .Values.harbor.enabled }}
+- name: harbor
+  namespace: harbor
+  createNamespace: true
+  chart: harbor/harbor
+  version: 1.8.1
+  values:
+  - expose:
+      type: ingress
+      tls:
+        enabled: false
+      ingress:
+        hosts:
+          core: harbor.{{ .Values.ingress.host }}
+        annotations:
+          "nginx.ingress.kubernetes.io/force-ssl-redirect": "true"
+  - externalURL: https://harbor.{{ .Values.ingress.host }}
+  {{- if eq .Values.harbor.persistence.provisioning "local" }}
+  - persistence:
+      persistentVolumeClaim:
+        registry:
+          existingClaim: harbor-pvc
+          subPath: registry
+        jobservice:
+          existingClaim: harbor-pvc
+          subPath: jobservice
+        database:
+          existingClaim: harbor-pvc
+          subPath: database
+        redis:
+          existingClaim: harbor-pvc
+          subPath: redis
+  {{- end }}
+  - harborAdminPassword: {{ .Values.harbor.adminPassword | quote }}
+  - secretKey: {{ .Values.harbor.secretKey | quote }}
+  {{- if .Values.ingress.createSelfsignedCertificate }}
+  - caBundleSecretName: ssl-certificate
+  {{- end }}
+  - chartmuseum:
+      enabled: false
+  - trivy:
+      enabled: false
+  - notary:
+      enabled: false
+{{- if eq .Values.harbor.persistence.provisioning "local" }}
+- name: harbor-persistentvolumeclaim
+  namespace: harbor
+  createNamespace: true
+  chart: bedag/raw
+  version: 1.1.0
+  values:
+  - resources:
+    - apiVersion: v1
+      kind: PersistentVolumeClaim
+      metadata:
+        name: harbor-pvc
+      spec:
+        storageClassName: ""
+        volumeName: harbor-pv
+        accessModes:
+          - ReadWriteMany
+        resources:
+          requests:
+            storage: 1Ti
+    - apiVersion: v1
+      kind: PersistentVolume
+      metadata:
+        name: harbor-pv
+      spec:
+        accessModes:
+          - ReadWriteMany
+        capacity:
+          storage: 1Ti
+        persistentVolumeReclaimPolicy: Retain
+        hostPath:
+          path: {{ .Values.harbor.persistence.path }}
+  hooks:
+  - events: ["presync"]
+    showlogs: true
+    command: "/bin/bash"
+    args:
+    - "-c"
+    - "mkdir -p {{ .Values.harbor.persistence.path }} && chown 999:999 {{ .Values.harbor.persistence.path }}"
+{{- end }}
+- name: harbor-oauth-secret
+  namespace: harbor
+  createNamespace: true
+  chart: bedag/raw
+  version: 1.1.0
+  values:
+  - resources:
+    - apiVersion: v1
+      kind: Secret
+      metadata:
+        name: karvdash-oauth-harbor
+      type: Opaque
+      data:
+        client-id: {{ .Values.harbor.clientID | b64enc }}
+        client-secret: {{ .Values.harbor.clientSecret | b64enc }}
 {{- end }}
 {{- if .Values.grafana.enabled }}
 - name: monitoring

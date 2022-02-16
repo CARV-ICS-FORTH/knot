@@ -4,7 +4,9 @@ django-impersonate==1.7.3
 django-chunked-upload==2.0.0
 django-oauth-toolkit==1.5.0
 django-auth-ldap==3.0.0
-python-dxf==7.8.0
+celery==5.2.3
+redis==4.1.2
+requests==2.27.1
 kubernetes==20.13.0
 PyYAML==6.0
 passlib==1.7.4

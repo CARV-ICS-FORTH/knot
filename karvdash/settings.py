@@ -213,7 +213,7 @@ if os.path.exists(OIDC_RSA_PRIVATE_KEY_FILE):
     OAUTH2_PROVIDER = {
         "OIDC_ENABLED": True,
         "OIDC_RSA_PRIVATE_KEY": OIDC_RSA_PRIVATE_KEY,
-        "OAUTH2_VALIDATOR_CLASS": "karvdash.oauth_validators.CustomOAuth2Validator",
+        "OAUTH2_VALIDATOR_CLASS": "dashboard.oauth_validators.CustomOAuth2Validator",
         "SCOPES": { # Scopes requested by social_core.backends.django.DjangoOpenIdConnect
             "openid": "OpenID Connect scope",
             "profile": "User profile",
@@ -222,6 +222,13 @@ if os.path.exists(OIDC_RSA_PRIVATE_KEY_FILE):
     }
 
 VOUCH_URL = os.getenv('KARVDASH_VOUCH_URL')
+
+
+# Async tasks
+
+CELERY_BROKER_URL = 'redis://localhost'
+CELERY_TASK_TIME_LIMIT = 1800
+CELERY_CONCURRENCY = 4
 
 
 # Form styling with crispy-forms
@@ -252,12 +259,6 @@ FILES_MOUNT_DIR = os.getenv('KARVDASH_FILES_MOUNT_DIR', os.path.join(BASE_DIR, '
 
 MEDIA_ROOT = FILES_MOUNT_DIR
 CHUNKED_UPLOAD_PATH = 'uploads'
-
-
-# Container registry endpoint
-
-REGISTRY_URL = os.getenv('KARVDASH_REGISTRY_URL')
-REGISTRY_CERT_FILE = os.getenv('KARVDASH_REGISTRY_CERT_FILE')
 
 
 # Service templates
@@ -341,6 +342,13 @@ JUPYTERHUB_NOTEBOOK_DIR = os.getenv('KARVDASH_JUPYTERHUB_NOTEBOOK_DIR')
 
 ARGO_WORKFLOWS_URL = os.getenv('KARVDASH_ARGO_WORKFLOWS_URL')
 ARGO_WORKFLOWS_NAMESPACE = os.getenv('KARVDASH_ARGO_WORKFLOWS_NAMESPACE')
+
+
+# Harbor integration
+
+HARBOR_URL = os.getenv('KARVDASH_HARBOR_URL')
+HARBOR_NAMESPACE = os.getenv('KARVDASH_HARBOR_NAMESPACE')
+HARBOR_ADMIN_PASSWORD = os.getenv('KARVDASH_HARBOR_ADMIN_PASSWORD')
 
 
 # Grafana integration

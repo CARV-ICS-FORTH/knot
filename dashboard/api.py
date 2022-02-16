@@ -30,7 +30,7 @@ from .forms import CreateServiceForm, CreateDatasetForm
 from .datasets import LOCAL_S3_DATASET_TEMPLATE, REMOTE_S3_DATASET_TEMPLATE, LOCAL_H3_DATASET_TEMPLATE, REMOTE_H3_DATASET_TEMPLATE, ARCHIVE_DATASET_TEMPLATE
 from .utils.template import Template, ServiceTemplate, FileTemplate
 from .utils.kubernetes import KubernetesClient
-from .utils.registry import RegistryClient
+from .utils.harbor import HarborClient
 from .utils.base64 import base64_encode, base64_decode
 
 
@@ -144,15 +144,10 @@ class ServiceResource(APIResource):
         return contents
 
     def create(self):
-        # Backwards compatibility.
-        filename = self.data.pop('filename', None)
-        if filename:
-            identifier = filename + '.template.yaml'
-        else:
-            try:
-                identifier = self.data.pop('id')
-            except:
-                raise BadRequest()
+        try:
+            identifier = self.data.pop('id')
+        except:
+            raise BadRequest()
 
         template = self.get_template(identifier)
         if not template:
@@ -164,8 +159,7 @@ class ServiceResource(APIResource):
 
         for variable in template.variables:
             name = variable['name']
-            # Backwards compatibility ("PRIVATE" and "SHARED").
-            if name.upper() in ('NAMESPACE', 'HOSTNAME', 'REGISTRY', 'PRIVATE', 'PRIVATE_DIR', 'PRIVATE_VOLUME', 'SHARED', 'SHARED_DIR', 'SHARED_VOLUME'): # Set here later on.
+            if name.upper() in ('NAMESPACE', 'HOSTNAME', 'REGISTRY', 'PRIVATE_DIR', 'PRIVATE_VOLUME', 'SHARED_DIR', 'SHARED_VOLUME'): # Set here later on.
                 continue
             if name in self.data:
                 setattr(template, name, form.cleaned_data[name])
@@ -204,11 +198,9 @@ class ServiceResource(APIResource):
         template.NAMESPACE = self.user.namespace
         template.NAME = name
         template.HOSTNAME = '%s.%s' % (prefix, ingress_host)
-        template.REGISTRY = RegistryClient(settings.REGISTRY_URL, settings.REGISTRY_CERT_FILE).registry_host if settings.REGISTRY_URL else ''
-        template.PRIVATE = self.user.file_domains['private'].mount_dir # Backwards compatibility.
+        template.REGISTRY = HarborClient(settings.HARBOR_URL).registry_host if settings.HARBOR_URL else ''
         template.PRIVATE_DIR = self.user.file_domains['private'].mount_dir
         template.PRIVATE_VOLUME = self.user.file_domains['private'].volume_name
-        template.SHARED = self.user.file_domains['shared'].mount_dir # Backwards compatibility.
         template.SHARED_DIR = self.user.file_domains['shared'].mount_dir
         template.SHARED_VOLUME = self.user.file_domains['private'].volume_name
 
@@ -228,11 +220,6 @@ class ServiceResource(APIResource):
         # Add no local datasets label.
         if not template.datasets:
             template.inject_no_datasets_label()
-
-        # Inject data folders.
-        # if settings.DEBUG:
-        #     template.inject_volumes(self.user.file_domains, add_api_settings=True)
-        #     template.inject_volumes(self.user.dataset_volumes, is_datasets=True)
 
         # Save yaml.
         service_database_path = os.path.join(settings.SERVICE_DATABASE_DIR, self.user.username)

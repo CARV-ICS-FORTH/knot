@@ -12,6 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from .celery import app as celery_app
+import os
 
-__all__ = ('celery_app',)
+from celery import Celery
+
+
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'karvdash.settings')
+
+# Configure with keys having the "CELERY_" prefix and load tasks.
+app = Celery('karvdash')
+app.config_from_object('django.conf:settings', namespace='CELERY')
+app.autodiscover_tasks()

@@ -92,7 +92,6 @@ data:
   KARVDASH_DOCUMENTATION_URL: {{- if .Values.karvdash.documentationURL }} {{ .Values.karvdash.documentationURL | quote }} {{- else }} "" {{- end }}
   KARVDASH_ISSUES_URL: {{- if .Values.karvdash.issuesURL }} {{ .Values.karvdash.issuesURL | quote }} {{- else }} "" {{- end }}
   KARVDASH_INGRESS_URL: {{ $ingressURL | quote }}
-  KARVDASH_REGISTRY_URL: {{- if .Values.karvdash.registryURL }} {{ .Values.karvdash.registryURL | quote }} {{- else }} "" {{- end }}
   KARVDASH_DATASETS_AVAILABLE: {{- if .Values.karvdash.datasetsAvailable }} {{ .Values.karvdash.datasetsAvailable | quote }} {{- else }} "" {{- end }}
   KARVDASH_SERVICE_DOMAIN: {{ printf "%s.%s.svc" .Release.Name .Release.Namespace | quote }}
   KARVDASH_FILES_URL: {{- if .Values.karvdash.filesURL }} {{ .Values.karvdash.filesURL | quote }} {{- else }} "" {{- end }}
@@ -102,6 +101,9 @@ data:
   KARVDASH_JUPYTERHUB_NOTEBOOK_DIR: {{- if .Values.karvdash.jupyterHubNotebookDir }} {{ .Values.karvdash.jupyterHubNotebookDir | quote }} {{- else }} "" {{- end }}
   KARVDASH_ARGO_WORKFLOWS_URL: {{- if .Values.karvdash.argoWorkflowsURL }} {{ .Values.karvdash.argoWorkflowsURL | quote }} {{- else }} "" {{- end }}
   KARVDASH_ARGO_WORKFLOWS_NAMESPACE: {{- if .Values.karvdash.argoWorkflowsNamespace }} {{ .Values.karvdash.argoWorkflowsNamespace | quote }} {{- else }} "" {{- end }}
+  KARVDASH_HARBOR_URL: {{- if .Values.karvdash.harborURL }} {{ .Values.karvdash.harborURL | quote }} {{- else }} "" {{- end }}
+  KARVDASH_HARBOR_NAMESPACE: {{- if .Values.karvdash.harborNamespace }} {{ .Values.karvdash.harborNamespace | quote }} {{- else }} "" {{- end }}
+  KARVDASH_HARBOR_ADMIN_PASSWORD: {{- if .Values.karvdash.harborAdminPassword }} {{ .Values.karvdash.harborAdminPassword | quote }} {{- else }} "" {{- end }}
   KARVDASH_GRAFANA_URL: {{- if .Values.karvdash.grafanaURL }} {{ .Values.karvdash.grafanaURL | quote }} {{- else }} "" {{- end }}
   KARVDASH_GRAFANA_NAMESPACE: {{- if .Values.karvdash.grafanaNamespace }} {{ .Values.karvdash.grafanaNamespace | quote }} {{- else }} "" {{- end }}
 ---
@@ -113,10 +115,6 @@ metadata:
     app: {{ .Release.Name }}
     chart: {{ .Chart.Name }}-{{ .Chart.Version }}
 data:
-  registry_cert_file: |
-    {{- if .Values.karvdash.registryCert }}
-    {{- .Values.karvdash.registryCert | nindent 4 }}
-    {{- end }}
   disabled_service_templates: |
     {{- range $val := .Values.karvdash.disabledServiceTemplates }}
     {{ $val }}

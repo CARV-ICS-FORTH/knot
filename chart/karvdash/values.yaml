@@ -45,10 +45,10 @@ karvdash:
   issuesURL:
   # REQUIRED: The ingress URL used.
   ingressURL:
-  # The URL of the container registry.
-  registryURL:
-  # The container registry certificate (use if self-signed).
-  registryCert:
+  # The name of the secret containing the self-signed certificate for the ingress.
+  certificateSecretName:
+  # The key in the secret holding the self-signed certificate for the ingress.
+  certificateSecretKey:
   # Set to anything to enable dataset management.
   datasetsAvailable:
   # REQUIRED: The base URL for the private and shared file domains.
@@ -79,6 +79,13 @@ karvdash:
   argoWorkflowsURL:
   # Argo Workflows namespace for integration.
   argoWorkflowsNamespace:
+
+  # Harbor URL for integration with the container registry.
+  harborURL:
+  # Harbor namespace for integration.
+  harborNamespace:
+  # Harbor admin password for fetching CLI secrets.
+  harborAdminPassword:
 
   # Grafana URL for integration with the metrics frontend.
   grafanaURL:

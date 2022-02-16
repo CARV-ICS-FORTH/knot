@@ -36,9 +36,9 @@
             <i class="fa fa-map" aria-hidden="true"></i> Templates
           </a>
         </li>
-        {% if images_available %}
+        {% if harbor_url %}
         <li class="nav-item">
-          <a class="nav-link {% if title == 'Images' %}active{% endif %}" href="{% url 'images' %}">
+          <a class="nav-link" href="{{ harbor_url }}/harbor/projects" target="_blank">
             <i class="fa fa-cubes" aria-hidden="true"></i> Images
           </a>
         </li>
