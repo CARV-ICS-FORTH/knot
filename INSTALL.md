@@ -107,6 +107,7 @@ rm -f helmfile_linux_amd64
 Clone and deploy [Karvdash](https://github.com/CARV-ICS-FORTH/karvdash):
 
 ```bash
+git clone https://github.com/kantale/OpenBio.eu.git
 git clone https://github.com/CARV-ICS-FORTH/karvdash.git
 cd karvdash
 apt-get install -y make

@@ -528,7 +528,7 @@ releases:
         name: cluster-admin
       subjects:
       - kind: ServiceAccount
-        name: hub
+        name: default
         namespace: openbio
 - name: openbio-oauth-secret
   namespace: openbio
