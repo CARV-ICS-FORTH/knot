@@ -57,6 +57,8 @@ Some of the variables set above are required. The table below lists all availabl
 | `karvdash.argoWorkflowsNamespace`   |          | Argo Workflows namespace for integration.                                                  |                                   |
 | `karvdash.grafanaURL`               |          | Grafana URL for integration with the metrics frontend.                                     |                                   |
 | `karvdash.grafanaNamespace`         |          | Grafana namespace for integration.                                                         |                                   |
+| `karvdash.openBioURL`               |          | OpenBio URL for integration with the collaborative workflow editor.                        |                                   |
+| `karvdash.openBioNamespace`         |          | OpenBio namespace for integration.                                                         |                                   |
 
 Set `karvdash.filesURL` to:
 * `file://<path>`, if using a node-wide, shared mountpoint for files.

@@ -98,6 +98,7 @@ Download and install the [Helmfile](https://github.com/roboll/helmfile) binary:
 HELMFILE_VERSION="0.143.0"
 curl -LO https://github.com/roboll/helmfile/releases/download/v${HELMFILE_VERSION}/helmfile_linux_amd64
 cp helmfile_linux_amd64 /usr/local/bin/helmfile
+chmod +x /usr/local/bin/helmfile
 rm -f helmfile_linux_amd64
 ```
 

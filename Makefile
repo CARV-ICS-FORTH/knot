@@ -99,7 +99,9 @@ deploy-local:
 	--set karvdash.argoWorkflowsURL="https://argo.${INGRESS_URL}" \
 	--set karvdash.argoWorkflowsNamespace="argo" \
 	--set karvdash.grafanaURL="https://grafana.${INGRESS_URL}" \
-	--set karvdash.grafanaNamespace="monitoring"
+	--set karvdash.grafanaNamespace="monitoring" \
+	--set karvdash.openBioURL="https://openbio.${INGRESS_URL}" \
+	--set karvdash.openBioNamespace="openbio"
 
 undeploy-local:
 	helm uninstall karvdash --namespace default
@@ -129,6 +131,8 @@ develop:
 	export KARVDASH_ARGO_WORKFLOWS_NAMESPACE="argo"; \
 	export KARVDASH_GRAFANA_URL="https://grafana.${INGRESS_URL}"; \
 	export KARVDASH_GRAFANA_NAMESPACE="monitoring"; \
+	export KARVDASH_OPENBIO_URL="https://openbio.${INGRESS_URL}"; \
+	export KARVDASH_OPENBIO_NAMESPACE="openbio"; \
 	./manage.py runserver 0.0.0.0:8000
 
 container:

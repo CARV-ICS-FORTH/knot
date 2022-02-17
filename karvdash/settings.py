@@ -346,3 +346,8 @@ ARGO_WORKFLOWS_NAMESPACE = os.getenv('KARVDASH_ARGO_WORKFLOWS_NAMESPACE')
 # Grafana integration
 
 GRAFANA_URL = os.getenv('KARVDASH_GRAFANA_URL')
+
+
+# OpenBio integration
+
+OPENBIO_URL = os.getenv('KARVDASH_OPENBIO_URL')

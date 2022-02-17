@@ -27,6 +27,13 @@ environments:
         enabled: true
         clientID: tSlY0FSd7tmS7jR0J6KLyIhisd9yYitlmyx3oVb3
         clientSecret: eYLaIV2NtZHhR7M9zh1ouLl4LpuwwpcrYBspXbS2gTCm61Hn01ghmZf7iBxxk5r3SdPHnlg6Ovm6IKK4CmJKNl8gnkvxjmOt7YOxZJR0BJH8DPHnA9Nh6pHpmESM8mfE
+    - openBio:
+        enabled: true
+        version: 0.2.1b3
+        djangoDebug: 1
+        databaseHostPath: {{ requiredEnv "PWD" }}/db/openbio
+        clientID: GtgX0LX4nZ27kYPQOtQV9szC1jFdeN35NMCjamqL
+        clientSecret: dQffp68kBzNDZrG4vgrIG8uguc2j0KRAXnTR5mrLuMuNq2sVl5PDtDnNyQoxpe2HiNuBehj5t35O3i8pBqZC2RO92CHTprkb8L662ka9lCUBqmo5F1OBB1QmzBo4jEK6
   # Minimal deployment for development with minikube.
   minikube:
     values:
@@ -44,6 +51,8 @@ environments:
         clientID: T8DrPY49xlYvjsJ1nUIhxs17fG07gMZpQSOM7d3K
         clientSecret: 6TjANPj1oe59MexsTYdMV5yiSyOYULDEzkyxfff4CmAPFa8mQ1dhYE7BHeEEVyg1tRgTkXRWYj2zhiKLiLZvhUGDnrixQQDshrWVtWCgQX23Vmdo37ktuVmsgOEfO2eG
     - grafana:
+        enabled: false
+    - openBio:
         enabled: false
   # Use local folders instead of volumes for development on baremetal.
   baremetal:
@@ -84,6 +93,13 @@ environments:
         enabled: true
         clientID: tSlY0FSd7tmS7jR0J6KLyIhisd9yYitlmyx3oVb3
         clientSecret: eYLaIV2NtZHhR7M9zh1ouLl4LpuwwpcrYBspXbS2gTCm61Hn01ghmZf7iBxxk5r3SdPHnlg6Ovm6IKK4CmJKNl8gnkvxjmOt7YOxZJR0BJH8DPHnA9Nh6pHpmESM8mfE
+    - openBio:
+        enabled: true
+        version: 0.2.1b3
+        djangoDebug: 1
+        databaseHostPath: {{ requiredEnv "PWD" }}/db/openbio
+        clientID: GtgX0LX4nZ27kYPQOtQV9szC1jFdeN35NMCjamqL
+        clientSecret: dQffp68kBzNDZrG4vgrIG8uguc2j0KRAXnTR5mrLuMuNq2sVl5PDtDnNyQoxpe2HiNuBehj5t35O3i8pBqZC2RO92CHTprkb8L662ka9lCUBqmo5F1OBB1QmzBo4jEK6
 ---
 repositories:
 - name: cert-manager
@@ -461,4 +477,57 @@ releases:
       data:
         client-id: {{ .Values.grafana.clientID | b64enc }}
         client-secret: {{ .Values.grafana.clientSecret | b64enc }}
+{{- end }}
+{{- if .Values.openBio.enabled }}
+- name: openbio
+  namespace: openbio
+  createNamespace: true
+  chart: ../OpenBio.eu/chart/openbio
+  values:
+  - image: kantale/openbio:{{ .Values.openBio.version | quote }}
+  - openbio:
+      databaseHostPath: {{ .Values.openBio.databaseHostPath | quote }}
+      djangoSecret: {{ .Values.openBio | get "djangoSecret" "" | quote }}
+      djangoDebug: {{ .Values.openBio | get "djangoDebug" "0" | quote }}
+      title: {{ .Values.openBio | get "title" "OpenBio" | quote }}
+      serverURL: https://openbio.{{ .Values.ingress.host }}
+      fromEmail: admin@{{ .Values.ingress.host }}
+      adminEmail: admin@{{ .Values.ingress.host }}
+      termsURL: ""
+      privacyURL: ""
+      showFundingLogos: false
+      karvdashEndpointURL: https://{{ .Values.ingress.host }}/oauth
+      karvdashClientID: {{ .Values.openBio.clientID | quote }}
+      karvdashClientSecret: {{ .Values.openBio.clientSecret | quote }}
+      {{- if .Values.ingress.createSelfsignedCertificate }}
+      karvdashVerifySSL: false
+      {{- end }}
+      ingressEnabled: true
+      ingressURL: https://openbio.{{ .Values.ingress.host }}
+  hooks:
+  - events: ["presync"]
+    showlogs: true
+    command: "/bin/bash"
+    args:
+    - "-c"
+    - "mkdir -p {{ .Values.openBio.databaseHostPath }}"
+- name: openbio-clusterrolebinding
+  namespace: openbio
+  createNamespace: true
+  chart: bedag/raw
+  version: 1.1.0
+  values:
+  - resources:
+    - apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRoleBinding
+      metadata:
+        name: openbio-cluster-admin
+      roleRef:
+        apiGroup: rbac.authorization.k8s.io
+        kind: ClusterRole
+        name: cluster-admin
+      subjects:
+      - kind: ServiceAccount
+        name: hub
+        namespace: openbio
 {{- end }}
