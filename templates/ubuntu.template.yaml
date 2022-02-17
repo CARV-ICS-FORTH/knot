@@ -1,0 +1,41 @@
+# ubuntu.template.yaml
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: $NAME
+spec:
+  type: ClusterIP
+  selector:
+    app: $NAME
+  clusterIP: None
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: $NAME
+spec:
+  selector:
+    matchLabels:
+      app: $NAME
+  template:
+    metadata:
+      labels:
+        app: $NAME
+    spec:
+      containers:
+      - image: ubuntu:$VERSION
+        name: $NAME
+        command: ["sleep"]
+        args: ["infinity"]
+---
+kind: Template
+name: Ubuntu
+description: Ubuntu operating system
+variables:
+- name: NAME
+  default: ubuntu
+- name: HOSTNAME
+  default: ubuntu.example.com
+- name: VERSION
+  default: 20.04
