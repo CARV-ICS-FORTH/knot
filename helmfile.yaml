@@ -484,7 +484,7 @@ releases:
   createNamespace: true
   chart: ../OpenBio.eu/chart/openbio
   values:
-  - image: kantale/openbio:{{ .Values.openBio.version | quote }}
+  - image: kantale/openbio:{{ .Values.openBio.version }}
   - openbio:
       databaseHostPath: {{ .Values.openBio.databaseHostPath | quote }}
       djangoSecret: {{ .Values.openBio | get "djangoSecret" "" | quote }}
