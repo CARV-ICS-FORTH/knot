@@ -29,7 +29,7 @@ environments:
         clientSecret: eYLaIV2NtZHhR7M9zh1ouLl4LpuwwpcrYBspXbS2gTCm61Hn01ghmZf7iBxxk5r3SdPHnlg6Ovm6IKK4CmJKNl8gnkvxjmOt7YOxZJR0BJH8DPHnA9Nh6pHpmESM8mfE
     - openBio:
         enabled: true
-        version: 0.2.1b3
+        version: 0.2.1
         djangoDebug: 1
         databaseHostPath: {{ requiredEnv "PWD" }}/db/openbio
         clientID: GtgX0LX4nZ27kYPQOtQV9szC1jFdeN35NMCjamqL
@@ -95,7 +95,7 @@ environments:
         clientSecret: eYLaIV2NtZHhR7M9zh1ouLl4LpuwwpcrYBspXbS2gTCm61Hn01ghmZf7iBxxk5r3SdPHnlg6Ovm6IKK4CmJKNl8gnkvxjmOt7YOxZJR0BJH8DPHnA9Nh6pHpmESM8mfE
     - openBio:
         enabled: true
-        version: 0.2.1b3
+        version: 0.2.1
         djangoDebug: 1
         databaseHostPath: {{ requiredEnv "PWD" }}/db/openbio
         clientID: GtgX0LX4nZ27kYPQOtQV9szC1jFdeN35NMCjamqL
