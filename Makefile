@@ -67,6 +67,7 @@ undeploy-requirements:
 	export IP_ADDRESS="${IP_ADDRESS}"; \
 	helmfile -e ${HELMFILE_ENV} delete
 	# Remove namespaces
+	kubectl delete namespace openbio || true
 	kubectl delete namespace monitoring || true
 	kubectl delete namespace argo || true
 	kubectl delete namespace reflector || true

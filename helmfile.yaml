@@ -530,4 +530,19 @@ releases:
       - kind: ServiceAccount
         name: hub
         namespace: openbio
+- name: openbio-oauth-secret
+  namespace: openbio
+  createNamespace: true
+  chart: bedag/raw
+  version: 1.1.0
+  values:
+  - resources:
+    - apiVersion: v1
+      kind: Secret
+      metadata:
+        name: karvdash-oauth-openbio
+      type: Opaque
+      data:
+        client-id: {{ .Values.openBio.clientID | b64enc }}
+        client-secret: {{ .Values.openBio.clientSecret | b64enc }}
 {{- end }}
