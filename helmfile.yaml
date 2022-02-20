@@ -159,6 +159,11 @@ releases:
       extraArgs:
         default-ssl-certificate: ingress-nginx/ssl-certificate
 {{- if .Values.ingress.createSelfsignedCertificate }}
+- name: reflector
+  namespace: reflector
+  createNamespace: true
+  chart: emberstack/reflector
+  version: 6.1.23
 - name: ingress-cert
   namespace: ingress-nginx
   createNamespace: true
@@ -184,9 +189,9 @@ releases:
         secretTemplate:
           annotations:
             "reflector.v1.k8s.emberstack.com/reflection-allowed": "true"
-            "reflector.v1.k8s.emberstack.com/reflection-allowed-namespaces": "default,argo"
+            "reflector.v1.k8s.emberstack.com/reflection-allowed-namespaces": "argo"
             "reflector.v1.k8s.emberstack.com/reflection-auto-enabled": "true"
-            "reflector.v1.k8s.emberstack.com/reflection-auto-namespaces": "default,argo"
+            "reflector.v1.k8s.emberstack.com/reflection-auto-namespaces": "argo"
         {{- end }}
         duration: 87600h
         commonName: {{ .Values.ingress.host }}
@@ -361,11 +366,6 @@ releases:
         namespace: jupyterhub
 {{- end }}
 {{- if .Values.argo.enabled }}
-- name: reflector
-  namespace: reflector
-  createNamespace: true
-  chart: emberstack/reflector
-  version: 6.1.23
 - name: argo
   namespace: argo
   createNamespace: true
