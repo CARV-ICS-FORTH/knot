@@ -16,15 +16,11 @@ from django.conf import settings
 from oauth2_provider.oauth2_validators import OAuth2Validator
 
 from .models import User
-from .tasks import update_user_registry_credentials
 
 
 class CustomOAuth2Validator(OAuth2Validator):
     def get_additional_claims(self, request):
         user = User.objects.get(pk=request.user.pk)
-
-        if request.client.is_usable(request) and request.redirect_uri and request.redirect_uri.startswith(settings.HARBOR_URL):
-            update_user_registry_credentials.apply_async((user.pk,), countdown=3)
 
         return {
             'sub': user.username,

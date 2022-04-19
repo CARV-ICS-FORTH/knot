@@ -168,7 +168,7 @@ releases:
         name: ssl-certificate
       spec:
         secretName: ssl-certificate
-        {{- if .Values.argo.enabled }}
+        {{- if or .Values.argo.enabled .Values.harbor.enabled }}
         secretTemplate:
           annotations:
             "reflector.v1.k8s.emberstack.com/reflection-allowed": "true"
@@ -309,12 +309,14 @@ releases:
         name: hub
         namespace: jupyterhub
 {{- end }}
-{{- if .Values.argo.enabled }}
+{{- if or .Values.argo.enabled .Values.harbor.enabled }}
 - name: reflector
   namespace: reflector
   createNamespace: true
   chart: emberstack/reflector
   version: 6.1.23
+{{- end }}
+{{- if .Values.argo.enabled }}
 - name: argo
   namespace: argo
   createNamespace: true

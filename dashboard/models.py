@@ -226,16 +226,16 @@ class User(AuthUser):
         ingress_host = '%s:%s' % (ingress_url.hostname, ingress_url.port) if ingress_url.port else ingress_url.hostname
 
         harbor_client = HarborClient(settings.HARBOR_URL, settings.HARBOR_ADMIN_PASSWORD)
-        harbor_cli_url = harbor_client.get_cli_url(self.username)
+        harbor_cli_url = harbor_client.get_cli_url(self)
         if not harbor_cli_url:
             return
         kubernetes_client.update_registry_secret(self.namespace, harbor_cli_url, '%s@%s' % (self.username, ingress_host))
 
         # Add user to public project as developer.
-        harbor_client.add_user_to_project('library', self.username, HarborClient.ROLE_DEVELOPER, public=True)
+        harbor_client.add_user_to_project(self, 'library', HarborClient.ROLE_DEVELOPER, public=True)
 
         # Create private project.
-        harbor_client.add_user_to_project(self.username, self.username, HarborClient.ROLE_ADMIN, public=False)
+        harbor_client.add_user_to_project(self, self.username, HarborClient.ROLE_ADMIN, public=False)
 
     def create_namespace(self, request):
         # Create service directory.

@@ -11,13 +11,3 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-from celery import shared_task
-
-from .models import User
-
-
-@shared_task
-def update_user_registry_credentials(user_id):
-    user = User.objects.get(pk=user_id)
-    user.update_registry_credentials()
