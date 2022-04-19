@@ -65,6 +65,7 @@ undeploy-requirements:
 	export IP_ADDRESS="${IP_ADDRESS}"; \
 	helmfile -e ${HELMFILE_ENV} delete
 	# Remove namespaces
+	kubectl delete namespace openbio || true
 	kubectl delete namespace monitoring || true
 	kubectl delete namespace harbor || true
 	kubectl delete namespace argo || true
@@ -101,7 +102,9 @@ deploy-local:
 	--set karvdash.harborNamespace="harbor" \
 	--set karvdash.harborAdminPassword="${HARBOR_ADMIN_PASSWORD}" \
 	--set karvdash.grafanaURL="https://grafana.${INGRESS_URL}" \
-	--set karvdash.grafanaNamespace="monitoring"
+	--set karvdash.grafanaNamespace="monitoring" \
+	--set karvdash.openBioURL="https://openbio.${INGRESS_URL}" \
+	--set karvdash.openBioNamespace="openbio"
 
 undeploy-local:
 	helm uninstall karvdash --namespace default
@@ -133,6 +136,8 @@ develop:
 	export KARVDASH_HARBOR_ADMIN_PASSWORD="${HARBOR_ADMIN_PASSWORD}"; \
 	export KARVDASH_GRAFANA_URL="https://grafana.${INGRESS_URL}"; \
 	export KARVDASH_GRAFANA_NAMESPACE="monitoring"; \
+	export KARVDASH_OPENBIO_URL="https://openbio.${INGRESS_URL}"; \
+	export KARVDASH_OPENBIO_NAMESPACE="openbio"; \
 	kubectl port-forward deployment/karvdash 6379:6379 & \
 	celery -A karvdash worker -l info & \
 	./manage.py runserver 0.0.0.0:8000

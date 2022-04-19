@@ -106,6 +106,8 @@ data:
   KARVDASH_HARBOR_ADMIN_PASSWORD: {{- if .Values.karvdash.harborAdminPassword }} {{ .Values.karvdash.harborAdminPassword | quote }} {{- else }} "" {{- end }}
   KARVDASH_GRAFANA_URL: {{- if .Values.karvdash.grafanaURL }} {{ .Values.karvdash.grafanaURL | quote }} {{- else }} "" {{- end }}
   KARVDASH_GRAFANA_NAMESPACE: {{- if .Values.karvdash.grafanaNamespace }} {{ .Values.karvdash.grafanaNamespace | quote }} {{- else }} "" {{- end }}
+  KARVDASH_OPENBIO_URL: {{- if .Values.karvdash.openBioURL }} {{ .Values.karvdash.openBioURL | quote }} {{- else }} "" {{- end }}
+  KARVDASH_OPENBIO_NAMESPACE: {{- if .Values.karvdash.openBioNamespace }} {{ .Values.karvdash.openBioNamespace | quote }} {{- else }} "" {{- end }}
 ---
 apiVersion: v1
 kind: ConfigMap

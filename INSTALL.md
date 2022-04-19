@@ -2,6 +2,11 @@
 
 Install [Ubuntu Server 20.04 LTS](https://ubuntu.com/download/server) on a server with an external IP address (tested on [VirtualBox](https://www.virtualbox.org) with 2 CPUs, 4 GB RAM, bridged network adapter). Update packages. Run as root.
 
+Set external IP address in an environment variable:
+```bash
+export IP_ADDRESS=`ip -o route get 1 | sed -n 's/.*src \([0-9.]\+\).*/\1/p'`
+```
+
 ## System
 
 Disable swap.
@@ -98,6 +103,7 @@ Download and install the [Helmfile](https://github.com/roboll/helmfile) binary:
 HELMFILE_VERSION="0.143.0"
 curl -LO https://github.com/roboll/helmfile/releases/download/v${HELMFILE_VERSION}/helmfile_linux_amd64
 cp helmfile_linux_amd64 /usr/local/bin/helmfile
+chmod +x /usr/local/bin/helmfile
 rm -f helmfile_linux_amd64
 ```
 
@@ -106,10 +112,10 @@ rm -f helmfile_linux_amd64
 Clone and deploy [Karvdash](https://github.com/CARV-ICS-FORTH/karvdash):
 
 ```bash
+git clone https://github.com/kantale/OpenBio.eu.git
 git clone https://github.com/CARV-ICS-FORTH/karvdash.git
 cd karvdash
 apt-get install -y make
-IP_ADDRESS=`ip -o route get 1 | sed -n 's/.*src \([0-9.]\+\).*/\1/p'`
-BAREMETAL=yes IP_ADDRESS=$IP_ADDRESS make deploy-requirements
-BAREMETAL=yes IP_ADDRESS=$IP_ADDRESS make deploy-local
+BAREMETAL=yes make deploy-requirements
+BAREMETAL=yes make deploy-local
 ```

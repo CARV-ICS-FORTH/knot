@@ -354,3 +354,8 @@ HARBOR_ADMIN_PASSWORD = os.getenv('KARVDASH_HARBOR_ADMIN_PASSWORD')
 # Grafana integration
 
 GRAFANA_URL = os.getenv('KARVDASH_GRAFANA_URL')
+
+
+# OpenBio integration
+
+OPENBIO_URL = os.getenv('KARVDASH_OPENBIO_URL')

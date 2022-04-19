@@ -1,8 +1,8 @@
 # Karvdash Helm Chart
 
-Karvdash (Kubernetes CARV dashboard) is a dashboard service for facilitating data science on [Kubernetes](https://kubernetes.io). It supplies the landing page for users, allowing them to launch notebooks and other services, design workflows, and specify parameters related to execution through a user-friendly interface. Karvdash manages users, wires up relevant storage to the appropriate paths inside running containers, securely provisions multiple services under one externally-accessible HTTPS endpoint, while keeping them isolated in per-user namespaces at the Kubernetes level, and provides an identity service for OAuth 2.0/OIDC-compatible applications.
+[Karvdash](https://github.com/CARV-ICS-FORTH/karvdash) (Kubernetes CARV dashboard) is a dashboard service for facilitating data science on [Kubernetes](https://kubernetes.io). It supplies the landing page for users, allowing them to launch notebooks and other services, design workflows, and specify parameters related to execution through a user-friendly interface. Karvdash manages users, wires up relevant storage to the appropriate paths inside running containers, securely provisions multiple services under one externally-accessible HTTPS endpoint, while keeping them isolated in per-user namespaces at the Kubernetes level, and provides an identity service for OAuth 2.0/OIDC-compatible applications.
 
-Check out the [README](https://github.com/CARV-ICS-FORTH/karvdash/tree/master/README.md) for deployment information.
+Check out the [README](https://github.com/CARV-ICS-FORTH/karvdash/blob/master/README.md) for deployment information.
 
 ## Chart usage
 
@@ -60,6 +60,8 @@ Some of the variables set above are required. The table below lists all availabl
 | `karvdash.harborAdminPassword`      |          | Harbor admin password for fetching CLI secrets.                                            |                                   |
 | `karvdash.grafanaURL`               |          | Grafana URL for integration with the metrics frontend.                                     |                                   |
 | `karvdash.grafanaNamespace`         |          | Grafana namespace for integration.                                                         |                                   |
+| `karvdash.openBioURL`               |          | OpenBio URL for integration with the collaborative workflow editor.                        |                                   |
+| `karvdash.openBioNamespace`         |          | OpenBio namespace for integration.                                                         |                                   |
 
 Set `karvdash.filesURL` to:
 * `file://<path>`, if using a node-wide, shared mountpoint for files.

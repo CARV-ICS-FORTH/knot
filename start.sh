@@ -29,5 +29,8 @@ fi
 if [[ -n $KARVDASH_GRAFANA_URL && -n $KARVDASH_GRAFANA_NAMESPACE ]]; then
     python manage.py createoauthapplication --name grafana --redirect-uri $KARVDASH_GRAFANA_URL/login/generic_oauth --secret-name karvdash-oauth-grafana --secret-namespace $KARVDASH_GRAFANA_NAMESPACE
 fi
+if [[ -n $KARVDASH_OPENBIO_URL && -n $KARVDASH_OPENBIO_NAMESPACE ]]; then
+    python manage.py createoauthapplication --name openbio --redirect-uri $KARVDASH_OPENBIO_URL/platform/complete/karvdash/ --secret-name karvdash-oauth-openbio --secret-namespace $KARVDASH_OPENBIO_NAMESPACE
+fi
 
 gunicorn -w 4 -t $TIMEOUT -b 0.0.0.0:8000 karvdash.wsgi:application

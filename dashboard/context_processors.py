@@ -23,4 +23,5 @@ def settings(request):
             'jupyterhub_url': django_settings.JUPYTERHUB_URL,
             'argo_workflows_url': django_settings.ARGO_WORKFLOWS_URL,
             'harbor_url': django_settings.HARBOR_URL,
-            'grafana_url': django_settings.GRAFANA_URL}
+            'grafana_url': django_settings.GRAFANA_URL,
+            'openbio_url': django_settings.OPENBIO_URL}
