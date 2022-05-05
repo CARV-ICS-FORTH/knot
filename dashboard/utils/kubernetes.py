@@ -72,8 +72,8 @@ class KubernetesClient(object):
     def list_service_accounts(self, namespace):
         return self.core_client.list_namespaced_service_account(namespace=namespace).items
 
-    def list_services(self, namespace, label_selector):
-        return self.core_client.list_namespaced_service(namespace=namespace, label_selector=label_selector).items
+    def list_services(self, namespace):
+        return self.core_client.list_namespaced_service(namespace=namespace).items
 
     def list_ingresses(self, namespace):
         return self.networking_client.list_namespaced_ingress(namespace=namespace).items

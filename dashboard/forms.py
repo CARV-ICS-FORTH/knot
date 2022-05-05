@@ -20,6 +20,8 @@ from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Submit
 
 from .models import User
+from .services import ServiceTemplateManager
+from .datasets import DatasetTemplateManager
 
 
 validate_image_name = RegexValidator(r'^[0-9a-z\-\.]*$', 'Only alphanumeric characters, dash, and period are allowed.')
@@ -57,50 +59,59 @@ class SignUpForm(UserCreationForm):
 
 class AddServiceForm(forms.Form):
     def __init__(self, *args, **kwargs):
-        self.request = kwargs.pop('request')
+        self.user = kwargs.pop('user')
         super().__init__(*args, **kwargs)
 
-        from .api import TemplateResource
-
-        template_resource = TemplateResource()
-        template_resource.request = self.request
-        templates = sorted(template_resource.list(),
-                           key=lambda x: x['name'],
-                           reverse=False)
-        self.fields['id'] = forms.ChoiceField(label='Service to create',
-                                              choices=[(t['id'], '%s: %s' % (t['name'], t['description'])) for t in templates])
+        template_manager = ServiceTemplateManager(self.user)
+        try:
+            templates = sorted(template_manager.list(),
+                               key=lambda x: x['name'],
+                               reverse=False)
+        except:
+            templates = []
+        self.fields['name'] = forms.ChoiceField(label='Service to create',
+                                                choices=[(t['name'], '%s: %s' % (t['name'], t['description'])) for t in templates])
 
 class CreateServiceForm(forms.Form):
     def __init__(self, *args, **kwargs):
         variables = kwargs.pop('variables')
-        all_required = kwargs.pop('all_required', False)
         super().__init__(*args, **kwargs)
         for variable in variables:
-            name = variable['name']
-            if name.upper() in ('NAMESPACE', 'HOSTNAME', 'REGISTRY', 'PRIVATE_DIR', 'PRIVATE_VOLUME', 'SHARED_DIR', 'SHARED_VOLUME'):
+            label = variable['label']
+            if label.startswith('data.karvdash.'):
                 continue
-            kwargs = {'validators': [validate_kubernetes_label]} if name == 'NAME' else {'required': all_required}
-            self.fields[name] = forms.CharField(label=variable.get('label', name.capitalize()),
-                                                initial=variable['default'],
-                                                help_text=variable.get('help'),
-                                                **kwargs)
+            kwargs = {'validators': [validate_kubernetes_label], 'required': True} if label == 'name' else {'required': False}
+            if label.startswith('data.'):
+                label = label[5:]
+            self.fields[variable['label']] = forms.CharField(label=label.replace('.', ' ').capitalize(),
+                                                             initial=variable.get('default'),
+                                                             help_text=variable.get('help'),
+                                                             **kwargs)
 
-class AddTemplateForm(forms.Form):
-    file_field = forms.FileField(label='Template file to add')
+class ShowServiceForm(CreateServiceForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for name, field in self.fields.items():
+            field.disabled = True
 
 class AddDatasetForm(forms.Form):
     def __init__(self, *args, **kwargs):
-        self.request = kwargs.pop('request')
         super().__init__(*args, **kwargs)
 
-        from .api import DatasetResource
-
-        dataset_resource = DatasetResource()
-        dataset_resource.request = self.request
-        self.fields['id'] = forms.ChoiceField(label='Dataset to create',
-                                              choices=[(t.identifier, '%s: %s' % (t.name, t.description)) for t in dataset_resource.dataset_templates])
+        template_manager = DatasetTemplateManager(None)
+        try:
+            templates = sorted(template_manager.list(),
+                               key=lambda x: x['name'],
+                               reverse=False)
+        except:
+            templates = []
+        self.fields['name'] = forms.ChoiceField(label='Dataset to add',
+                                                choices=[(t['name'], '%s: %s' % (t['name'], t['description'])) for t in templates])
 
 class CreateDatasetForm(CreateServiceForm):
+    pass
+
+class ShowDatasetForm(ShowServiceForm):
     pass
 
 class AddFolderForm(forms.Form):

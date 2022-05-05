@@ -1,0 +1,5 @@
+apiVersion: v2
+name: h3-local
+description: Dataset for H3 over running Redis-compatible service
+type: application
+version: 1.0.0

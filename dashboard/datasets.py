@@ -12,202 +12,53 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-LOCAL_S3_DATASET_TEMPLATE = '''
-apiVersion: com.ie.ibm.hpsys/v1alpha1
-kind: Dataset
-metadata:
-  name: $NAME
-spec:
-  local:
-    type: "COS"
-    endpoint: "http://${MINIO}.${NAMESPACE}.svc:9000"
-    accessKeyID: $ACCESSKEYID
-    secretAccessKey: $SECRETACCESSKEY
-    bucket: $BUCKET
-    region: ""
----
-kind: Template
-name: S3 (local)
-description: Dataset for running Minio service
-variables:
-- name: NAMESPACE
-  default: default
-- name: NAME
-  default: dataset
-- name: MINIO
-  label: Minio Service Name
-  default: ""
-  help: In current namespace and listening at port 9000
-- name: ACCESSKEYID
-  label: Access Key ID
-  default: ""
-- name: SECRETACCESSKEY
-  label: Secret Access Key
-  default: ""
-- name: BUCKET
-  default: ""
-'''
+from django.conf import settings
 
-REMOTE_S3_DATASET_TEMPLATE = '''
-apiVersion: com.ie.ibm.hpsys/v1alpha1
-kind: Dataset
-metadata:
-  name: $NAME
-spec:
-  local:
-    type: "COS"
-    endpoint: $ENDPOINT
-    accessKeyID: $ACCESSKEYID
-    secretAccessKey: $SECRETACCESSKEY
-    bucket: $BUCKET
-    region: $REGION
----
-kind: Template
-name: S3 (remote)
-description: Dataset for remote S3 endpoint
-variables:
-- name: NAME
-  default: dataset
-- name: ENDPOINT
-  default: "https://s3.amazonaws.com"
-  help: S3 service endpoint URL
-- name: ACCESSKEYID
-  label: Access Key ID
-  default: ""
-- name: SECRETACCESSKEY
-  label: Secret Access Key
-  default: ""
-- name: BUCKET
-  default: ""
-- name: REGION
-  default: ""
-  help: Optional
-'''
+from .services import ServiceTemplateManager, ServiceManager
+from .utils.kubernetes import KubernetesClient
+from .utils.helm import HelmLocalRepoClient, HelmClient
 
-SECRET_S3_SECRET_TEMPLATE = '''
-apiVersion: v1
-kind: Secret
-metadata:
-  name: $NAME
-stringData:
-  accessKeyID: $ACCESSKEYID
-  secretAccessKey: $SECRETACCESSKEY
----
-kind: Template
-name: S3 secret
-description: Secret for remote S3 endpoint
-variables:
-- name: NAME
-  default: secret
-- name: ACCESSKEYID
-  label: Access Key ID
-  default: ""
-- name: SECRETACCESSKEY
-  label: Secret Access Key
-  default: ""
-'''
 
-SECRET_S3_DATASET_TEMPLATE = '''
-apiVersion: com.ie.ibm.hpsys/v1alpha1
-kind: Dataset
-metadata:
-  name: $NAME
-spec:
-  local:
-    type: "COS"
-    endpoint: $ENDPOINT
-    secret-name: $SECRETNAME
-    bucket: $BUCKET
-    region: $REGION
----
-kind: Template
-name: S3 (secret)
-description: Dataset for remote S3 endpoint with predefined secret
-variables:
-- name: NAME
-  default: dataset
-- name: ENDPOINT
-  default: "https://s3.amazonaws.com"
-  help: S3 service endpoint URL
-- name: SECRETNAME
-  label: Secret Containing the Access Key ID and Secret Access Key
-  default: ""
-- name: BUCKET
-  default: ""
-- name: REGION
-  default: ""
-  help: Optional
-'''
+class DatasetTemplateManager(ServiceTemplateManager):
+    def __init__(self, user):
+        self.user = user
+        self.repos = {'system': HelmLocalRepoClient('system', settings.DATASETS_REPO_DIR)}
 
-LOCAL_H3_DATASET_TEMPLATE = '''
-apiVersion: com.ie.ibm.hpsys/v1alpha1
-kind: Dataset
-metadata:
-  name: $NAME
-spec:
-  local:
-    type: "H3"
-    storageUri: "redis://${REDIS}.${NAMESPACE}.svc"
-    bucket: $BUCKET
----
-kind: Template
-name: H3 (local)
-description: Dataset for H3 over running Redis-compatible service
-variables:
-- name: NAMESPACE
-  default: default
-- name: NAME
-  default: dataset
-- name: REDIS
-  label: Redis-compatible Service Name
-  default: ""
-  help: In current namespace and listening at port 6379
-- name: BUCKET
-  default: ""
-'''
+    def list(self):
+        charts = {name: dict(chart, repo='system') for name, chart in self.repos['system'].list().items() if name not in settings.DISABLED_SERVICES}
 
-REMOTE_H3_DATASET_TEMPLATE = '''
-apiVersion: com.ie.ibm.hpsys/v1alpha1
-kind: Dataset
-metadata:
-  name: $NAME
-spec:
-  local:
-    type: "H3"
-    storageUri: $STORAGEURI
-    bucket: $BUCKET
----
-kind: Template
-name: H3 (remote)
-description: Dataset for H3 over remote key-value service
-variables:
-- name: NAME
-  default: dataset
-- name: STORAGEURI
-  label: H3 Storage URI
-  default: "redis://example.com"
-- name: BUCKET
-  default: ""
-'''
+        valid_keys = ('name', 'description', 'version', 'repo', 'private')
+        return [{k: v for k, v in chart.items() if k in valid_keys} for name, chart in charts.items()]
 
-ARCHIVE_DATASET_TEMPLATE = '''
-apiVersion: com.ie.ibm.hpsys/v1alpha1
-kind: Dataset
-metadata:
-  name: $NAME
-spec:
-  local:
-    type: "ARCHIVE"
-    url: $URL
-    format: "application/x-tar"
----
-kind: Template
-name: Archive
-description: Dataset for remote archive
-variables:
-- name: NAME
-  default: dataset
-- name: URL
-  label: Archive URL
-  default: "http://example.com/archive.tar.gz"
-'''
+class DatasetManager(ServiceManager):
+    def list(self):
+        kubernetes_client = KubernetesClient()
+        helm_client = HelmClient(kubernetes_client)
+        releases = helm_client.list(self.user.namespace)
+
+        contents = []
+        for dataset in kubernetes_client.list_crds(group='com.ie.ibm.hpsys', version='v1alpha1', namespace=self.user.namespace, plural='datasets'):
+            # Keep only datasets that are part of releases.
+            try:
+                release_name = dataset['metadata']['annotations']['meta.helm.sh/release-name']
+            except:
+                continue
+            release = next((release for release in releases if release['name'] == release_name), None)
+            if not release:
+                continue
+
+            # Filter out datasets that are marked as hidden.
+            try:
+                if 'karvdash-hidden' in dataset['metadata']['labels'].keys():
+                    continue
+            except:
+                pass
+
+            try:
+                dataset_type = dataset['spec']['local']['type']
+                if dataset_type in ('COS', 'H3', 'ARCHIVE'):
+                    contents.append({'name': dataset['metadata']['name'], **dataset['spec']['local']})
+            except:
+                continue
+
+        return contents

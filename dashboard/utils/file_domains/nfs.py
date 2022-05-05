@@ -15,56 +15,44 @@
 import os
 
 from urllib.parse import urlparse
+from jinja2 import Template
 
 from .file import FileDomainPrivate, FileDomainShared
 from ..kubernetes import KubernetesClient
-from ..template import Template
 
 
 NFS_VOLUME_TEMPLATE = '''
 kind: PersistentVolumeClaim
 apiVersion: v1
 metadata:
-  name: $NAME
+  name: {{ name }}
 spec:
   storageClassName: ""
-  volumeName: $NAME-pv
+  volumeName: {{ name }}-pv
   accessModes:
     - ReadWriteMany
   resources:
     requests:
-      storage: $SIZE
+      storage: 1Pi
 ---
 apiVersion: v1
 kind: PersistentVolume
 metadata:
-  name: $NAME-pv
+  name: {{ name }}-pv
 spec:
   accessModes:
     - ReadWriteMany
   capacity:
-    storage: $SIZE
+    storage: 1Pi
   mountOptions:
     - hard
   csi:
     driver: nfs.csi.k8s.io
     readOnly: false
-    volumeHandle: $NAME
+    volumeHandle: {{ name }}
     volumeAttributes:
-      server: $SERVER
-      share: $PATH
----
-kind: Template
-name: HostpathVolumeTemplate
-variables:
-- name: NAME
-  default: volume
-- name: SIZE
-  default: 1Pi
-- name: SERVER
-  default: ""
-- name: PATH
-  default: ""
+      server: {{ server }}
+      share: {{ path }}
 '''
 
 class NFSVolumeMixin(object):
@@ -75,21 +63,19 @@ class NFSVolumeMixin(object):
         if self.volume_name in volume_names:
             return
 
-        template = Template(NFS_VOLUME_TEMPLATE)
-        template.NAME = self.volume_name
-        template.SERVER = urlparse(self.url).hostname
-        template.PATH = urlparse(self.url).path
-        kubernetes_client.apply_yaml_data(template.yaml.encode(), namespace=self._user.namespace)
+        template = Template(NFS_VOLUME_TEMPLATE).render(name=self.volume_name,
+                                                        server=urlparse(self.url).hostname,
+                                                        path=urlparse(self.url).path)
+        kubernetes_client.apply_yaml_data(template.encode(), namespace=self._user.namespace)
 
     def delete_volume(self):
         kubernetes_client = KubernetesClient()
 
         # Delete anyway, as the namespace may already be deleted.
-        template = Template(NFS_VOLUME_TEMPLATE)
-        template.NAME = self.volume_name
-        template.SERVER = urlparse(self.url).hostname
-        template.PATH = urlparse(self.url).path
-        kubernetes_client.delete_yaml_data(template.yaml.encode(), namespace=self._user.namespace)
+        template = Template(NFS_VOLUME_TEMPLATE).render(name=self.volume_name,
+                                                        server=urlparse(self.url).hostname,
+                                                        path=urlparse(self.url).path)
+        kubernetes_client.delete_yaml_data(template.encode(), namespace=self._user.namespace)
 
 class PrivateNFSDomain(FileDomainPrivate, NFSVolumeMixin):
     @property

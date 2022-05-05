@@ -16,9 +16,6 @@ jobs:
         run: |
           apt-get update
           apt-get install -y make git
-      - name: Build and install client
-        run: |
-          (cd client && python setup.py install)
       - name: Build docs
         run: |
           pip install -r docs/requirements.txt

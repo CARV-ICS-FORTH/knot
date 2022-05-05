@@ -423,8 +423,6 @@ releases:
   {{- if .Values.ingress.createSelfsignedCertificate }}
   - caBundleSecretName: ssl-certificate
   {{- end }}
-  - chartmuseum:
-      enabled: false
   - trivy:
       enabled: false
   - notary:

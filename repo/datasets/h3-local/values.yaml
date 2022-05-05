@@ -1,0 +1,2 @@
+redis: "" # Redis-compatible service name
+bucket: ""

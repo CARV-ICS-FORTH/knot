@@ -93,7 +93,6 @@ data:
   KARVDASH_ISSUES_URL: {{- if .Values.karvdash.issuesURL }} {{ .Values.karvdash.issuesURL | quote }} {{- else }} "" {{- end }}
   KARVDASH_INGRESS_URL: {{ $ingressURL | quote }}
   KARVDASH_DATASETS_AVAILABLE: {{- if .Values.karvdash.datasetsAvailable }} {{ .Values.karvdash.datasetsAvailable | quote }} {{- else }} "" {{- end }}
-  KARVDASH_SERVICE_DOMAIN: {{ printf "%s.%s.svc" .Release.Name .Release.Namespace | quote }}
   KARVDASH_FILES_URL: {{- if .Values.karvdash.filesURL }} {{ .Values.karvdash.filesURL | quote }} {{- else }} "" {{- end }}
   KARVDASH_ALLOWED_HOSTPATH_DIRS: {{- if .Values.karvdash.allowedHostPathDirs }} {{ .Values.karvdash.allowedHostPathDirs | quote }} {{- else }} "" {{- end }}
   KARVDASH_JUPYTERHUB_URL: {{- if .Values.karvdash.jupyterHubURL }} {{ .Values.karvdash.jupyterHubURL | quote }} {{- else }} "" {{- end }}
@@ -117,12 +116,12 @@ metadata:
     app: {{ .Release.Name }}
     chart: {{ .Chart.Name }}-{{ .Chart.Version }}
 data:
-  disabled_service_templates: |
-    {{- range $val := .Values.karvdash.disabledServiceTemplates }}
+  disabled_services: |
+    {{- range $val := .Values.karvdash.disabledServices }}
     {{ $val }}
     {{- end }}
-  disabled_dataset_templates: |
-    {{- range $val := .Values.karvdash.disabledDatasetTemplates }}
+  disabled_datasets: |
+    {{- range $val := .Values.karvdash.disabledDatasets }}
     {{ $val }}
     {{- end }}
   service_url_prefixes: |

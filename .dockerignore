@@ -2,10 +2,6 @@
 **/.DS_Store
 **/*.pyc
 **/__pycache__/
-client/build/
-client/dist/
-client/*.egg-info/
-client/config.ini
 docs/_build/
 venv/
 db/

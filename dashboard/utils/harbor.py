@@ -44,8 +44,7 @@ class HarborClient(object):
         return response
 
     def _head(self, path, params={}):
-        kwargs.setdefault('allow_redirects', False)
-        self._request('head', '%s/%s' % (self._harbor_api_url, path.lstrip('/')), auth=self._harbor_api_auth, params=params)
+        self._request('head', '%s/%s' % (self._harbor_api_url, path.lstrip('/')), auth=self._harbor_api_auth, params=params, allow_redirects=False)
 
     def _get(self, path, params={}):
         response = self._request('get', '%s/%s' % (self._harbor_api_url, path.lstrip('/')), auth=self._harbor_api_auth, params=params)
@@ -115,7 +114,6 @@ class HarborClient(object):
         grant_request_url = response.headers['Location']
 
         # Second, generate a grant internally and get the login request URL.
-        from oauth2_provider.models import Application
         from oauth2_provider.oauth2_validators import OAuth2Validator
         from oauthlib.common import Request
         from oauthlib.oauth2 import AuthorizationCodeGrant, BearerToken

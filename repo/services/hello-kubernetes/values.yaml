@@ -1,0 +1,9 @@
+message: "I just deployed this on Kubernetes!" # Provide a custom message
+
+replicaCount: 1
+image:
+  repository: "paulbouwer/hello-kubernetes"
+  tag: "" # Uses chart appVersion if not provided
+
+karvdash:
+  hostname: ""

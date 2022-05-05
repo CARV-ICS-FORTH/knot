@@ -1,0 +1,5 @@
+apiVersion: v2
+name: s3-local
+description: Dataset for S3 over running Minio service
+type: application
+version: 1.0.0

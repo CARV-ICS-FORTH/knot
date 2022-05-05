@@ -26,7 +26,7 @@ KARVDASH_IMAGE_TAG=$(REGISTRY_NAME)/karvdash:$(KARVDASH_VERSION)
 
 CHART_DIR=./chart/karvdash
 
-.PHONY: all deploy-requirements undeploy-requirements undeploy-crds deploy-local undeploy-local prepare-develop develop container container-push release
+.PHONY: all deploy-requirements undeploy-requirements deploy-local undeploy-local prepare-develop develop container container-push release
 
 all: container
 
@@ -73,9 +73,6 @@ undeploy-requirements:
 	kubectl delete namespace jupyterhub || true
 	kubectl delete namespace ingress-nginx || true
 	kubectl delete namespace cert-manager || true
-
-undeploy-crds:
-	kubectl delete -f $(CHART_DIR)/crds/karvdash-crd.yaml
 
 deploy-local:
 	# Create necessary directories

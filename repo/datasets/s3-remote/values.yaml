@@ -1,0 +1,5 @@
+endpoint: "https://s3.amazonaws.com" # S3 service endpoint URL
+accessKeyID: ""
+secretAccessKey: ""
+bucket: ""
+region: "" # Optional

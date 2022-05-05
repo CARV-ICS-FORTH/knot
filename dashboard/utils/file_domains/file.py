@@ -18,46 +18,36 @@ import shutil
 
 from urllib.parse import urlparse
 from datetime import datetime
+from jinja2 import Template
 
 from ..kubernetes import KubernetesClient
-from ..template import Template
 
 
 HOSTPATH_VOLUME_TEMPLATE = '''
 kind: PersistentVolumeClaim
 apiVersion: v1
 metadata:
-  name: $NAME
+  name: {{ name }}
 spec:
   storageClassName: ""
-  volumeName: $NAME-pv
+  volumeName: {{ name }}-pv
   accessModes:
     - ReadWriteMany
   resources:
     requests:
-      storage: $SIZE
+      storage: 1Pi
 ---
 apiVersion: v1
 kind: PersistentVolume
 metadata:
-  name: $NAME-pv
+  name: {{ name }}-pv
 spec:
   accessModes:
     - ReadWriteMany
   capacity:
-    storage: $SIZE
+    storage: 1Pi
   hostPath:
-    path: $PATH
----
-kind: Template
-name: HostpathVolumeTemplate
-variables:
-- name: NAME
-  default: volume
-- name: SIZE
-  default: 1Pi
-- name: PATH
-  default: ""
+    path: {{ path }}
 '''
 
 class FileDomainPathWorker(object):
@@ -161,7 +151,7 @@ class FileDomain(object):
     @property
     def volume_name(self):
         ''' How to name the volume when mounting it. '''
-        return 'karvdash-%s-volume-%s' % (self._user, self.name)
+        return '%s-volume-%s' % (self._user.namespace, self.name)
 
     @property
     def mount_dir(self):
@@ -214,19 +204,17 @@ class HostpathVolumeMixin(object):
         if self.volume_name in volume_names:
             return
 
-        template = Template(HOSTPATH_VOLUME_TEMPLATE)
-        template.NAME = self.volume_name
-        template.PATH = urlparse(self.url).path
-        kubernetes_client.apply_yaml_data(template.yaml.encode(), namespace=self._user.namespace)
+        template = Template(HOSTPATH_VOLUME_TEMPLATE).render(name=self.volume_name,
+                                                             path=urlparse(self.url).path)
+        kubernetes_client.apply_yaml_data(template.encode(), namespace=self._user.namespace)
 
     def delete_volume(self):
         kubernetes_client = KubernetesClient()
 
         # Delete anyway, as the namespace may already be deleted.
-        template = Template(HOSTPATH_VOLUME_TEMPLATE)
-        template.NAME = self.volume_name
-        template.PATH = urlparse(self.url).path
-        kubernetes_client.delete_yaml_data(template.yaml.encode(), namespace=self._user.namespace)
+        template = Template(HOSTPATH_VOLUME_TEMPLATE).render(name=self.volume_name,
+                                                             path=urlparse(self.url).path)
+        kubernetes_client.delete_yaml_data(template.encode(), namespace=self._user.namespace)
 
 class PrivateFileDomain(FileDomainPrivate, HostpathVolumeMixin):
     @property

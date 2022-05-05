@@ -2,42 +2,12 @@
 {% load static %}
 {% load crispy_forms_tags %}
 
-{% block script %}
-<script>
-  $(document).on('click', '.confirm-delete', function () {
-    $("#deleteNameText").text($(this).attr("name"));
-    $("#deleteNameInput").val($(this).attr("id"));
-  });
-</script>
-{% endblock %}
-
 {% block main %}
 <div class="row">
   <div class="col-md-2 order-md-2">
-    <button type="button" class="d-block btn btn-success mb-2 w-100" data-toggle="modal" data-target="#addTemplateModal"><i class="fa fa-download" aria-hidden="true"></i> Add template</button>
-  </div>
-
-  <div class="modal fade" id="addTemplateModal" tabindex="-1" role="dialog" aria-labelledby="addTemplateModalLabel" aria-hidden="true">
-    <div class="modal-dialog" role="document">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title" id="addTemplateModalLabel">Add template</h5>
-          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-            <span aria-hidden="true">&times;</span>
-          </button>
-        </div>
-        <form method="post" enctype="multipart/form-data">
-          <div class="modal-body">
-            {% csrf_token %}
-            {{ add_template_form|crispy }}
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-            <input type="submit" class="btn btn-success" name="action" value="Add" />
-          </div>
-        </form>
-      </div>
-    </div>
+    {% if harbor_url %}
+    <a type="button" class="d-block btn btn-success mb-2 w-100" href="{{ harbor_url }}/harbor/projects" target="_blank"><i class="fa fa-download" aria-hidden="true"></i> Add template</a>
+    {% endif %}
   </div>
 
   <div class="col-md-10 order-md-1">
@@ -59,7 +29,7 @@
       <thead>
         <tr>
           <th scope="col"></th>
-          {% with 'name description singleton custom' as list %}
+          {% with 'name description version private' as list %}
           {% for item in list.split %}
           <th scope="col">
             {% if sort_by == item and order == 'asc' %}
@@ -80,22 +50,17 @@
         {% for item in contents %}
         <tr>
           <th scope="row" class="align-middle"><i class="fa fa-map" aria-hidden="true"></i></th>
-          <td class="align-middle">
-            <a class="text-secondary" href="{% url 'template_download' item.id %}">{{ item.name }}</a>
-          </td>
+          <td class="align-middle">{{ item.name }}</td>
           <td class="align-middle">{{ item.description }}</td>
-          <td class="align-middle">{% if item.singleton %}<i class="fa fa-check" aria-hidden="true"></i>{% endif %}</td>
-          <td class="align-middle">{% if item.custom %}<i class="fa fa-check" aria-hidden="true"></i>{% endif %}</td>
+          <td class="align-middle">{{ item.version }}</td>
+          <td class="align-middle">{% if item.private %}<i class="fa fa-check" aria-hidden="true"></i>{% endif %}</td>
           <td class="align-middle py-0">
             <div class="btn-group">
               <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="dropdownActionsButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                 <i class="fa fa-wrench" aria-hidden="true"></i> Actions
               </button>
               <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownActionsButton">
-                <a class="dropdown-item btn-sm text-secondary" href="{% url 'service_create' item.id %}?next=templates"><i class="fa fa-magic" aria-hidden="true"></i> Create</a></a>
-                {% if not item.filename %}
-                <button type="button" class="dropdown-item btn-sm text-secondary confirm-delete" data-toggle="modal" data-target="#deleteModal" name="{{ item.name }}" id="{{ item.id }}"><i class="fa fa-trash" aria-hidden="true"></i> Delete</button>
-                {% endif %}
+                <a class="dropdown-item btn-sm text-secondary" href="{% url 'service_create' item.name %}?next=templates"><i class="fa fa-magic" aria-hidden="true"></i> Create</a></a>
               </div>
             </div>
           </td>
@@ -103,30 +68,6 @@
         {% endfor %}
       </tbody>
     </table>
-
-    <div class="modal fade" id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel" aria-hidden="true">
-      <div class="modal-dialog" role="document">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title" id="deleteModalLabel">Delete</h5>
-            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-              <span aria-hidden="true">&times;</span>
-            </button>
-          </div>
-          <form method="post">
-            <div class="modal-body">
-              Are you sure you want to delete "<span id="deleteNameText"></span>"? The action will be permanent.
-              {% csrf_token %}
-              <input type="hidden" name="id" value="" id="deleteNameInput" />
-            </div>
-            <div class="modal-footer">
-              <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-              <input type="submit" class="btn btn-success" name="action" value="Delete" />
-            </div>
-          </form>
-        </div>
-      </div>
-    </div>
 
   </div>
 </div>

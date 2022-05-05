@@ -13,8 +13,6 @@
 # limitations under the License.
 
 import os
-import socket
-import shutil
 import random
 
 from django.db import models
@@ -25,8 +23,8 @@ from django.dispatch import receiver
 from django.conf import settings
 from urllib.parse import urlparse
 from collections import namedtuple
+from jinja2 import Template
 
-from .utils.template import Template
 from .utils.kubernetes import KubernetesClient
 from .utils.file_domains.file import PrivateFileDomain, SharedFileDomain
 from .utils.file_domains.nfs import PrivateNFSDomain, SharedNFSDomain
@@ -37,7 +35,7 @@ NAMESPACE_TEMPLATE = '''
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: $NAME
+  name: {{ name }}
   labels:
     karvdash: enabled
 ---
@@ -45,43 +43,15 @@ kind: RoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
   name: admin-binding
-  namespace: $NAME
+  namespace: {{ name }}
 subjects:
 - kind: ServiceAccount
   name: default
-  namespace: $NAME
+  namespace: {{ name }}
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
   name: cluster-admin
----
-kind: Template
-name: Namespace
-variables:
-- name: NAME
-  default: user
-'''
-
-TOKEN_CONFIG_MAP_TEMPLATE = '''
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: ${NAME}
-data:
-  config.ini: |
-    [Karvdash]
-    base_url = $BASE_URL
-    token = $TOKEN
----
-kind: Template
-name: TokenConfigMap
-variables:
-- name: NAME
-  default: user
-- name: BASE_URL
-  default: http://karvdash.default.svc/api
-- name: TOKEN
-  default: ""
 '''
 
 ARGO_SERVICE_ACCOUNT_TEMPLATE = '''
@@ -89,36 +59,24 @@ apiVersion: v1
 kind: ServiceAccount
 metadata:
   annotations:
-    workflows.argoproj.io/rbac-rule: "sub == '${NAME}'"
+    workflows.argoproj.io/rbac-rule: "sub == '{{ name }}'"
     workflows.argoproj.io/rbac-rule-precedence: "1"
-  name: ${ARGO_SERVICE_ACCOUNT}
-  namespace: ${ARGO_NAMESPACE}
+  name: {{ argo_service_account }}
+  namespace: {{ argo_namespace }}
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   name: argo-binding
-  namespace: ${NAMESPACE}
+  namespace: {{ namespace }}
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
   name: cluster-admin
 subjects:
 - kind: ServiceAccount
-  name: ${ARGO_SERVICE_ACCOUNT}
-  namespace: ${ARGO_NAMESPACE}
----
-kind: Template
-name: ArgoServiceAccount
-variables:
-- name: NAME
-  default: user
-- name: NAMESPACE
-  default: namespace
-- name: ARGO_SERVICE_ACCOUNT
-  default: karvdash-user
-- name: ARGO_NAMESPACE
-  default: argo
+  name: {{ argo_service_account }}
+  namespace: {{ argo_namespace }}
 '''
 
 class User(AuthUser):
@@ -166,7 +124,7 @@ class User(AuthUser):
             for dataset in kubernetes_client.list_crds(group='com.ie.ibm.hpsys', version='v1alpha1', namespace=self.namespace, plural='datasets'):
                 try:
                     # Hidden datasets are included in file domains.
-                    if dataset['metadata']['labels']['karvdash-hidden'] == 'true':
+                    if 'karvdash-hidden' in dataset['metadata']['labels'].keys():
                         continue
                 except:
                     pass
@@ -183,15 +141,6 @@ class User(AuthUser):
             pass
 
         return datasets
-
-    @property
-    def api_token(self):
-        try:
-            api_token = APIToken.objects.get(user=self)
-        except APIToken.DoesNotExist:
-            api_token = APIToken(user=self)
-            api_token.save()
-        return api_token
 
     def update_kubernetes_credentials(self, kubernetes_client=None):
         if settings.VOUCH_URL:
@@ -238,32 +187,12 @@ class User(AuthUser):
         harbor_client.add_user_to_project(self, self.username, HarborClient.ROLE_ADMIN, public=False)
 
     def create_namespace(self, request):
-        # Create service directory.
-        if not os.path.exists(settings.SERVICE_DATABASE_DIR):
-            os.makedirs(settings.SERVICE_DATABASE_DIR)
-
         kubernetes_client = KubernetesClient()
 
         # Create namespace.
         if self.namespace not in [n.metadata.name for n in kubernetes_client.list_namespaces()]:
-            namespace_template = Template(NAMESPACE_TEMPLATE)
-            namespace_template.NAME = self.namespace
-            kubernetes_client.apply_yaml_data(namespace_template.yaml.encode())
-
-        # Create API connectivity configuration (mounted inside containers).
-        api_config_map_name = 'karvdash-api'
-        if api_config_map_name not in [c.metadata.name for c in kubernetes_client.list_config_maps(self.namespace)]:
-            service_domain = settings.SERVICE_DOMAIN
-            if not service_domain:
-                # If running in Kubernetes this should be set.
-                service_host = socket.gethostbyname(socket.gethostname())
-                service_port = request.META['SERVER_PORT']
-                service_domain = '%s:%s' % (service_host, service_port)
-            api_template = Template(TOKEN_CONFIG_MAP_TEMPLATE)
-            api_template.NAME = api_config_map_name
-            api_template.BASE_URL = 'http://%s/api' % service_domain
-            api_template.TOKEN = self.api_token.token # Get or create
-            kubernetes_client.apply_yaml_data(api_template.yaml.encode(), namespace=self.namespace)
+            namespace_template = Template(NAMESPACE_TEMPLATE).render(name=self.namespace)
+            kubernetes_client.apply_yaml_data(namespace_template.encode())
 
         # Create or update registry secret.
         self.update_registry_credentials(kubernetes_client)
@@ -287,12 +216,11 @@ class User(AuthUser):
         if settings.ARGO_WORKFLOWS_NAMESPACE:
             argo_service_account_name = self.namespace
             if argo_service_account_name not in [s.metadata.name for s in kubernetes_client.list_service_accounts(settings.ARGO_WORKFLOWS_NAMESPACE)]:
-                argo_template = Template(ARGO_SERVICE_ACCOUNT_TEMPLATE)
-                argo_template.NAME = self.username
-                argo_template.NAMESPACE = self.namespace
-                argo_template.ARGO_SERVICE_ACCOUNT = argo_service_account_name
-                argo_template.ARGO_NAMESPACE = settings.ARGO_WORKFLOWS_NAMESPACE
-                kubernetes_client.apply_yaml_data(argo_template.yaml.encode())
+                argo_template = Template(ARGO_SERVICE_ACCOUNT_TEMPLATE).render(name=self.username,
+                                                                               namespace=self.namespace,
+                                                                               argo_service_account=argo_service_account_name,
+                                                                               argo_namespace=settings.ARGO_WORKFLOWS_NAMESPACE)
+                kubernetes_client.apply_yaml_data(argo_template.encode())
 
     def delete_namespace(self):
         kubernetes_client = KubernetesClient()
@@ -300,22 +228,15 @@ class User(AuthUser):
         # Delete service account for Argo.
         if settings.ARGO_WORKFLOWS_NAMESPACE:
             argo_service_account_name = self.namespace
-            argo_template = Template(ARGO_SERVICE_ACCOUNT_TEMPLATE)
-            argo_template.NAME = self.username
-            argo_template.NAMESPACE = self.namespace
-            argo_template.ARGO_SERVICE_ACCOUNT = argo_service_account_name
-            argo_template.ARGO_NAMESPACE = settings.ARGO_WORKFLOWS_NAMESPACE
-            kubernetes_client.delete_yaml_data(argo_template.yaml.encode())
-
-        # Delete service directory.
-        service_database_path = os.path.join(settings.SERVICE_DATABASE_DIR, self.username)
-        if os.path.exists(service_database_path):
-            shutil.rmtree(service_database_path)
+            argo_template = Template(ARGO_SERVICE_ACCOUNT_TEMPLATE).render(name=self.username,
+                                                                           namespace=self.namespace,
+                                                                           argo_service_account=argo_service_account_name,
+                                                                           argo_namespace=settings.ARGO_WORKFLOWS_NAMESPACE)
+            kubernetes_client.delete_yaml_data(argo_template.encode())
 
         # Delete namespace.
-        namespace_template = Template(NAMESPACE_TEMPLATE)
-        namespace_template.NAME = self.namespace
-        kubernetes_client.delete_yaml_data(namespace_template.yaml.encode())
+        namespace_template = Template(NAMESPACE_TEMPLATE).render(name=self.namespace)
+        kubernetes_client.delete_yaml_data(namespace_template.encode())
 
         # Delete volumes.
         for name, domain in self.file_domains.items():
@@ -323,10 +244,6 @@ class User(AuthUser):
 
 def generate_token():
     return ''.join(random.choice('0123456789abcdef') for n in range(40))
-
-class APIToken(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
-    token = models.CharField(max_length=64, blank=False, null=False, default=generate_token)
 
 class Message(models.Model):
     user = models.ForeignKey(User, related_name='messages', on_delete=models.CASCADE)

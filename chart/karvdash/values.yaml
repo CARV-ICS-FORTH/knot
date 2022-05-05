@@ -58,10 +58,10 @@ karvdash:
   # Other host paths to allow attaching to containers (separate with ":").
   allowedHostPathDirs:
 
-  # List of service templates to disable on deployment (filenames).
-  disabledServiceTemplates:
-  # List of dataset templates to disable on deployment (identifiers).
-  disabledDatasetTemplates:
+  # List of services to disable on deployment.
+  disabledServices:
+  # List of datasets to disable on deployment.
+  disabledDatasets:
   # List of predefined URL prefixes for services.
   serviceURLPrefixes:
 

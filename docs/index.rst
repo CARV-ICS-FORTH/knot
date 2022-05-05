@@ -26,7 +26,6 @@ Kubernetes provides all the tools to do data sharing, create namespaces, etc., b
 
    user
    technical
-   api
 
 Indices and tables
 ==================

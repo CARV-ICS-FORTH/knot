@@ -12,24 +12,23 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from django.urls import path, include
+from django.urls import path
 from django.conf import settings
 from django.contrib.auth import views as auth_views
 
 from . import views
 from . import webhooks
-from .api import ServiceResource, TemplateResource
 
 
 urlpatterns = [
     path('', views.dashboard, name='dashboard'),
     path('services', views.services, name='services'),
-    path('service/create/<str:identifier>', views.service_create, name='service_create'),
+    path('service/<str:name>', views.service_info, name='service_info'),
+    path('service/create/<str:name>', views.service_create, name='service_create'),
     path('templates', views.templates, name='templates'),
-    path('template/<str:identifier>', views.template_download, name='template_download'),
     path('datasets', views.datasets, name='datasets'),
-    path('dataset/add/<str:identifier>', views.dataset_add, name='dataset_add'),
-    path('dataset/<str:name>', views.dataset_download, name='dataset_download'),
+    path('dataset/<str:name>', views.dataset_info, name='dataset_info'),
+    path('dataset/add/<str:name>', views.dataset_add, name='dataset_add'),
     path('files', views.files, name='files'),
     path('files/upload', views.UploadView.as_view(), name='files_upload'),
     path('files/upload_complete', views.UploadCompleteView.as_view(), name='files_upload_complete'),
@@ -44,9 +43,7 @@ urlpatterns = [
     path('change_password', views.change_password, name='change_password'),
     path('logout', views.logout, {'next_url': settings.LOGOUT_REDIRECT_URL}, name='logout'),
 
-    path('webhooks/mutate', webhooks.mutate),
-    path('webhooks/validate', webhooks.validate),
-
-    path('api/services/', include(ServiceResource.urls())),
-    path('api/templates/', include(TemplateResource.urls())),
+    path('webhooks/storage/add', webhooks.add_storage),
+    path('webhooks/storage/validate', webhooks.validate_storage),
+    path('webhooks/auth/add', webhooks.add_auth),
 ]

@@ -1,0 +1,11 @@
+apiVersion: com.ie.ibm.hpsys/v1alpha1
+kind: Dataset
+metadata:
+  name: {{ include "h3-remote.fullname" . }}
+  labels:
+    {{- include "h3-remote.labels" . | nindent 4 }}
+spec:
+  local:
+    type: "H3"
+    storageUri: {{ .Values.storageURI }}
+    bucket: {{ .Values.bucket }}

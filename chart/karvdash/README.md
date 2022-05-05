@@ -46,8 +46,8 @@ Some of the variables set above are required. The table below lists all availabl
 | `karvdash.filesURL`                 | &check;  | The base URL for the private and shared file domains.                                      |                                   |
 | `karvdash.filesSize`                |          | The size for the files persistent volume.                                                  | `1Pi`                             |
 | `karvdash.allowedHostPathDirs`      |          | Other host paths to allow attaching to containers (separate with `:`).                     |                                   |
-| `karvdash.disabledServiceTemplates` |          | List of service templates to disable on deployment (filenames).                            |                                   |
-| `karvdash.disabledDatasetTemplates` |          | List of dataset templates to disable on deployment (identifiers).                          |                                   |
+| `karvdash.disabledServices`         |          | List of services to disable on deployment.                                                 |                                   |
+| `karvdash.disabledDatasets`         |          | List of datasets to disable on deployment.                                                 |                                   |
 | `karvdash.serviceURLPrefixes`       |          | List of predefined URL prefixes for services.                                              |                                   |
 | `karvdash.developmentURL`           |          | If enabled, forward requests to another Karvdash instance.                                 |                                   |
 | `karvdash.jupyterHubURL`            |          | JupyterHub URL for integration with the notebook frontend.                                 |                                   |
@@ -69,8 +69,8 @@ Set `karvdash.filesURL` to:
 
 Karvdash will create `private/<username>`, `shared`, and `uploads` folders within.
 
-The state volume is used to store the database, the running services repository, and the template library. You can either use an existing peristent storage claim with `karvdash.stateVolumeClaim`, or set `karvdash.stateHostPath` to automatically create one (this must accessible by all nodes). Create a `templates` directory inside the state volume to add new service templates or override defaults (the ones in [templates](https://github.com/CARV-ICS-FORTH/karvdash/tree/master/templates)). Templates placed there will be available as read-only to all users.
+The state volume is used to store the internal database. You can either use an existing peristent storage claim with `karvdash.stateVolumeClaim`, or set `karvdash.stateHostPath` to automatically create one (this must accessible by all nodes).
 
 The theme volume is used to replace the default [theme directory](https://github.com/CARV-ICS-FORTH/karvdash/tree/master/dashboard/static/dashboard/theme) and should contain variants of all existing files.
 
-To remove Karvdash, uninstall using `helm uninstall karvdash`, which will remove the service, admission webhooks, and RBAC rules, but not associated CRDs. You can use the YAML files in [crds](https://github.com/CARV-ICS-FORTH/karvdash/tree/master/chart/karvdash/crds) to remove them.
+To remove Karvdash, uninstall using `helm uninstall karvdash`, which will remove the service, admission webhooks, and associated RBAC rules.

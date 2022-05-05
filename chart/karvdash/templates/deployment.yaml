@@ -63,13 +63,13 @@ spec:
         - configMapRef:
             name: {{ .Release.Name }}-env
         env:
-        {{- if .Values.karvdash.disabledServiceTemplates }}
-        - name: KARVDASH_DISABLED_SERVICE_TEMPLATES_FILE
-          value: /etc/karvdash/disabled_service_templates
+        {{- if .Values.karvdash.disabledServices }}
+        - name: KARVDASH_DISABLED_SERVICES_FILE
+          value: /etc/karvdash/disabled_services
         {{- end }}
-        {{- if .Values.karvdash.disabledDatasetTemplates }}
-        - name: KARVDASH_DISABLED_DATASET_TEMPLATES_FILE
-          value: /etc/karvdash/disabled_dataset_templates
+        {{- if .Values.karvdash.disabledDatasets }}
+        - name: KARVDASH_DISABLED_DATASETS_FILE
+          value: /etc/karvdash/disabled_datasets
         {{- end }}
         {{- if .Values.karvdash.serviceURLPrefixes }}
         - name: KARVDASH_SERVICE_URL_PREFIXES_FILE
@@ -79,15 +79,15 @@ spec:
         - containerPort: 8000
           name: http
         volumeMounts:
-        {{- if .Values.karvdash.disabledServiceTemplates }}
+        {{- if .Values.karvdash.disabledServices }}
         - name: {{ .Release.Name }}-files-config
-          mountPath: /etc/karvdash/disabled_service_templates
-          subPath: disabled_service_templates
+          mountPath: /etc/karvdash/disabled_services
+          subPath: disabled_services
         {{- end }}
-        {{- if .Values.karvdash.disabledDatasetTemplates }}
+        {{- if .Values.karvdash.disabledDatasets }}
         - name: {{ .Release.Name }}-files-config
-          mountPath: /etc/karvdash/disabled_dataset_templates
-          subPath: disabled_dataset_templates
+          mountPath: /etc/karvdash/disabled_datasets
+          subPath: disabled_datasets
         {{- end }}
         {{- if .Values.karvdash.serviceURLPrefixes }}
         - name: {{ .Release.Name }}-files-config

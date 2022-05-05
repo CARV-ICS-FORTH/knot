@@ -1,0 +1,4 @@
+minio: "" # Minio service name
+accessKeyID: ""
+secretAccessKey: ""
+bucket: ""

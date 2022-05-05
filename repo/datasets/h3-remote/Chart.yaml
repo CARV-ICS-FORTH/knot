@@ -1,0 +1,5 @@
+apiVersion: v2
+name: h3-remote
+description: Dataset for H3 over remote key-value service
+type: application
+version: 1.0.0

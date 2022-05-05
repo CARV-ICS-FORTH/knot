@@ -20,7 +20,7 @@ To install, you need a running Kubernetes environment with the following feature
 * For storage of Karvdash state, an existing persistent volume claim, or a directory in a shared filesystem mounted at the same path across all Kubernetes nodes.
 * For files, either a shared filesystem like the one used for storing the configuration, or an NFS server. If using an NFS server, you should also install the [NFS CSI Driver](https://github.com/kubernetes-csi/csi-driver-nfs).
 
-Karvdash can run side-by-side with [JupyterHub](https://jupyter.org/hub), [Argo Workflows](https://argoproj.github.io/workflows), [Harbor](https://goharbor.io), [Grafana](https://grafana.com)/[Prometheus](https://prometheus.io), and [OpenBio](https://github.com/kantale/OpenBio.eu) providing SSO services to users. For Argo Workflows, Karvdash also configures appropriate authorization directives, so each user will be allowed to access resources in the corresponding Karvdash-defined namespace. For Harbor, Karvdash sets up OAuth authentication, fetches users' CLI secrets, and configures Kubernetes to use them. When running within the Karvdash-based software stack, OpenBio transparently submits workflows for execution through Argo Workflows, while utilizing the automatically mounted storage to exchange data between steps.
+Karvdash can run side-by-side with [JupyterHub](https://jupyter.org/hub), [Argo Workflows](https://argoproj.github.io/workflows), [Harbor](https://goharbor.io), [Grafana](https://grafana.com)/[Prometheus](https://prometheus.io), and [OpenBio](https://github.com/kantale/OpenBio.eu) providing SSO services to users. For Argo Workflows, Karvdash also configures appropriate authorization directives, so each user will be allowed to access resources in the corresponding Karvdash-defined namespace. For Harbor, Karvdash sets up OAuth authentication, fetches users' CLI secrets, and configures Kubernetes to use them. Harbor is also used to store service templates as Helm charts. When running within the Karvdash-based software stack, OpenBio transparently submits workflows for execution through Argo Workflows, while utilizing the automatically mounted storage to exchange data between steps.
 
 Optionally, you can also have Karvdash act as a frontend to [Datashim](https://github.com/datashim-io/datashim), in which case Karvdash can be used to configure datasets (references to objects in S3 buckets that will be mounted in user containers as files).
 
@@ -72,6 +72,6 @@ We use `buildx` to build the Karvdash container for multiple architectures (`lin
 
 ## Acknowledgements
 
-This project has received funding from the European Union’s Horizon 2020 research and innovation programme under grant agreement No 825061 (EVOLVE - [website](https://www.evolve-h2020.eu), [CORDIS](https://cordis.europa.eu/project/id/825061)).
+This project has received funding from European Union’s Horizon 2020 Research and Innovation Programme under Grant Agreement No 825061 (EVOLVE - [website](https://www.evolve-h2020.eu), [CORDIS](https://cordis.europa.eu/project/id/825061)).
 
 The Karvdash logo has been designed by [LOBA](https://www.loba.com).

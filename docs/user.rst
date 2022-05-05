@@ -37,7 +37,7 @@ The templates screen is accessed by selecting "Templates" from the menu on the l
 
 .. figure:: images/templates-screen.png
 
-To add a new template, click on the respective button on the right. The template file format is described in the :ref:`Service templates` chapter.
+To add a new template, click on the respective button on the right. The template structure is described in the :ref:`Service templates` chapter.
 
 Datasets screen
 ---------------

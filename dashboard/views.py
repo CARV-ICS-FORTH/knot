@@ -13,7 +13,6 @@
 # limitations under the License.
 
 import os
-import restless
 import re
 
 from django.shortcuts import render, redirect, reverse
@@ -26,8 +25,9 @@ from django.contrib.admin.views.decorators import staff_member_required
 from chunked_upload.views import ChunkedUploadView, ChunkedUploadCompleteView
 
 from .models import User, Message
-from .forms import SignUpForm, EditUserForm, AddServiceForm, CreateServiceForm, AddTemplateForm, AddDatasetForm, CreateDatasetForm, AddFolderForm, AddImageFromFileForm
-from .api import ServiceResource, TemplateResource, DatasetResource
+from .forms import SignUpForm, EditUserForm, AddServiceForm, CreateServiceForm, ShowServiceForm, AddDatasetForm, CreateDatasetForm, ShowDatasetForm, AddFolderForm, AddImageFromFileForm
+from .services import ServiceTemplateManager, ServiceManager
+from .datasets import DatasetTemplateManager, DatasetManager
 from .utils.kubernetes import KubernetesClient
 
 
@@ -37,26 +37,24 @@ def dashboard(request):
 
 @login_required
 def services(request):
+    service_manager = ServiceManager(request.user)
+
     # Handle changes.
     if request.method == 'POST':
         if 'action' not in request.POST:
             Message.add(request, 'error', 'Invalid action.')
-        elif request.POST['action'] == 'Create':
-            form = AddServiceForm(request.POST, request=request)
+        elif request.POST['action'] == 'Add':
+            form = AddServiceForm(request.POST, user=request.user)
             if form.is_valid():
-                identifier = form.cleaned_data['id']
-                return redirect('service_create', identifier)
+                name = form.cleaned_data['name']
+                return redirect('service_create', name)
             else:
                 Message.add(request, 'error', 'Failed to create service. Probably invalid service name.')
         elif request.POST['action'] == 'Remove':
             name = request.POST.get('service', None)
             if name:
                 try:
-                    service_resource = ServiceResource()
-                    service_resource.request = request
-                    service_resource.delete(name)
-                except restless.exceptions.NotFound:
-                    Message.add(request, 'error', 'Service description for "%s" not found.' % name)
+                    service_manager.delete(name)
                 except Exception as e:
                     Message.add(request, 'error', 'Can not remove service "%s": %s' % (name, str(e)))
                 else:
@@ -73,9 +71,7 @@ def services(request):
     # Fill in the contents.
     contents = []
     try:
-        service_resource = ServiceResource()
-        service_resource.request = request
-        contents = service_resource.list()
+        contents = service_manager.list()
     except:
         Message.add(request, 'error', 'Can not connect to Kubernetes.')
 
@@ -100,46 +96,55 @@ def services(request):
                                                        'contents': contents,
                                                        'sort_by': sort_by,
                                                        'order': order,
-                                                       'add_service_form': AddServiceForm(request=request)})
+                                                       'add_service_form': AddServiceForm(user=request.user)})
 
 @login_required
-def service_create(request, identifier=''):
+def service_info(request, name=''):
     next_view = request.GET.get('next', 'services')
 
-    # Validate given identifier.
-    template_resource = TemplateResource()
-    template_resource.request = request
-    template = template_resource.get_template(identifier)
-    if not template:
+    # Validate given name.
+    template_manager = ServiceManager(request.user)
+    try:
+        variables = template_manager.variables(name)
+    except KeyError:
+        Message.add(request, 'error', 'Invalid service.')
+        return redirect('services')
+
+    form = ShowServiceForm(variables=variables)
+    return render(request, 'dashboard/form.html', {'title': 'Service Values',
+                                                   'form': form,
+                                                   'action': None,
+                                                   'next': reverse(next_view)})
+
+@login_required
+def service_create(request, name=''):
+    next_view = request.GET.get('next', 'services')
+
+    # Validate given name.
+    template_manager = ServiceTemplateManager(request.user)
+    try:
+        chart_name, variables = template_manager.variables(name)
+    except KeyError:
         Message.add(request, 'error', 'Invalid service.')
         return redirect('services')
 
     # Handle changes.
     if request.method == 'POST':
-        form = CreateServiceForm(request.POST, variables=template.variables, all_required=True)
+        form = CreateServiceForm(request.POST, variables=variables)
         if form.is_valid():
             data = request.POST.dict()
-            data['id'] = identifier
 
-            service_resource = ServiceResource()
-            service_resource.request = request
-            service_resource.data = data
+            service_manager = ServiceManager(request.user)
             try:
-                service = service_resource.create()
-            except restless.exceptions.Conflict:
-                Message.add(request, 'warning', 'There can be only one "%s" service running.' % template.name)
-                return redirect('services')
-            except restless.exceptions.TooManyRequests:
-                Message.add(request, 'warning', 'There are no more available service URLs.')
-                return redirect('services')
+                service_name = service_manager.create(chart_name, variables, data)
             except Exception as e:
                 Message.add(request, 'error', 'Can not create service: %s' % str(e))
             else:
-                Message.add(request, 'success', 'Service "%s" created.' % service['name'])
+                Message.add(request, 'success', 'Service "%s" created.' % service_name)
 
             return redirect('services')
     else:
-        form = CreateServiceForm(variables=template.variables)
+        form = CreateServiceForm(variables=variables)
 
     return render(request, 'dashboard/form.html', {'title': 'Create Service',
                                                    'form': form,
@@ -148,69 +153,20 @@ def service_create(request, identifier=''):
 
 @login_required
 def templates(request):
-    # Handle changes.
-    if request.method == 'POST':
-        if 'action' not in request.POST:
-            Message.add(request, 'error', 'Invalid action.')
-        elif request.POST['action'] == 'Add':
-            form = AddTemplateForm(request.POST, request.FILES)
-            files = request.FILES.getlist('file_field')
-            if form.is_valid():
-                data = request.POST.dict()
-                for f in files:
-                    data['data'] = f.read()
-
-                template_resource = TemplateResource()
-                template_resource.request = request
-                template_resource.data = data
-                try:
-                    template = template_resource.add()
-                except restless.exceptions.BadRequest:
-                    Message.add(request, 'error', 'Can not add template. Probably invalid file format.')
-                    return redirect('templates')
-                except Exception as e:
-                    Message.add(request, 'error', 'Can not add template: %s' % str(e))
-                else:
-                    Message.add(request, 'success', 'Template "%s" added.' % template['name'])
-            else:
-                Message.add(request, 'error', 'Failed to add template.')
-        elif request.POST['action'] == 'Delete':
-            identifier = request.POST.get('id', None)
-            if identifier:
-                template_resource = TemplateResource()
-                template_resource.request = request
-                template = template_resource.get_template(identifier) # Need the name for error messages.
-                if not template:
-                    Message.add(request, 'error', 'Template "%s" not found.' % identifier)
-                    return redirect('templates')
-
-                try:
-                    template_resource.remove(identifier)
-                except Exception as e:
-                    Message.add(request, 'error', 'Can not delete template "%s": %s' % (template.name, str(e)))
-                else:
-                    Message.add(request, 'success', 'Template "%s" deleted.' % template.name)
-        else:
-            Message.add(request, 'error', 'Invalid action.')
-
-        return redirect('templates')
-
     # There is no hierarchy here.
-    kubernetes_client = KubernetesClient()
-    trail = [{'name': '<i class="fa fa-university" aria-hidden="true"></i> %s' % kubernetes_client.host}]
+    template_manager = ServiceTemplateManager(request.user)
+    trail = [{'name': '<i class="fa fa-university" aria-hidden="true"></i> %s' % template_manager.repo_base_url}]
 
     # Fill in the contents.
     contents = []
     try:
-        template_resource = TemplateResource()
-        template_resource.request = request
-        contents = template_resource.list()
+        contents = template_manager.list()
     except:
-        Message.add(request, 'error', 'Can not connect to Kubernetes.')
+        Message.add(request, 'error', 'Can not list templates.')
 
     # Sort them up.
     sort_by = request.GET.get('sort_by')
-    if sort_by and sort_by in ('name', 'description', 'singleton', 'custom'):
+    if sort_by and sort_by in ('name', 'description', 'singleton', 'private'):
         request.session['templates_sort_by'] = sort_by
     else:
         sort_by = request.session.get('templates_sort_by', 'name')
@@ -228,50 +184,31 @@ def templates(request):
                                                         'trail': trail,
                                                         'contents': contents,
                                                         'sort_by': sort_by,
-                                                        'order': order,
-                                                        'add_template_form': AddTemplateForm()})
-
-@login_required
-def template_download(request, identifier):
-    # Validate given identifier.
-    template_resource = TemplateResource()
-    template_resource.request = request
-    template = template_resource.get_template(identifier)
-    if not template:
-        Message.add(request, 'error', 'Invalid service.')
-        return redirect('services')
-
-    response = HttpResponse(template.data, content_type='application/x-yaml')
-    response['Content-Disposition'] = 'attachment; filename="%s.template.yaml"' % template.identifier
-    return response
+                                                        'order': order})
 
 @login_required
 def datasets(request):
     if not settings.DATASETS_AVAILABLE:
         return redirect('dashboard')
 
-    # Validate given name.
-    dataset_resource = DatasetResource()
-    dataset_resource.request = request
+    dataset_manager = DatasetManager(request.user)
 
     # Handle changes.
     if request.method == 'POST':
         if 'action' not in request.POST:
             Message.add(request, 'error', 'Invalid action.')
         elif request.POST['action'] == 'Add':
-            form = AddDatasetForm(request.POST, request=request)
+            form = AddDatasetForm(request.POST)
             if form.is_valid():
-                identifier = form.cleaned_data['id']
-                return redirect('dataset_add', identifier)
+                name = form.cleaned_data['name']
+                return redirect('dataset_add', name)
             else:
                 Message.add(request, 'error', 'Failed to add dataset. Probably invalid dataset name.')
         elif request.POST['action'] == 'Delete':
             name = request.POST.get('name', None)
             if name:
                 try:
-                    dataset_resource.remove(name)
-                except restless.exceptions.NotFound:
-                    Message.add(request, 'error', 'Dataset "%s" not found.' % name)
+                    dataset_manager.delete(name)
                 except Exception as e:
                     Message.add(request, 'error', 'Can not delete dataset "%s": %s' % (name, str(e)))
                 else:
@@ -288,7 +225,7 @@ def datasets(request):
     # Fill in the contents.
     contents = []
     try:
-        for dataset in dataset_resource.list():
+        for dataset in dataset_manager.list():
             try:
                 dataset_type = dataset['type']
                 if dataset_type == 'COS':
@@ -327,64 +264,60 @@ def datasets(request):
                                                        'contents': contents,
                                                        'sort_by': sort_by,
                                                        'order': order,
-                                                       'add_dataset_form': AddDatasetForm(request=request)})
+                                                       'add_dataset_form': AddDatasetForm()})
 
 @login_required
-def dataset_add(request, identifier=''):
+def dataset_info(request, name=''):
     next_view = request.GET.get('next', 'datasets')
 
-    # Validate given identifier.
-    dataset_resource = DatasetResource()
-    dataset_resource.request = request
-    template = {t.identifier: t for t in dataset_resource.dataset_templates}.get(identifier, None)
-    if not template:
+    # Validate given name.
+    dataset_manager = DatasetManager(request.user)
+    try:
+        variables = dataset_manager.variables(name)
+    except KeyError:
+        Message.add(request, 'error', 'Invalid dataset.')
+        return redirect('datasets')
+
+    form = ShowDatasetForm(variables=variables)
+    return render(request, 'dashboard/form.html', {'title': 'Dataset Values',
+                                                   'form': form,
+                                                   'action': None,
+                                                   'next': reverse(next_view)})
+
+@login_required
+def dataset_add(request, name=''):
+    next_view = request.GET.get('next', 'datasets')
+
+    # Validate given name.
+    dataset_manager = DatasetTemplateManager(request.user)
+    try:
+        chart_name, variables = dataset_manager.variables(name)
+    except KeyError:
         Message.add(request, 'error', 'Invalid dataset.')
         return redirect('datasets')
 
     # Handle changes.
     if request.method == 'POST':
-        form = CreateDatasetForm(request.POST, variables=template.variables)
+        form = CreateDatasetForm(request.POST, variables=variables)
         if form.is_valid():
             data = request.POST.dict()
 
-            dataset_resource.data = data
+            dataset_manager = DatasetManager(request.user)
             try:
-                dataset = dataset_resource.add(template)
+                dataset_name = dataset_manager.create(chart_name, variables, data, set_local_data=False)
             except Exception as e:
                 Message.add(request, 'error', 'Can not create dataset: %s' % str(e))
             else:
-                Message.add(request, 'success', 'Dataset "%s" created.' % dataset['name'])
+                Message.add(request, 'success', 'Dataset "%s" created.' % dataset_name)
 
             return redirect('datasets')
     else:
-        form = CreateDatasetForm(variables=template.variables)
+        form = CreateDatasetForm(variables=variables)
 
     return render(request, 'dashboard/form.html', {'title': 'Add Dataset',
                                                    'form': form,
                                                    'action': 'Add',
                                                    'next': reverse(next_view)})
-
-@login_required
-def dataset_download(request, name):
-    if not settings.DATASETS_AVAILABLE:
-        return redirect('dashboard')
-
-    # Validate given name.
-    dataset_resource = DatasetResource()
-    dataset_resource.request = request
-    dataset = dataset_resource.get_dataset(name)
-    if not dataset:
-        Message.add(request, 'error', 'Invalid dataset.')
-        return redirect('datasets')
-
-    # Get a dataset template and fill it in.
-    template = dataset_resource.get_template(dataset['type'])
-    for variable, value in dataset.items():
-        setattr(template, variable.upper(), value)
-
-    response = HttpResponse(template.yaml, content_type='application/x-yaml')
-    response['Content-Disposition'] = 'attachment; filename="%s.yaml"' % name
-    return response
 
 @login_required
 def files(request, path='/'):
@@ -449,26 +382,6 @@ def files(request, path='/'):
                         Message.add(request, 'error', 'Failed to delete "%s". Probably not permitted or directory not empty.' % name)
                     else:
                         Message.add(request, 'success', 'Item "%s" deleted.' % name)
-        elif request.POST['action'] == 'Add template':
-            name = request.POST.get('filename', None)
-            if name:
-                data = {}
-                f = path_worker.open(name, 'rb')
-                data['data'] = f.read()
-                f.close()
-
-                template_resource = TemplateResource()
-                template_resource.request = request
-                template_resource.data = data
-                try:
-                    template = template_resource.add()
-                except restless.exceptions.BadRequest:
-                    Message.add(request, 'error', 'Can not add template. Probably invalid file format.')
-                    return redirect('templates')
-                except Exception as e:
-                    Message.add(request, 'error', 'Can not add template: %s' % str(e))
-                else:
-                    Message.add(request, 'success', 'Template "%s" added.' % template['name'])
         else:
             Message.add(request, 'error', 'Invalid action.')
 

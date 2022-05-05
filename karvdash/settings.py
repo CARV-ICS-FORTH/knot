@@ -261,21 +261,9 @@ MEDIA_ROOT = FILES_MOUNT_DIR
 CHUNKED_UPLOAD_PATH = 'uploads'
 
 
-# Service templates
-
-SYSTEM_TEMPLATE_DIR = os.path.join(BASE_DIR, 'templates')
-SERVICE_TEMPLATE_DIR = os.path.join(DATABASE_DIR, 'templates')
-SERVICE_DATABASE_DIR = os.path.join(DATABASE_DIR, 'services')
-
-
 # Password file export
 
 HTPASSWD_EXPORT_DIR = os.getenv('KARVDASH_HTPASSWD_EXPORT_DIR')
-
-
-# API URL
-
-SERVICE_DOMAIN = os.getenv('KARVDASH_SERVICE_DOMAIN')
 
 
 # Ingress domain
@@ -300,19 +288,22 @@ DATASETS_AVAILABLE = True if os.getenv('KARVDASH_DATASETS_AVAILABLE', '') else F
 ALLOWED_HOSTPATH_DIRS = [d.strip() for d in os.getenv('KARVDASH_ALLOWED_HOSTPATH_DIRS', '').split(':') if d.strip()]
 
 
-# Disabled templates
+# Service and dataset templates
 
-DISABLED_SERVICE_TEMPLATES = []
-DISABLED_SERVICE_TEMPLATES_FILE = os.getenv('KARVDASH_DISABLED_SERVICE_TEMPLATES_FILE')
-if DISABLED_SERVICE_TEMPLATES_FILE and os.path.isfile(DISABLED_SERVICE_TEMPLATES_FILE):
-    with open(DISABLED_SERVICE_TEMPLATES_FILE) as f:
-        DISABLED_SERVICE_TEMPLATES = [line.strip() for line in f if line.strip()]
+SERVICES_REPO_DIR = os.path.join(BASE_DIR, 'repo', 'services')
+DATASETS_REPO_DIR = os.path.join(BASE_DIR, 'repo', 'datasets')
 
-DISABLED_DATASET_TEMPLATES = []
-DISABLED_DATASET_TEMPLATES_FILE = os.getenv('KARVDASH_DISABLED_DATASET_TEMPLATES_FILE')
-if DISABLED_DATASET_TEMPLATES_FILE and os.path.isfile(DISABLED_DATASET_TEMPLATES_FILE):
-    with open(DISABLED_DATASET_TEMPLATES_FILE) as f:
-        DISABLED_DATASET_TEMPLATES = [line.strip() for line in f if line.strip()]
+DISABLED_SERVICES = []
+DISABLED_SERVICES_FILE = os.getenv('KARVDASH_DISABLED_SERVICES_FILE')
+if DISABLED_SERVICES_FILE and os.path.isfile(DISABLED_SERVICES_FILE):
+    with open(DISABLED_SERVICES_FILE) as f:
+        DISABLED_SERVICES = [line.strip() for line in f if line.strip()]
+
+DISABLED_DATASETS = []
+DISABLED_DATASETS_FILE = os.getenv('KARVDASH_DISABLED_DATASETS_FILE')
+if DISABLED_DATASETS_FILE and os.path.isfile(DISABLED_DATASETS_FILE):
+    with open(DISABLED_DATASETS_FILE) as f:
+        DISABLED_DATASETS = [line.strip() for line in f if line.strip()]
 
 
 # Preconfigured service URL prefixes
