@@ -30,32 +30,12 @@ environments:
         clientID: tSlY0FSd7tmS7jR0J6KLyIhisd9yYitlmyx3oVb3
         clientSecret: eYLaIV2NtZHhR7M9zh1ouLl4LpuwwpcrYBspXbS2gTCm61Hn01ghmZf7iBxxk5r3SdPHnlg6Ovm6IKK4CmJKNl8gnkvxjmOt7YOxZJR0BJH8DPHnA9Nh6pHpmESM8mfE
     - openBio:
-        enabled: true
+        enabled: false
         version: 0.2.1
         djangoDebug: 1
         databaseHostPath: {{ requiredEnv "PWD" }}/db/openbio
         clientID: GtgX0LX4nZ27kYPQOtQV9szC1jFdeN35NMCjamqL
         clientSecret: dQffp68kBzNDZrG4vgrIG8uguc2j0KRAXnTR5mrLuMuNq2sVl5PDtDnNyQoxpe2HiNuBehj5t35O3i8pBqZC2RO92CHTprkb8L662ka9lCUBqmo5F1OBB1QmzBo4jEK6
-  # Minimal deployment for development with minikube.
-  minikube:
-    values:
-    - ingress:
-        host: {{ env "IP_ADDRESS" | default "192.168.1.1" }}.nip.io
-        service:
-          type: LoadBalancer
-        createSelfsignedCertificate: true
-    - jupyterHub:
-        enabled: false
-    - argo:
-        enabled: true
-        clientID: T8DrPY49xlYvjsJ1nUIhxs17fG07gMZpQSOM7d3K
-        clientSecret: 6TjANPj1oe59MexsTYdMV5yiSyOYULDEzkyxfff4CmAPFa8mQ1dhYE7BHeEEVyg1tRgTkXRWYj2zhiKLiLZvhUGDnrixQQDshrWVtWCgQX23Vmdo37ktuVmsgOEfO2eG
-    - harbor:
-        enabled: false
-    - grafana:
-        enabled: false
-    - openBio:
-        enabled: false
   # Use local folders instead of volumes for development on baremetal.
   baremetal:
     values:
@@ -98,7 +78,7 @@ environments:
         clientID: tSlY0FSd7tmS7jR0J6KLyIhisd9yYitlmyx3oVb3
         clientSecret: eYLaIV2NtZHhR7M9zh1ouLl4LpuwwpcrYBspXbS2gTCm61Hn01ghmZf7iBxxk5r3SdPHnlg6Ovm6IKK4CmJKNl8gnkvxjmOt7YOxZJR0BJH8DPHnA9Nh6pHpmESM8mfE
     - openBio:
-        enabled: true
+        enabled: false
         version: 0.2.1
         djangoDebug: 1
         databaseHostPath: {{ requiredEnv "PWD" }}/db/openbio

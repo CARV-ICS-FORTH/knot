@@ -33,8 +33,8 @@ Consult the Karvdash [Helm chart README](https://github.com/CARV-ICS-FORTH/karvd
 To develop Karvdash in a local Kubernetes environment, like the one provided by [Docker Desktop](https://www.docker.com/products/docker-desktop) for macOS (tested with [versions >= 4.3.x](https://docs.docker.com/docker-for-mac/release-notes/) which use Kubernetes 1.22.4), first prepare the environment with:
 ```bash
 make deploy-requirements
+make prepare-develop # Run once
 DEVELOPMENT=yes make deploy-local
-make prepare-develop
 ```
 
 This will setup all requirements (cert-manager and an SSL-enabled ingress controller), as well as optional integrations (JupyterHub, Argo Workflows, Harbor, Grafana/Prometheus, OpenBio), and set up a virtual environment to run Karvdash from the command line. You need to have [Helm](https://helm.sh), the [Helm diff plugin](https://github.com/databus23/helm-diff), and [Helmfile](https://github.com/roboll/helmfile) installed. A proxy will forward all requests locally, including requests to the mutating admission webhook to attach file domains and datasets to service containers, or configure registry credentials.

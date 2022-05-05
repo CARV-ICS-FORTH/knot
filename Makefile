@@ -14,7 +14,6 @@
 
 SHELL=/bin/bash
 
-MINIKUBE?=no
 BAREMETAL?=no
 DEVELOPMENT?=no
 
@@ -26,21 +25,16 @@ KARVDASH_IMAGE_TAG=$(REGISTRY_NAME)/karvdash:$(KARVDASH_VERSION)
 
 CHART_DIR=./chart/karvdash
 
-.PHONY: all deploy-requirements undeploy-requirements deploy-local undeploy-local prepare-develop develop container container-push release
+.PHONY: all check-ip-address deploy-requirements undeploy-requirements deploy-local undeploy-local prepare-develop develop container container-push release
 
 all: container
 
-ifeq (${MINIKUBE}, yes)
-IP_ADDRESS=$(shell minikube ip)
-HELMFILE_ENV=minikube
-else ifneq (${BAREMETAL}, yes)
-IP_ADDRESS=$(shell ipconfig getifaddr en0 || ipconfig getifaddr en1)
-HELMFILE_ENV=default
-else
-ifndef IP_ADDRESS
-$(error IP_ADDRESS is not set)
-endif
+IP_ADDRESS?=$(shell ipconfig getifaddr en0 || ipconfig getifaddr en1 2> /dev/null)
+
+ifeq (${BAREMETAL}, yes)
 HELMFILE_ENV=baremetal
+else
+HELMFILE_ENV=default
 endif
 
 ifneq (${DEVELOPMENT}, yes)
@@ -52,20 +46,24 @@ endif
 INGRESS_URL=${IP_ADDRESS}.nip.io
 HARBOR_ADMIN_PASSWORD=Harbor12345
 
-deploy-requirements:
+check-ip-address:
+ifeq (${IP_ADDRESS},)
+	$(error IP_ADDRESS is not set)
+endif
+
+deploy-requirements: check-ip-address
 	export IP_ADDRESS="${IP_ADDRESS}"; \
 	helmfile -e ${HELMFILE_ENV} sync
 	# Deploy DLF
 	# kubectl apply -f https://raw.githubusercontent.com/datashim-io/datashim/master/release-tools/manifests/dlf.yaml
 	# kubectl wait --timeout=600s --for=condition=ready pods -l app.kubernetes.io/name=dlf -n dlf
 
-undeploy-requirements:
+undeploy-requirements: check-ip-address
 	# Remove DLF
 	# kubectl delete -f https://raw.githubusercontent.com/datashim-io/datashim/master/release-tools/manifests/dlf.yaml || true
 	export IP_ADDRESS="${IP_ADDRESS}"; \
 	helmfile -e ${HELMFILE_ENV} delete
 	# Remove namespaces
-	kubectl delete namespace openbio || true
 	kubectl delete namespace monitoring || true
 	kubectl delete namespace harbor || true
 	kubectl delete namespace argo || true
@@ -74,7 +72,7 @@ undeploy-requirements:
 	kubectl delete namespace ingress-nginx || true
 	kubectl delete namespace cert-manager || true
 
-deploy-local:
+deploy-local: check-ip-address
 	# Create necessary directories
 	mkdir -p db
 	mkdir -p files
@@ -99,9 +97,7 @@ deploy-local:
 	--set karvdash.harborNamespace="harbor" \
 	--set karvdash.harborAdminPassword="${HARBOR_ADMIN_PASSWORD}" \
 	--set karvdash.grafanaURL="https://grafana.${INGRESS_URL}" \
-	--set karvdash.grafanaNamespace="monitoring" \
-	--set karvdash.openBioURL="https://openbio.${INGRESS_URL}" \
-	--set karvdash.openBioNamespace="openbio"
+	--set karvdash.grafanaNamespace="monitoring"
 
 undeploy-local:
 	helm uninstall karvdash --namespace default
@@ -117,7 +113,7 @@ prepare-develop:
 	./manage.py migrate; \
 	./manage.py createadmin --noinput --username admin --password admin --email admin@example.com --preserve
 
-develop:
+develop: check-ip-address
 	source venv/bin/activate; \
 	export DJANGO_SECRET='%ad&%4*!xpf*$$wd3^t56+#ode4=@y^ju_t+j9f+20ajsta^gog'; \
 	export DJANGO_DEBUG=1; \
@@ -133,8 +129,6 @@ develop:
 	export KARVDASH_HARBOR_ADMIN_PASSWORD="${HARBOR_ADMIN_PASSWORD}"; \
 	export KARVDASH_GRAFANA_URL="https://grafana.${INGRESS_URL}"; \
 	export KARVDASH_GRAFANA_NAMESPACE="monitoring"; \
-	export KARVDASH_OPENBIO_URL="https://openbio.${INGRESS_URL}"; \
-	export KARVDASH_OPENBIO_NAMESPACE="openbio"; \
 	kubectl port-forward deployment/karvdash 6379:6379 & \
 	celery -A karvdash worker -l info & \
 	./manage.py runserver 0.0.0.0:8000
