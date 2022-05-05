@@ -43,14 +43,12 @@
 <li class="toctree-l2"><a class="reference internal" href="#sign-up-and-login">Sign up and login</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#services-screen">Services screen</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#templates-screen">Templates screen</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#images-screen">Images screen</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#datasets-screen">Datasets screen</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#files-screen">Files screen</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#administration">Administration</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="technical.html">Technical overview</a></li>
-<li class="toctree-l1"><a class="reference internal" href="api.html">API documentation</a></li>
 </ul>
 
         </div>
@@ -111,19 +109,7 @@
 <figure class="align-default">
 <img alt="_images/templates-screen.png" src="_images/templates-screen.png" />
 </figure>
-<p>To add a new template, click on the respective button on the right. The template file format is described in the <a class="reference internal" href="technical.html#service-templates"><span class="std std-ref">Service templates</span></a> chapter.</p>
-</section>
-<section id="images-screen">
-<h2>Images screen<a class="headerlink" href="#images-screen" title="Permalink to this headline"></a></h2>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>Image management is an optional Karvdash feature that may have not been enabled in your deployment.</p>
-</div>
-<p>The images screen is accessed by selecting “Images” from the menu on the left. You are presented with a list of container images in the preconfigured private container registry. Select an image to view available tags.</p>
-<figure class="align-default">
-<img alt="_images/images-screen.png" src="_images/images-screen.png" />
-</figure>
-<p>To add a new image, first upload the saved image in “Files” in <code class="docutils literal notranslate"><span class="pre">.tar</span></code> format (using the <a class="reference internal" href="#files-screen"><span class="std std-ref">Files screen</span></a>). Then, select the “Add image” item from the “Actions” button of that file. You will be asked to provide a name and tag for the new image. Note that you must provide a unique name and tag combination, to avoid overwriting other users’ images.</p>
+<p>To add a new template, click on the respective button on the right. The template structure is described in the <a class="reference internal" href="technical.html#service-templates"><span class="std std-ref">Service templates</span></a> chapter.</p>
 </section>
 <section id="datasets-screen">
 <h2>Datasets screen<a class="headerlink" href="#datasets-screen" title="Permalink to this headline"></a></h2>
@@ -142,7 +128,7 @@
 <section id="files-screen">
 <h2>Files screen<a class="headerlink" href="#files-screen" title="Permalink to this headline"></a></h2>
 <p>The files screen is accessed by selecting “Files” from the menu on the left. You are presented with a list of folders and files in the respective domain. Change domain (“private” or “shared”) by clicking on the corresponding buttons on the upper-right of the screen. The “private” domain contains private user files, while “shared” is common across all users. Any user can add or remove files in “shared”.</p>
-<p>Select a folder to navigate into that path (the current path is shown above the list), or a file to download it. Select the “Actions” button to download a folder as an archive or delete an object. Respective actions are also available to add templates (ending in <code class="docutils literal notranslate"><span class="pre">.template.yaml</span></code>) or saved container images (ending in <code class="docutils literal notranslate"><span class="pre">.tar</span></code>).</p>
+<p>Select a folder to navigate into that path (the current path is shown above the list), or a file to download it. Select the “Actions” button to download a folder as an archive or delete an object. An action is also available to add a template (ending in <code class="docutils literal notranslate"><span class="pre">.template.yaml</span></code>).</p>
 <p>Files are mounted in containers under <code class="docutils literal notranslate"><span class="pre">/private</span></code> and <code class="docutils literal notranslate"><span class="pre">/shared</span></code> respectively.</p>
 <figure class="align-default">
 <img alt="_images/files-screen.png" src="_images/files-screen.png" />
@@ -159,7 +145,7 @@
 <p class="admonition-title">Note</p>
 <p>The information in this section applies only to administrators.</p>
 </div>
-<p>The “admin” user has access to an additional screen named “Users”. Moreover, in the “Images” screen, the administrator has the option to use the “Actions” button to delete an image.</p>
+<p>The “admin” user has access to an additional screen named “Users”.</p>
 <p>The users screen is accessed by selecting “Users” from the menu on the left. You are presented with a list of users, by username. Each user can be “active”, meaning with access to the dashboard and services. Each user can also be promoted to an administrator. The respective actions are available in the menu presented when selecting the “Actions” button. An administrator can edit a user’s email, change a user’s password, impersonate, and delete a user.</p>
 <p>When impersonating another user, the whole interface changes to what the user sees and the user icon at the top-right of the screen darkens to signify “impersonation mode”. The user menu provides the option to stop impersonating and return to the original user’s view.</p>
 </section>

@@ -27,107 +27,25 @@ In addition to the "private" and "shared" data domains, Karvdash optionally inte
 Service templates
 -----------------
 
-Karvdash provides a way for users to easily configure and start services, by integrating a simple service templating mechanism - practically YAML files with variables. The user can specify execution parameters through the dashboard before deployment, and Karvdash will set other "internal" platform configuration values, such as private container registry location, external DNS name, etc. Moreover, Karvdash automatically manages service names when starting multiple services from the same template, while it also allows "singleton" services that can only be deployed once per user.
+Karvdash provides a way for users to easily configure and start services, by integrating a service templating mechanism based on `Helm <https://helm.sh>`_. Helm service templates, named "charts", are packaged and placed within some artifact registry, like `Harbor <https://goharbor.io>`_. The list of available services includes global and user-specific charts, which are automatically discovered by Karvdash.
 
-To convert a YAML deployment into a Karvdash service template:
+When deploying a service, the user can specify chart values through the dashboard. Karvdash will silently set "internal" platform configuration values, such as private container registry location, external DNS name, etc.
 
-* Replace strings with variables where necessary.
-* Add a "Template" section with variable names, their default values and optional help text.
-* Make sure there is exactly one "Service" section named using the variable ``NAME``. If the template contains multiple services, Karvdash will use the first one (you can skip previous services by labeling them with ``karvdash-hidden=true``).
-* Optionally have an "Ingress" section pointing to the service (the dashboard will provide a link to the hostname assigned to the ingress if there is one).
+Karvdash-compatible charts should recognize the following values:
 
-The "Template" section should contain the following fields:
+===========================  ==============================================================
+Value                        Description
+---------------------------  --------------------------------------------------------------
+``karvdash.enabled``         Set to ``true``
+``karvdash.hostname``        The external hostname that will be assigned to the service
+``karvdash.registry``        The private container registry configured for the installation
+``karvdash.private_dir``     The path to the "private" data domain
+``karvdash.private_volume``  The volume used for the "private" data domain
+``karvdash.shared_dir``      The path to the "shared" data domain
+``karvdash.shared_volume``   The volume used for the "shared" data domain
+===========================  ==============================================================
 
-===============  ========  =============================================================================
-Field            Required  Description
----------------  --------  -----------------------------------------------------------------------------
-``kind``         Yes       Set to ``Template``
-``name``         Yes       The template name to show in the dashboard
-``description``  No        A simple, short description
-``singleton``    No        If set, only one instance of the template can be running (unset by default)
-``auth``         No        If set, HTTP authentication should be added by the ingress (set by default)
-``datasets``     No        If set, dataset volumes will be mounted in pods (set by default)
-``variables``    Yes       The template variables (``name`` and ``default`` required, ``help`` optional)
-===============  ========  =============================================================================
-
-An example template is::
-
-    # hello-kubernetes.template.yaml
-
-    apiVersion: networking.k8s.io/v1
-    kind: Ingress
-    metadata:
-      name: $NAME
-    spec:
-      rules:
-      - host: $HOSTNAME
-        http:
-          paths:
-          - backend:
-              serviceName: $NAME
-              servicePort: 8080
-    ---
-    apiVersion: v1
-    kind: Service
-    metadata:
-      name: $NAME
-    spec:
-      type: ClusterIP
-      ports:
-      - port: 8080
-      selector:
-        app: $NAME
-    ---
-    apiVersion: apps/v1
-    kind: Deployment
-    metadata:
-      name: $NAME
-    spec:
-      replicas: 1
-      selector:
-        matchLabels:
-          app: $NAME
-      template:
-        metadata:
-          labels:
-            app: $NAME
-        spec:
-          containers:
-          - name: $NAME
-            image: paulbouwer/hello-kubernetes:1.5
-            ports:
-            - containerPort: 8080
-            env:
-            - name: MESSAGE
-              value: $MESSAGE
-    ---
-    kind: Template
-    name: Hello Kubernetes
-    description: Show a message in a web page
-    variables:
-    - name: NAME
-      default: hello-kubernetes
-    - name: HOSTNAME
-      default: hello-kubernetes.example.com
-    - name: MESSAGE
-      default: I just deployed this on Kubernetes!
-      help: Message to display
-
-The following variables are automatically set by Karvdash. If they are used in a template, they are not presented to the user, but rather their values are filled in by Karvdash before starting a service.
-
-==================  ==============================================================
-Field               Description
-------------------  --------------------------------------------------------------
-``NAMESPACE``       The namespace that the service will run in
-``HOSTNAME``        The external hostname that will be assigned to the service
-``REGISTRY``        The private container registry configured for the installation
-``PRIVATE_DIR``     The path to the "private" data domain
-``PRIVATE_VOLUME``  The volume used for the "private" data domain
-``SHARED_DIR``      The path to the "shared" data domain
-``SHARED_VOLUME``   The volume used for the "shared" data domain
-==================  ==============================================================
-
-Karvdash distinguishes between internal system templates, which are stored in the filesystem and can not be changed, and custom user templates, which are stored as CRDs in Kubernetes in the user's namespace. To manage service templates with ``kubectl`` use the ``templates`` resource identifier (i.e., ``kubectl get templates``).
+Karvdash will show all services to the user, except those marked with the label ``karvdash-hidden``. Upon deployment, Karvdash will attach local storage folders to all pods, as well as remote datasets (except on pods labelled with ``karvdash-no-datasets``). Authentication directives are added to all ingress resources (except on those labelled with ``karvdash-no-auth``).
 
 User namespaces
 ---------------
@@ -151,8 +69,3 @@ SSO service
 -----------
 
 Karvdash implements an OAuth 2.0/OpenID Connect provider, which allows third-party services to request verification of users' identities via standard protocols. Note that OAuth 2.0/OpenID provides only authentication information and it is up to the connecting service to define what users are authorized to do, based on their identities (i.e., username, email, etc.). In addition to the integration with Vouch Proxy for authenticating users to services started by the dashboard, Karvdash also acts as an identity provider to `JupyterHub <https://jupyter.org/hub>`_ and `Argo Workflows <https://argoproj.github.io/workflows>`_. Moreover, Karvdash configures appropriate authorization directives in Argo Workflows, so each user will be allowed to access resources in the corresponding Karvdash-defined namespace.
-
-Registry gateway
-----------------
-
-Additionally, Karvdash provides a graphical frontend to a private container registry, so users can easily manage available private container images and upload new ones from files (exported images). Note that the registry is shared between users, so each user may add new images, but only admins can delete them.
