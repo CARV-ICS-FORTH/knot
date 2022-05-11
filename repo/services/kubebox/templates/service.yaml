@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "kubebox.fullname" . }}
+  labels:
+    {{- include "kubebox.labels" . | nindent 4 }}
+spec:
+  type: ClusterIP
+  ports:
+  - port: 8080
+  selector:
+    {{- include "kubebox.selectorLabels" . | nindent 4 }}

@@ -1,0 +1,5 @@
+apiVersion: v2
+name: redis
+description: In-memory key-value store
+type: application
+version: 1.0.0

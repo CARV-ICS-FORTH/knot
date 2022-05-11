@@ -5,7 +5,7 @@ metadata:
   labels:
     {{- include "hello-kubernetes.labels" . | nindent 4 }}
 spec:
-  replicas: {{ .Values.replicaCount }}
+  replicas: 1
   selector:
     matchLabels:
       {{- include "hello-kubernetes.selectorLabels" . | nindent 6 }}
@@ -16,19 +16,9 @@ spec:
     spec:
       containers:
       - name: {{ .Chart.Name }}
-        image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+        image: paulbouwer/hello-kubernetes:1.10.1
         ports:
-        - name: http
-          containerPort: 8080
-          protocol: TCP
-        livenessProbe:
-          httpGet:
-            path: /
-            port: http
-        readinessProbe:
-          httpGet:
-            path: /
-            port: http
+        - containerPort: 8080
         env:
         {{- if .Values.message }}
         - name: MESSAGE

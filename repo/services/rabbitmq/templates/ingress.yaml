@@ -1,0 +1,22 @@
+{{- $fullName := include "rabbitmq.fullname" . -}}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ $fullName }}
+  labels:
+    {{- include "rabbitmq.labels" . | nindent 4 }}
+    {{- if .Values.karvdash.enabled }}
+    karvdash-no-auth: "true"
+    {{- end }}
+spec:
+  rules:
+  - host: {{ .Values.karvdash.hostname | quote }}
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: {{ $fullName }}
+            port:
+              number: 15672

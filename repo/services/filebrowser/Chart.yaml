@@ -1,0 +1,5 @@
+apiVersion: v2
+name: filebrowser
+description: Frontend for viewing folder contents
+type: application
+version: 1.0.0

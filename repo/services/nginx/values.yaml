@@ -1,0 +1,5 @@
+folder: /private/html # Folder to serve
+
+karvdash:
+  enabled: true
+  hostname: nginx.example.com

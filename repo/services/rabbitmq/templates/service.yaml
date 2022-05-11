@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "rabbitmq.fullname" . }}
+  labels:
+    {{- include "rabbitmq.labels" . | nindent 4 }}
+spec:
+  type: ClusterIP
+  ports:
+  - name: amq
+    port: 5672
+  - name: http
+    port: 15672
+  selector:
+    {{- include "rabbitmq.selectorLabels" . | nindent 4 }}

@@ -1,0 +1,32 @@
+{{- $fullName := include "filebrowser.fullname" . -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $fullName }}
+  labels:
+    {{- include "filebrowser.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "filebrowser.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "filebrowser.selectorLabels" . | nindent 8 }}
+    spec:
+      containers:
+      - name: {{ .Chart.Name }}
+        image: filebrowser/filebrowser:v2.21.1
+        ports:
+        - containerPort: 80
+        args: ["--noauth"]
+        volumeMounts:
+        - name: {{ $fullName }}-config-volume
+          mountPath: /.filebrowser.json
+          subPath: filebrowser.json
+      volumes:
+      - name: {{ $fullName }}-config-volume
+        configMap:
+          name: {{ $fullName }}-config
+          defaultMode: 0644

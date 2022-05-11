@@ -1,0 +1,42 @@
+{{- $fullName := include "rabbitmq.fullname" . -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $fullName }}
+  labels:
+    {{- include "rabbitmq.labels" . | nindent 4 }}
+    {{- if .Values.karvdash.enabled }}
+    karvdash-no-datasets: "true"
+    {{- end }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "rabbitmq.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "rabbitmq.selectorLabels" . | nindent 8 }}
+    spec:
+      containers:
+      - name: {{ .Chart.Name }}
+        image: rabbitmq:3.9.17-management
+        command:
+        - /bin/bash
+        - -c
+        - |
+          mkdir -p {{ .Values.karvdash.privateDir }}/.rabbitmq/{{ $fullName }}/mnesia && \
+          chown -R rabbitmq:rabbitmq {{ .Values.karvdash.privateDir }}/.rabbitmq/{{ $fullName }}/mnesia && \
+          /usr/local/bin/docker-entrypoint.sh rabbitmq-server
+        ports:
+        - containerPort: 5672
+        - containerPort: 15672
+        env:
+        - name: RABBITMQ_NODENAME
+          value: rabbit@localhost
+        - name: RABBITMQ_MNESIA_BASE
+          value: {{ .Values.karvdash.privateDir }}/.rabbitmq/{{ $fullName }}/mnesia
+        - name: RABBITMQ_DEFAULT_USER
+          value: {{ .Values.username }}
+        - name: RABBITMQ_DEFAULT_PASS
+          value: {{ .Values.password }}

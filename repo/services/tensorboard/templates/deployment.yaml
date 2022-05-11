@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "tensorboard.fullname" . }}
+  labels:
+    {{- include "tensorboard.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "tensorboard.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "tensorboard.selectorLabels" . | nindent 8 }}
+    spec:
+      containers:
+      - name: {{ .Chart.Name }}
+        image: tensorflow/tensorflow:2.3.2
+        ports:
+        - containerPort: 6006
+        command:
+        - bash
+        - -c
+        - |
+          mkdir -p {{ .Values.logDir }} && \
+          tensorboard --logdir {{ .Values.logDir }} --bind_all serve

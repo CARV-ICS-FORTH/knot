@@ -1,0 +1,6 @@
+version: "12.10" # PostgreSQL version
+password: postgres # Password for postgres user
+
+karvdash:
+  enabled: true
+  privateDir: /private

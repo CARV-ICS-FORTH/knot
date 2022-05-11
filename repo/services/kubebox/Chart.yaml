@@ -1,0 +1,5 @@
+apiVersion: v2
+name: kubebox
+description: Terminal and web console
+type: application
+version: 1.0.0

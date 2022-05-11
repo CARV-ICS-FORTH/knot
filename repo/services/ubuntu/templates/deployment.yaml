@@ -1,0 +1,24 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "ubuntu.fullname" . }}
+  labels:
+    {{- include "ubuntu.labels" . | nindent 4 }}
+    {{- if .Values.karvdash.enabled }}
+    karvdash-no-datasets: "true"
+    {{- end }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "ubuntu.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "ubuntu.selectorLabels" . | nindent 8 }}
+    spec:
+      containers:
+      - name: {{ .Chart.Name }}
+        image: ubuntu:{{ .Values.version }}
+        command: ["sleep"]
+        args: ["infinity"]

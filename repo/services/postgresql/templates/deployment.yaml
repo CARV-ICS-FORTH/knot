@@ -1,0 +1,30 @@
+{{- $fullName := include "postgresql.fullname" . -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $fullName }}
+  labels:
+    {{- include "postgresql.labels" . | nindent 4 }}
+    {{- if .Values.karvdash.enabled }}
+    karvdash-no-datasets: "true"
+    {{- end }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "postgresql.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "postgresql.selectorLabels" . | nindent 8 }}
+    spec:
+      containers:
+      - name: {{ .Chart.Name }}
+        image: postgres:{{ .Values.version }}
+        ports:
+        - containerPort: 5432
+        env:
+        - name: POSTGRES_PASSWORD
+          value: {{ .Values.password }}
+        - name: PGDATA
+          value: {{ .Values.karvdash.privateDir }}/.postgresql/{{ $fullName }}/data

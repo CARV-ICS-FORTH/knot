@@ -1,0 +1,5 @@
+apiVersion: v2
+name: tensorboard
+description: Visualization toolkit for TensorFlow
+type: application
+version: 1.0.0

@@ -1,0 +1,16 @@
+{{- $fullName := include "pgadmin.fullname" . -}}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ $fullName }}-config
+  labels:
+    {{- include "pgadmin.labels" . | nindent 4 }}
+data:
+  config_system.py: |
+    import os
+
+    DATA_DIR = '{{ .Values.karvdash.privateDir }}/.pgadmin/{{ $fullName }}/'
+    LOG_FILE = os.path.join(DATA_DIR, 'pgadmin4.log')
+    SQLITE_PATH = os.path.join(DATA_DIR, 'pgadmin4.db')
+    SESSION_DB_PATH = os.path.join(DATA_DIR, 'sessions')
+    STORAGE_DIR = os.path.join(DATA_DIR, 'storage')

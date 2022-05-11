@@ -192,10 +192,10 @@ class ServiceManager(object):
             local_data = {'data.karvdash.enabled': True,
                           'data.karvdash.hostname': '%s.%s' % (prefix, ingress_host),
                           'data.karvdash.registry': HarborClient(settings.HARBOR_URL).registry_host if settings.HARBOR_URL else '',
-                          'data.karvdash.private_dir': self.user.file_domains['private'].mount_dir,
-                          'data.karvdash.private_volume': self.user.file_domains['private'].volume_name,
-                          'data.karvdash.shared_dir': self.user.file_domains['shared'].mount_dir,
-                          'data.karvdash.shared_volume': self.user.file_domains['private'].volume_name}
+                          'data.karvdash.privateDir': self.user.file_domains['private'].mount_dir,
+                          'data.karvdash.privateVolume': self.user.file_domains['private'].volume_name,
+                          'data.karvdash.sharedDir': self.user.file_domains['shared'].mount_dir,
+                          'data.karvdash.sharedVolume': self.user.file_domains['private'].volume_name}
             variables += [{'label': key, 'value': value} for key, value in local_data.items()]
 
         # Apply.

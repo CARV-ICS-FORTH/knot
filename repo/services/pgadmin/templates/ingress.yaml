@@ -1,0 +1,19 @@
+{{- $fullName := include "pgadmin.fullname" . -}}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ $fullName }}
+  labels:
+    {{- include "pgadmin.labels" . | nindent 4 }}
+spec:
+  rules:
+  - host: {{ .Values.karvdash.hostname | quote }}
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: {{ $fullName }}
+            port:
+              number: 80

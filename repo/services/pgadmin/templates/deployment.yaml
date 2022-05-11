@@ -1,0 +1,47 @@
+{{- $fullName := include "pgadmin.fullname" . -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $fullName }}
+  labels:
+    {{- include "pgadmin.labels" . | nindent 4 }}
+    {{- if .Values.karvdash.enabled }}
+    karvdash-no-datasets: "true"
+    {{- end }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "pgadmin.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "pgadmin.selectorLabels" . | nindent 8 }}
+    spec:
+      containers:
+      - name: {{ .Chart.Name }}
+        image: dpage/pgadmin4:6.8
+        command:
+        - /bin/sh
+        - -c
+        - |
+          mkdir -p {{ .Values.karvdash.privateDir }}/.pgadmin/{{ $fullName }} && \
+          /entrypoint.sh
+        securityContext:
+          runAsUser: 0
+        ports:
+        - containerPort: 80
+        env:
+        - name: PGADMIN_DEFAULT_EMAIL
+          value: {{ .Values.email }}
+        - name: PGADMIN_DEFAULT_PASSWORD
+          value: {{ .Values.password }}
+        volumeMounts:
+        - name: {{ $fullName }}-config-volume
+          mountPath: /etc/pgadmin/config_system.py
+          subPath: config_system.py
+      volumes:
+      - name: {{ $fullName }}-config-volume
+        configMap:
+          name: {{ $fullName }}-config
+          defaultMode: 0644

@@ -33,17 +33,17 @@ When deploying a service, the user can specify chart values through the dashboar
 
 Karvdash-compatible charts should recognize the following values:
 
-===========================  ==============================================================
-Value                        Description
----------------------------  --------------------------------------------------------------
-``karvdash.enabled``         Set to ``true``
-``karvdash.hostname``        The external hostname that will be assigned to the service
-``karvdash.registry``        The private container registry configured for the installation
-``karvdash.private_dir``     The path to the "private" data domain
-``karvdash.private_volume``  The volume used for the "private" data domain
-``karvdash.shared_dir``      The path to the "shared" data domain
-``karvdash.shared_volume``   The volume used for the "shared" data domain
-===========================  ==============================================================
+==========================  ==============================================================
+Value                       Description
+--------------------------  --------------------------------------------------------------
+``karvdash.enabled``        Set to ``true``
+``karvdash.hostname``       The external hostname that will be assigned to the service
+``karvdash.registry``       The private container registry configured for the installation
+``karvdash.privateDir``     The path to the "private" data domain
+``karvdash.privateVolume``  The volume used for the "private" data domain
+``karvdash.sharedDir``      The path to the "shared" data domain
+``karvdash.sharedVolume``   The volume used for the "shared" data domain
+==========================  ==============================================================
 
 Karvdash will show all services to the user, except those marked with the label ``karvdash-hidden``. Upon deployment, Karvdash will attach local storage folders to all pods, as well as remote datasets (except on pods labelled with ``karvdash-no-datasets``). Authentication directives are added to all ingress resources (except on those labelled with ``karvdash-no-auth``).
 

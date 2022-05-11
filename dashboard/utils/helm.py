@@ -31,13 +31,13 @@ def flatten_values(values, prefix=''):
     for key, value in values.items():
         label = '%s.%s' % (prefix, key) if prefix else key
         comment = values.ca.get(key, 2)
-        if type(values[key]) == str:
+        if type(values[key]) == CommentedMap:
+            data += flatten_values(values[key], label)
+        else:
             data.append({'label': label,
                          'default': value,
                          'type': 'int' if type(value) == int else 'str',
                          'help': comment.value.lstrip('#').strip() if comment else ''})
-        elif type(values[key]) == CommentedMap:
-            data += flatten_values(values[key], label)
     return data
 
 def unflatten_values(data):

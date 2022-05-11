@@ -1,0 +1,5 @@
+folder: /private # Folder to browse
+
+karvdash:
+  enabled: true
+  hostname: filebrowser.example.com

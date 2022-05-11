@@ -1,0 +1,7 @@
+servers: 3 # Set to an odd number from 3 and above
+zookeeper: zookeeper # ZooKeeper service name
+
+karvdash:
+  enabled: true
+  hostname: kafka.example.com
+  privateDir: /private

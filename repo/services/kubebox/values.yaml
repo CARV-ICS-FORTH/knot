@@ -1,0 +1,3 @@
+karvdash:
+  enabled: true
+  hostname: kubebox.example.com

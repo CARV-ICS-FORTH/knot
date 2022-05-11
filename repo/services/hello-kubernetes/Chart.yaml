@@ -3,4 +3,3 @@ name: hello-kubernetes
 description: Show a message in a web page
 type: application
 version: 1.0.0
-appVersion: "1.10.1"

@@ -8,8 +8,5 @@ spec:
   type: ClusterIP
   ports:
   - port: 8080
-    targetPort: http
-    protocol: TCP
-    name: http
   selector:
     {{- include "hello-kubernetes.selectorLabels" . | nindent 4 }}
