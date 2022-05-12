@@ -22,15 +22,11 @@ class CustomOAuth2Validator(OAuth2Validator):
     def get_additional_claims(self, request):
         user = User.objects.get(pk=request.user.pk)
 
-        return {
-            'sub': user.username,
-            'preferred_username': user.username,
-            'email': user.email,
-            'name': user.get_full_name(),
-            'given_name': user.first_name,
-            'family_name': user.last_name,
-            'karvdash_namespace': user.namespace,
-            'karvdash_ingress_url': settings.INGRESS_URL,
-            'karvdash_registry_url': settings.HARBOR_URL,
-            'karvdash_argo_workflows_url': settings.ARGO_WORKFLOWS_URL
-        }
+        claims = {'sub': user.username,
+                  'preferred_username': user.username,
+                  'email': user.email,
+                  'name': user.get_full_name(),
+                  'given_name': user.first_name,
+                  'family_name': user.last_name}
+        claims.update({('karvdash_%s' % key): value for key, value in user.local_data.items()})
+        return claims

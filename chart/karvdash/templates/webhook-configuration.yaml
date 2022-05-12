@@ -1,7 +1,7 @@
 apiVersion: admissionregistration.k8s.io/v1
 kind: MutatingWebhookConfiguration
 metadata:
-  name: {{ .Release.Name }}-storage
+  name: {{ .Release.Name }}-pod
   labels:
     app: {{ .Release.Name }}
     chart: {{ .Chart.Name }}-{{ .Chart.Version }}
@@ -13,7 +13,7 @@ webhooks:
       service:
         name: {{ .Release.Name }}
         namespace: {{ .Release.Namespace }}
-        path: "/webhooks/storage/add"
+        path: "/webhooks/pod/mutate"
     rules:
       - operations: ["CREATE"]
         apiGroups: ["*"]
@@ -29,7 +29,7 @@ webhooks:
 apiVersion: admissionregistration.k8s.io/v1
 kind: ValidatingWebhookConfiguration
 metadata:
-  name: {{ .Release.Name }}-storage
+  name: {{ .Release.Name }}-pod
   labels:
     app: {{ .Release.Name }}
     chart: {{ .Chart.Name }}-{{ .Chart.Version }}
@@ -41,7 +41,7 @@ webhooks:
       service:
         name: {{ .Release.Name }}
         namespace: {{ .Release.Namespace }}
-        path: "/webhooks/storage/validate"
+        path: "/webhooks/pod/validate"
     rules:
       - operations: ["CREATE"]
         apiGroups: ["*"]
@@ -57,7 +57,7 @@ webhooks:
 apiVersion: admissionregistration.k8s.io/v1
 kind: MutatingWebhookConfiguration
 metadata:
-  name: {{ .Release.Name }}-auth
+  name: {{ .Release.Name }}-ingress
   labels:
     app: {{ .Release.Name }}
     chart: {{ .Chart.Name }}-{{ .Chart.Version }}
@@ -69,7 +69,7 @@ webhooks:
       service:
         name: {{ .Release.Name }}
         namespace: {{ .Release.Namespace }}
-        path: "/webhooks/auth/add"
+        path: "/webhooks/ingress/mutate"
     rules:
       - operations: ["CREATE"]
         apiGroups: ["*"]

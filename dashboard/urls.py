@@ -43,7 +43,7 @@ urlpatterns = [
     path('change_password', views.change_password, name='change_password'),
     path('logout', views.logout, {'next_url': settings.LOGOUT_REDIRECT_URL}, name='logout'),
 
-    path('webhooks/storage/add', webhooks.add_storage),
-    path('webhooks/storage/validate', webhooks.validate_storage),
-    path('webhooks/auth/add', webhooks.add_auth),
+    path('webhooks/pod/mutate', webhooks.pod_mutate),
+    path('webhooks/pod/validate', webhooks.pod_validate),
+    path('webhooks/ingress/mutate', webhooks.ingress_mutate),
 ]

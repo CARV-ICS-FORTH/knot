@@ -65,6 +65,28 @@ def inject_volumes(yaml_data, file_domains, is_datasets=False):
             continue
         add_volumes_to_spec(spec, no_datasets)
 
+def inject_variables(yaml_data, user):
+    def add_variables_to_spec(spec):
+        # Add environment variables.
+        for container in spec['containers']:
+            if 'env' not in container:
+                container['env'] = []
+            container['env'] += [{'name': ('karvdash_%s' % key).upper(), 'value': value} for key, value in user.local_data.items()]
+
+    for part in yaml_data:
+        try:
+            if part['kind'] == 'Deployment':
+                spec = part['spec']['template']['spec']
+            elif part['kind'] == 'Pod':
+                spec = part['spec']
+            else:
+                continue
+        except:
+            continue
+        if not spec or 'containers' not in spec:
+            continue
+        add_variables_to_spec(spec)
+
 def validate_hostpath_volumes(yaml_data, file_domains, other_allowed_paths=[]):
     allowed_paths = [urlparse(file_domain.url).path for file_domain in file_domains.values() if file_domain.url.startswith('file://')]
     allowed_paths += other_allowed_paths

@@ -27,23 +27,36 @@ In addition to the "private" and "shared" data domains, Karvdash optionally inte
 Service templates
 -----------------
 
-Karvdash provides a way for users to easily configure and start services, by integrating a service templating mechanism based on `Helm <https://helm.sh>`_. Helm service templates, named "charts", are packaged and placed within some artifact registry, like `Harbor <https://goharbor.io>`_. The list of available services includes global and user-specific charts, which are automatically discovered by Karvdash.
+Karvdash provides a way for users to easily configure and start services, by integrating a service templating mechanism based on `Helm <https://helm.sh>`_. Helm service templates, named "charts", are packaged and placed within an artifact registry, like `Harbor <https://goharbor.io>`_. The list of available services includes global and user-specific charts, which are automatically discovered by Karvdash.
 
-When deploying a service, the user can specify chart values through the dashboard. Karvdash will silently set "internal" platform configuration values, such as private container registry location, external DNS name, etc.
+When deploying a service, the user can specify chart values through the dashboard. Karvdash will silently set "internal" platform configuration values, such as the generated hostname assigned to the service, the location of the private container registry, etc.
 
-Karvdash-compatible charts should recognize the following values:
+Karvdash-compatible charts may use the following values:
 
-==========================  ==============================================================
-Value                       Description
---------------------------  --------------------------------------------------------------
-``karvdash.enabled``        Set to ``true``
-``karvdash.hostname``       The external hostname that will be assigned to the service
-``karvdash.registry``       The private container registry configured for the installation
-``karvdash.privateDir``     The path to the "private" data domain
-``karvdash.privateVolume``  The volume used for the "private" data domain
-``karvdash.sharedDir``      The path to the "shared" data domain
-``karvdash.sharedVolume``   The volume used for the "shared" data domain
-==========================  ==============================================================
+.. |check| raw:: html
+
+    &check;
+
+===============================  =========================================================================================  ===========
+Value                            Description                                                                                Set in env.
+-------------------------------  -----------------------------------------------------------------------------------------  -----------
+``karvdash.enabled``             Set to ``true``
+``karvdash.hostname``            The hostname assigned to the service (set to ``<release name>-<username>.<ingress url>``)
+``karvdash.username``            The user's username                                                                        |check|
+``karvdash.namespace``           The user's namespace                                                                       |check|
+``karvdash.ingressUrl``          The dashboard's URL                                                                        |check|
+``karvdash.privateDir``          The path to the "private" data domain                                                      |check|
+``karvdash.privateVolume``       The volume used for the "private" data domain                                              |check|
+``karvdash.sharedDir``           The path to the "shared" data domain                                                       |check|
+``karvdash.sharedVolume``        The volume used for the "shared" data domain                                               |check|
+``karvdash.argoWorkflowsUrl``    The URL of the Argo Worfklows service (set if Argo Workflows is enabled)                   |check|
+``karvdash.privateRegistryUrl``  The URL of the "private" container registry (set if Harbor is enabled)                     |check|
+``karvdash.publicRegistryUrl``   The URL of the "shared" container registry (set if Harbor is enabled)                      |check|
+``karvdash.privateRepoUrl``      The URL of the "private" Helm chart repository (set if Harbor is enabled)                  |check|
+``karvdash.publicRepoUrl``       The URL of the "shared" Helm chart repository (set if Harbor is enabled)                   |check|
+===============================  =========================================================================================  ===========
+
+As shown in the table, some values are also set inside pods as environment variables (in uppercase snake case, i.e. ``KARVDASH_PRIVATE_DIR``).
 
 Karvdash will show all services to the user, except those marked with the label ``karvdash-hidden``. Upon deployment, Karvdash will attach local storage folders to all pods, as well as remote datasets (except on pods labelled with ``karvdash-no-datasets``). Authentication directives are added to all ingress resources (except on those labelled with ``karvdash-no-auth``).
 
@@ -68,4 +81,6 @@ Assuming that the dashboard is accessible at ``example.com``, the "File Browser"
 SSO service
 -----------
 
-Karvdash implements an OAuth 2.0/OpenID Connect provider, which allows third-party services to request verification of users' identities via standard protocols. Note that OAuth 2.0/OpenID provides only authentication information and it is up to the connecting service to define what users are authorized to do, based on their identities (i.e., username, email, etc.). In addition to the integration with Vouch Proxy for authenticating users to services started by the dashboard, Karvdash also acts as an identity provider to `JupyterHub <https://jupyter.org/hub>`_ and `Argo Workflows <https://argoproj.github.io/workflows>`_. Moreover, Karvdash configures appropriate authorization directives in Argo Workflows, so each user will be allowed to access resources in the corresponding Karvdash-defined namespace.
+Karvdash implements an OAuth 2.0/OIDC provider, which allows third-party services to request verification of users' identities via standard protocols. In the OIDC response, Karvdash also sets extra data that may be useful to connected services (all environment variables mentioned in :ref:`Service templates`, but in lowercase, i.e. ``karvdash_private_dir``).
+
+Note that OAuth 2.0/OIDC provides only authentication information and it is up to the connecting service to define what users are authorized to do, based on their identities (i.e., username, email, etc.). In addition to the integration with Vouch Proxy for authenticating users to services started by the dashboard, Karvdash also acts as an identity provider to `JupyterHub <https://jupyter.org/hub>`_, `Argo Workflows <https://argoproj.github.io/workflows>`_, `Harbor <https://goharbor.io>`_, and other services that may be installed side-by-side to the dashboard. For compatible services, Karvdash also configures user authorization to resources. For example, in Argo Workflows, Karvdash sets the appropriate role bindings so that users will only be allowed to access workflows in their respective Karvdash-defined namespaces.

@@ -188,15 +188,14 @@ class ServiceManager(object):
             ingress_url = urlparse(settings.INGRESS_URL)
             ingress_host = '%s:%s' % (ingress_url.hostname, ingress_url.port) if ingress_url.port else ingress_url.hostname
 
-            # Set namespace, name, hostname, registry, and storage paths.
-            local_data = {'data.karvdash.enabled': True,
-                          'data.karvdash.hostname': '%s.%s' % (prefix, ingress_host),
-                          'data.karvdash.registry': HarborClient(settings.HARBOR_URL).registry_host if settings.HARBOR_URL else '',
-                          'data.karvdash.privateDir': self.user.file_domains['private'].mount_dir,
-                          'data.karvdash.privateVolume': self.user.file_domains['private'].volume_name,
-                          'data.karvdash.sharedDir': self.user.file_domains['shared'].mount_dir,
-                          'data.karvdash.sharedVolume': self.user.file_domains['private'].volume_name}
-            variables += [{'label': key, 'value': value} for key, value in local_data.items()]
+            # Set hostname, registry and storage paths, and other local variables.
+            variables += [{'label': 'data.karvdash.enabled',
+                           'value': True},
+                           {'label': 'data.karvdash.hostname',
+                            'value': '%s.%s' % (prefix, ingress_host)}]
+            for key, value in self.user.local_data.items():
+                key = ''.join((word.title() if i > 0 else word) for i, word in enumerate(key.split('_'))) # Convert to lowerCamelCase.
+                variables.append({'label': 'data.karvdash.' + key, 'value': value})
 
         # Apply.
         self.user.update_kubernetes_credentials(kubernetes_client=kubernetes_client)

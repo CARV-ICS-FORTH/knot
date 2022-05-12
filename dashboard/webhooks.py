@@ -24,12 +24,12 @@ from django.conf import settings
 from urllib.parse import urlparse
 
 from .models import User
-from .utils.inject import inject_volumes, validate_hostpath_volumes, inject_ingress_auth
+from .utils.inject import inject_volumes, inject_variables, validate_hostpath_volumes, inject_ingress_auth
 
 
 @require_POST
 @csrf_exempt
-def add_storage(request):
+def pod_mutate(request):
     try:
         data = json.loads(request.body.decode('utf-8'))
         assert(data['kind'] == 'AdmissionReview')
@@ -44,6 +44,7 @@ def add_storage(request):
 
     inject_volumes([service], user.file_domains)
     inject_volumes([service], user.dataset_volumes, is_datasets=True)
+    inject_variables([service], user)
     patch = jsonpatch.JsonPatch.from_diff(data['request']['object'], service)
     encoded_patch = base64.b64encode(patch.to_string().encode('utf-8')).decode('utf-8')
 
@@ -59,7 +60,7 @@ def add_storage(request):
 
 @require_POST
 @csrf_exempt
-def validate_storage(request):
+def pod_validate(request):
     try:
         data = json.loads(request.body.decode('utf-8'))
         assert(data['kind'] == 'AdmissionReview')
@@ -82,8 +83,7 @@ def validate_storage(request):
 
 @require_POST
 @csrf_exempt
-def add_auth(request):
-    print('aksdflkajdslkfjalkdsjfalkdsjflakdjlkads')
+def ingress_mutate(request):
     try:
         data = json.loads(request.body.decode('utf-8'))
         assert(data['kind'] == 'AdmissionReview')

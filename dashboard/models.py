@@ -142,6 +142,24 @@ class User(AuthUser):
 
         return datasets
 
+    @property
+    def local_data(self):
+        data = {'username': self.username,
+                'namespace': self.namespace,
+                'ingress_url': settings.INGRESS_URL,
+                'private_dir': self.file_domains['private'].mount_dir,
+                'private_volume': self.file_domains['private'].volume_name,
+                'shared_dir': self.file_domains['shared'].mount_dir,
+                'shared_volume': self.file_domains['private'].volume_name}
+        if settings.ARGO_WORKFLOWS_URL:
+            data.update({'argo_workflows_url': settings.ARGO_WORKFLOWS_URL})
+        if settings.HARBOR_URL:
+            data.update({'private_registry_url': '%s/%s' % (settings.HARBOR_URL, self.username),
+                         'shared_registry_url': '%s/%s' % (settings.HARBOR_URL, 'library'),
+                         'private_repo_url': '%s/chartrepo/%s' % (settings.HARBOR_URL, self.username),
+                         'shared_repo_url': '%s/chartrepo/%s' % (settings.HARBOR_URL, 'library')})
+        return data
+
     def update_kubernetes_credentials(self, kubernetes_client=None):
         if settings.VOUCH_URL:
             return
