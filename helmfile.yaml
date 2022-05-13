@@ -92,13 +92,15 @@ repositories:
   url: https://kubernetes.github.io/ingress-nginx
 - name: bedag
   url: https://bedag.github.io/helm-charts
+{{- if and .Values.ingress.createSelfsignedCertificate (or .Values.argo.enabled .Values.harbor.enabled) }}
+- name: emberstack
+  url: https://emberstack.github.io/helm-charts
+{{- end }}
 {{- if .Values.jupyterHub.enabled }}
 - name: jupyterhub
   url: https://jupyterhub.github.io/helm-chart/
 {{- end }}
 {{- if .Values.argo.enabled }}
-- name: emberstack
-  url: https://emberstack.github.io/helm-charts
 - name: argo
   url: https://argoproj.github.io/argo-helm
 {{- end }}
