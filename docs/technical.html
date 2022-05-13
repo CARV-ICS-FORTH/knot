@@ -85,10 +85,10 @@
 <li><p>Shared: Data that is shared among all users. Mounted in containers under <code class="docutils literal notranslate"><span class="pre">/shared</span></code>.</p></li>
 </ul>
 <p>For the first domain Karvdash creates a subfolder for each user, named after the corresponding username and only allows access within that subfolder (like a “home folder”). This is hidden to the user, meaning that <code class="docutils literal notranslate"><span class="pre">/private</span></code> is the user subfolder itself. Users cannot go up a level and check other users’ names and files.</p>
-<figure class="align-default" id="id1">
+<figure class="align-default" id="id2">
 <img alt="_images/service-layout.png" src="_images/service-layout.png" />
 <figcaption>
-<p><span class="caption-text">The dashboard runs as a service in Kubernetes and coordinates the execution of other services in particular namespaces. All provisioned containers of a user share common volumes.</span><a class="headerlink" href="#id1" title="Permalink to this image"></a></p>
+<p><span class="caption-text">The dashboard runs as a service in Kubernetes and coordinates the execution of other services in particular namespaces. All provisioned containers of a user share common volumes.</span><a class="headerlink" href="#id2" title="Permalink to this image"></a></p>
 </figcaption>
 </figure>
 <p>To attach these data folders to service and application containers, Karvdash creates Persistent Volumes and associated Persistent Volume Claims for each user, and provides a Kubernetes mutating admission webhook which intercepts all calls to create pods or deployments and injects the appropriate volumes to respective configurations before they are applied. The Karvdash service itself also has the same data folders mounted in order to present their contents via the dashboard. Also, another validating admission webhook makes sure that only allowed host paths can be mounted in pods.</p>
@@ -99,41 +99,79 @@
 </section>
 <section id="service-templates">
 <h2>Service templates<a class="headerlink" href="#service-templates" title="Permalink to this headline"></a></h2>
-<p>Karvdash provides a way for users to easily configure and start services, by integrating a service templating mechanism based on <a class="reference external" href="https://helm.sh">Helm</a>. Helm service templates, named “charts”, are packaged and placed within some artifact registry, like <a class="reference external" href="https://goharbor.io">Harbor</a>. The list of available services includes global and user-specific charts, which are automatically discovered by Karvdash.</p>
-<p>When deploying a service, the user can specify chart values through the dashboard. Karvdash will silently set “internal” platform configuration values, such as private container registry location, external DNS name, etc.</p>
-<p>Karvdash-compatible charts should recognize the following values:</p>
+<p>Karvdash provides a way for users to easily configure and start services, by integrating a service templating mechanism based on <a class="reference external" href="https://helm.sh">Helm</a>. Helm service templates, named “charts”, are packaged and placed within an artifact registry, like <a class="reference external" href="https://goharbor.io">Harbor</a>. The list of available services includes global and user-specific charts, which are automatically discovered by Karvdash.</p>
+<p>When deploying a service, the user can specify chart values through the dashboard. Karvdash will silently set “internal” platform configuration values, such as the generated hostname assigned to the service, the location of the private container registry, etc.</p>
+<p>Karvdash-compatible charts may use the following values:</p>
 <table class="docutils align-default">
 <colgroup>
-<col style="width: 30%" />
-<col style="width: 70%" />
+<col style="width: 24%" />
+<col style="width: 68%" />
+<col style="width: 8%" />
 </colgroup>
 <tbody>
 <tr class="row-odd"><td><p>Value</p></td>
 <td><p>Description</p></td>
+<td><p>Set in env.</p></td>
 </tr>
 <tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">karvdash.enabled</span></code></p></td>
 <td><p>Set to <code class="docutils literal notranslate"><span class="pre">true</span></code></p></td>
+<td></td>
 </tr>
 <tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">karvdash.hostname</span></code></p></td>
-<td><p>The external hostname that will be assigned to the service</p></td>
+<td><p>The hostname assigned to the service (set to <code class="docutils literal notranslate"><span class="pre">&lt;release</span> <span class="pre">name&gt;-&lt;username&gt;.&lt;ingress</span> <span class="pre">url&gt;</span></code>)</p></td>
+<td></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">karvdash.registry</span></code></p></td>
-<td><p>The private container registry configured for the installation</p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">karvdash.username</span></code></p></td>
+<td><p>The user’s username</p></td>
+<td><p>&check;</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">karvdash.private_dir</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">karvdash.namespace</span></code></p></td>
+<td><p>The user’s namespace</p></td>
+<td><p>&check;</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">karvdash.ingressUrl</span></code></p></td>
+<td><p>The dashboard’s URL</p></td>
+<td><p>&check;</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">karvdash.privateDir</span></code></p></td>
 <td><p>The path to the “private” data domain</p></td>
+<td><p>&check;</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">karvdash.private_volume</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">karvdash.privateVolume</span></code></p></td>
 <td><p>The volume used for the “private” data domain</p></td>
+<td><p>&check;</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">karvdash.shared_dir</span></code></p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">karvdash.sharedDir</span></code></p></td>
 <td><p>The path to the “shared” data domain</p></td>
+<td><p>&check;</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">karvdash.shared_volume</span></code></p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">karvdash.sharedVolume</span></code></p></td>
 <td><p>The volume used for the “shared” data domain</p></td>
+<td><p>&check;</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">karvdash.argoWorkflowsUrl</span></code></p></td>
+<td><p>The URL of the Argo Worfklows service (set if Argo Workflows is enabled)</p></td>
+<td><p>&check;</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">karvdash.privateRegistryUrl</span></code></p></td>
+<td><p>The URL of the “private” container registry (set if Harbor is enabled)</p></td>
+<td><p>&check;</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">karvdash.publicRegistryUrl</span></code></p></td>
+<td><p>The URL of the “shared” container registry (set if Harbor is enabled)</p></td>
+<td><p>&check;</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">karvdash.privateRepoUrl</span></code></p></td>
+<td><p>The URL of the “private” Helm chart repository (set if Harbor is enabled)</p></td>
+<td><p>&check;</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">karvdash.publicRepoUrl</span></code></p></td>
+<td><p>The URL of the “shared” Helm chart repository (set if Harbor is enabled)</p></td>
+<td><p>&check;</p></td>
 </tr>
 </tbody>
 </table>
+<p>As shown in the table, some values are also set inside pods as environment variables (in uppercase snake case, i.e. <code class="docutils literal notranslate"><span class="pre">KARVDASH_PRIVATE_DIR</span></code>).</p>
 <p>Karvdash will show all services to the user, except those marked with the label <code class="docutils literal notranslate"><span class="pre">karvdash-hidden</span></code>. Upon deployment, Karvdash will attach local storage folders to all pods, as well as remote datasets (except on pods labelled with <code class="docutils literal notranslate"><span class="pre">karvdash-no-datasets</span></code>). Authentication directives are added to all ingress resources (except on those labelled with <code class="docutils literal notranslate"><span class="pre">karvdash-no-auth</span></code>).</p>
 </section>
 <section id="user-namespaces">
@@ -153,7 +191,8 @@
 </section>
 <section id="sso-service">
 <h2>SSO service<a class="headerlink" href="#sso-service" title="Permalink to this headline"></a></h2>
-<p>Karvdash implements an OAuth 2.0/OpenID Connect provider, which allows third-party services to request verification of users’ identities via standard protocols. Note that OAuth 2.0/OpenID provides only authentication information and it is up to the connecting service to define what users are authorized to do, based on their identities (i.e., username, email, etc.). In addition to the integration with Vouch Proxy for authenticating users to services started by the dashboard, Karvdash also acts as an identity provider to <a class="reference external" href="https://jupyter.org/hub">JupyterHub</a> and <a class="reference external" href="https://argoproj.github.io/workflows">Argo Workflows</a>. Moreover, Karvdash configures appropriate authorization directives in Argo Workflows, so each user will be allowed to access resources in the corresponding Karvdash-defined namespace.</p>
+<p>Karvdash implements an OAuth 2.0/OIDC provider, which allows third-party services to request verification of users’ identities via standard protocols. In the OIDC response, Karvdash also sets extra data that may be useful to connected services (all environment variables mentioned in <a class="reference internal" href="#service-templates"><span class="std std-ref">Service templates</span></a>, but in lowercase, i.e. <code class="docutils literal notranslate"><span class="pre">karvdash_private_dir</span></code>).</p>
+<p>Note that OAuth 2.0/OIDC provides only authentication information and it is up to the connecting service to define what users are authorized to do, based on their identities (i.e., username, email, etc.). In addition to the integration with Vouch Proxy for authenticating users to services started by the dashboard, Karvdash also acts as an identity provider to <a class="reference external" href="https://jupyter.org/hub">JupyterHub</a>, <a class="reference external" href="https://argoproj.github.io/workflows">Argo Workflows</a>, <a class="reference external" href="https://goharbor.io">Harbor</a>, and other services that may be installed side-by-side to the dashboard. For compatible services, Karvdash also configures user authorization to resources. For example, in Argo Workflows, Karvdash sets the appropriate role bindings so that users will only be allowed to access workflows in their respective Karvdash-defined namespaces.</p>
 </section>
 </section>
 
