@@ -100,8 +100,11 @@ class HelmRemoteRepoClient(object):
 
     def _local_repo_list(self):
         command = 'helm repo list -o yaml'
-        result = subprocess.check_output(command, shell=True)
-        return YAML(typ='safe').load(result)
+        try:
+            result = subprocess.check_output(command, shell=True)
+            return YAML(typ='safe').load(result)
+        except:
+            return []
 
     def _local_repo_add(self):
         command = 'helm repo add %s --username=%s --password=%s %s %s' % ('--insecure-skip-tls-verify' if os.environ.get('VIRTUAL_ENV') else '', # XXX Do not verify if running in virtual environment.

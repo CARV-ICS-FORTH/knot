@@ -28,9 +28,10 @@ from .utils.helm import flatten_values, unflatten_values, HelmLocalRepoClient, H
 class ServiceTemplateManager(object):
     def __init__(self, user):
         self.user = user
-        self.repos = {'system': HelmLocalRepoClient('system', settings.SERVICES_REPO_DIR),
+        self.repos = {'local': HelmLocalRepoClient('local', settings.SERVICES_REPO_DIR),
                       'shared': None,
                       'private': None}
+        del(self.repos['local']) # Comment out to work on local charts.
         if self.repo_base_url:
             self.repos['shared'] = HelmRemoteRepoClient('library', '%s/%s' % (self.repo_base_url, 'library'), repo_password=settings.HARBOR_ADMIN_PASSWORD)
             if self.user.username != 'admin':
@@ -49,7 +50,7 @@ class ServiceTemplateManager(object):
             if not repo:
                 continue
             repo_charts = {name: dict(chart, repo=repo_name, private=(repo_name == 'private')) for name, chart in repo.list().items()}
-            if repo_name == 'system':
+            if repo_name == 'local':
                 repo_charts = {name: chart for name, chart in repo_charts.items() if name not in settings.DISABLED_SERVICES}
             charts.update(repo_charts)
 

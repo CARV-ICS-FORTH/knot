@@ -11,7 +11,7 @@ ARG TARGETARCH
 ENV PYTHONUNBUFFERED 1
 
 RUN apt-get update && \
-    apt-get install -y make curl vim-tiny procps && \
+    apt-get install -y make curl git vim-tiny procps && \
     apt-get clean \
     && rm -rf \
         /var/lib/apt/lists/* \
@@ -29,7 +29,8 @@ ARG HELM_VERSION=v3.8.2
 RUN curl -LO https://get.helm.sh/helm-${HELM_VERSION}-linux-${TARGETARCH}.tar.gz && \
     tar -zxvf helm-${HELM_VERSION}-linux-${TARGETARCH}.tar.gz linux-${TARGETARCH}/helm && \
     cp linux-${TARGETARCH}/helm /usr/local/bin/ && \
-    rm -rf helm-${HELM_VERSION}-linux-${TARGETARCH}.tar.gz linux-${TARGETARCH}
+    rm -rf helm-${HELM_VERSION}-linux-${TARGETARCH}.tar.gz linux-${TARGETARCH} && \
+    helm plugin install https://github.com/chartmuseum/helm-push
 
 COPY . /app
 WORKDIR /app

@@ -25,6 +25,25 @@ fi
 if [[ -n $KARVDASH_HARBOR_URL && -n $KARVDASH_HARBOR_NAMESPACE && -n $KARVDASH_HARBOR_ADMIN_PASSWORD ]]; then
     python manage.py createoauthapplication --name harbor --redirect-uri $KARVDASH_HARBOR_URL/c/oidc/callback --secret-name karvdash-oauth-harbor --secret-namespace $KARVDASH_HARBOR_NAMESPACE
     python manage.py configureharbor --oauth-application-name harbor --harbor-url $KARVDASH_HARBOR_URL --harbor-admin-password `printf "%q" $KARVDASH_HARBOR_ADMIN_PASSWORD` --ingress-url $KARVDASH_INGRESS_URL
+
+    # Upload service charts
+    package_charts () {
+        for chart in `ls -d ../services/*/`; do
+            if [[ -n $KARVDASH_DISABLED_SERVICES_FILE ]] && grep -iq '^'$(basename $chart)'$' $KARVDASH_DISABLED_SERVICES_FILE; then
+                continue
+            fi
+            helm package $chart
+        done
+    }
+
+    upload_charts () {
+        for chart in `ls *.tgz`; do
+            helm cm-push $chart library
+        done
+    }
+
+    helm repo add --username=admin --password="$KARVDASH_HARBOR_ADMIN_PASSWORD" library $KARVDASH_HARBOR_URL/chartrepo/library
+    (mkdir -p repo/services-build && cd repo/services-build && package_charts && upload_charts)
 fi
 if [[ -n $KARVDASH_GRAFANA_URL && -n $KARVDASH_GRAFANA_NAMESPACE ]]; then
     python manage.py createoauthapplication --name grafana --redirect-uri $KARVDASH_GRAFANA_URL/login/generic_oauth --secret-name karvdash-oauth-grafana --secret-namespace $KARVDASH_GRAFANA_NAMESPACE
