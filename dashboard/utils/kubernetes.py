@@ -152,7 +152,7 @@ class KubernetesClient(object):
             os.system('kubectl patch serviceaccount default -n %s -p \'{"imagePullSecrets": [{"name": "docker-registry-secret"}]}\'' % namespace)
 
         self.delete_secret(namespace, 'docker-registry-secret')
-        server = '%s://%s:%s' % (url.scheme, url.hostname, url.port)
+        server = '%s://' % url.scheme + ('%s:%s' % (url.hostname, url.port) if url.port else url.hostname)
         os.system('kubectl create secret docker-registry docker-registry-secret -n %s --docker-server="%s" --docker-username="%s" --docker-password="%s" --docker-email="%s"' % (namespace, server, url.username, url.password, email))
 
     def exec_command_in_pod(self, namespace, label_selector, command, all_pods=False):
