@@ -450,7 +450,7 @@ releases:
     command: "/bin/bash"
     args:
     - "-c"
-    - "mkdir -p {{ .Values.harbor.persistence.path }}/{registry,chartmuseum,jobservice,database,redis} && chown 999:999 {{ .Values.harbor.persistence.path }}/{registry,chartmuseum,jobservice,database,redis}"
+    - "mkdir -p {{ .Values.harbor.persistence.path }}/{registry,chartmuseum,jobservice,database,redis} && chown 999:999 {{ .Values.harbor.persistence.path }}/{database,redis} && chown 10000:10000 {{ .Values.harbor.persistence.path }}/{registry,chartmuseum,jobservice}"
 {{- end }}
 - name: harbor-oauth-secret
   namespace: harbor
