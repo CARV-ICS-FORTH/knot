@@ -390,6 +390,9 @@ releases:
         registry:
           existingClaim: harbor-pvc
           subPath: registry
+        chartmuseum:
+          existingClaim: harbor-pvc
+          subPath: chartmuseum
         jobservice:
           existingClaim: harbor-pvc
           subPath: jobservice
@@ -447,7 +450,7 @@ releases:
     command: "/bin/bash"
     args:
     - "-c"
-    - "mkdir -p {{ .Values.harbor.persistence.path }} && chown 999:999 {{ .Values.harbor.persistence.path }}"
+    - "mkdir -p {{ .Values.harbor.persistence.path }}/{registry,chartmuseum,jobservice,database,redis} && chown 999:999 {{ .Values.harbor.persistence.path }}/{registry,chartmuseum,jobservice,database,redis}"
 {{- end }}
 - name: harbor-oauth-secret
   namespace: harbor
