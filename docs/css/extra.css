@@ -1,0 +1,24 @@
+.wy-nav-content-wrap {
+  background: none!important;
+}
+
+.wy-side-nav-search {
+  background-color: white;
+  border-right-style: solid;
+  border-right-color: #343131;
+  border-right-width: 1px;
+}
+
+.wy-nav-content {
+  max-width: none!important;
+}
+
+.rst-content blockquote {
+  margin-left: 0!important;
+  padding: 1em;
+  background: #fff3cd;
+}
+
+.rst-content blockquote p {
+  margin-bottom: 0!important;
+}

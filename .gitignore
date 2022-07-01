@@ -1,7 +1,7 @@
 .DS_Store
 *.pyc
 __pycache__/
-docs/_build/
 venv/
+site/
 db/
 files/

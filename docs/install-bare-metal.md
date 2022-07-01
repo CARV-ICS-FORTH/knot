@@ -1,6 +1,6 @@
-# Karvdash installation on bare metal
+# Installation on bare metal
 
-Install [Ubuntu Server 20.04 LTS](https://ubuntu.com/download/server) on a server with an external IP address (tested on [VirtualBox](https://www.virtualbox.org) with 2 CPUs, 4 GB RAM, bridged network adapter). Update packages. Run as root.
+To install Karvdash on bare metal, first install [Ubuntu Server 20.04 LTS](https://ubuntu.com/download/server) on a server with an external IP address (tested on [VirtualBox](https://www.virtualbox.org) with 2 CPUs, 4 GB RAM, bridged network adapter). Update packages. Run as root.
 
 Set external IP address in an environment variable:
 ```bash
@@ -9,7 +9,7 @@ export IP_ADDRESS=`ip -o route get 1 | sed -n 's/.*src \([0-9.]\+\).*/\1/p'`
 
 ## System
 
-Disable swap.
+Disable swap:
 
 ```bash
 sed -e '/swap/ s/^#*/#/' -i /etc/fstab
@@ -18,7 +18,7 @@ swapoff -a
 
 ## Docker
 
-Follow [these](https://docs.docker.com/engine/install/ubuntu/) instructions:
+Follow [these](https://docs.docker.com/engine/install/ubuntu/) instructions to install Docker:
 
 ```bash
 apt-get update
@@ -32,7 +32,7 @@ apt-get install -y docker-ce docker-ce-cli containerd.io
 apt-mark hold docker-ce docker-ce-cli containerd.io
 ```
 
-Follow [these](https://v1-22.docs.kubernetes.io/docs/setup/production-environment/container-runtimes/#docker) instructions:
+Follow [these](https://v1-22.docs.kubernetes.io/docs/setup/production-environment/container-runtimes/#docker) instructions to configure Docker:
 
 ```bash
 mkdir -p /etc/docker
@@ -53,7 +53,7 @@ systemctl restart docker
 
 ## Kubernetes
 
-Follow [these](https://v1-22.docs.kubernetes.io/docs/setup/production-environment/tools/kubeadm/install-kubeadm/) instructions:
+Follow [these](https://v1-22.docs.kubernetes.io/docs/setup/production-environment/tools/kubeadm/install-kubeadm/) instructions to install kubeadm:
 
 ```bash
 KUBERNETES_VERSION="1.22.4"
@@ -66,7 +66,7 @@ apt-get install -y kubelet=${KUBERNETES_VERSION}-00 kubeadm=${KUBERNETES_VERSION
 apt-mark hold kubelet kubeadm kubectl
 ```
 
-Follow [these](https://v1-22.docs.kubernetes.io/docs/setup/production-environment/tools/kubeadm/create-cluster-kubeadm/) instructions:
+Follow [these](https://v1-22.docs.kubernetes.io/docs/setup/production-environment/tools/kubeadm/create-cluster-kubeadm/) instructions to initialize Kubernetes:
 
 ```bash
 kubeadm init --pod-network-cidr=10.244.0.0/16 --kubernetes-version=${KUBERNETES_VERSION}

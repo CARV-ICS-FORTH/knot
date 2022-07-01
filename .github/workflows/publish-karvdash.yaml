@@ -15,18 +15,17 @@ jobs:
       - name: Install dependencies
         run: |
           apt-get update
-          apt-get install -y make git
+          apt-get install -y git
       - name: Build docs
         run: |
-          pip install -r docs/requirements.txt
-          (cd docs && make html)
+          pip install mkdocs==1.3.0
+          mkdocs build
       - name: Push docs to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: docs/_build/html
+          publish_dir: site
           destination_dir: docs
-          exclude_assets: '.github,.buildinfo'
   image:
     name: Publish image
     runs-on: ubuntu-latest

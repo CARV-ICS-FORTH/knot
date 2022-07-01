@@ -4,7 +4,7 @@
 
 Karvdash (Kubernetes CARV dashboard) is a dashboard service for facilitating data science on [Kubernetes](https://kubernetes.io). It supplies the landing page for users, allowing them to launch notebooks and other services, design workflows, and specify parameters related to execution through a user-friendly interface. Karvdash manages users, wires up relevant storage to the appropriate paths inside running containers, securely provisions multiple services under one externally-accessible HTTPS endpoint, while keeping them isolated in per-user namespaces at the Kubernetes level, and provides an identity service for OAuth 2.0/OIDC-compatible applications.
 
-Check out the [user guide and API documentation](https://carv-ics-forth.github.io/karvdash/) (also available in Karvdash under "Documentation" at the user menu). Karvdash is written in [Python](https://www.python.org) using [Django](https://www.djangoproject.com).
+Check out the [documentation](https://carv-ics-forth.github.io/karvdash/) (also available in Karvdash under "Documentation" at the user menu). Karvdash is written in [Python](https://www.python.org) using [Django](https://www.djangoproject.com).
 
 ![Karvdash services screen](https://github.com/CARV-ICS-FORTH/karvdash/raw/master/docs/images/services-screen.png)
 
@@ -20,7 +20,7 @@ To install, you need a running Kubernetes environment with the following feature
 * For storage of Karvdash state, an existing persistent volume claim, or a directory in a shared filesystem mounted at the same path across all Kubernetes nodes.
 * For files, either a shared filesystem like the one used for storing the configuration, or an NFS server. If using an NFS server, you should also install the [NFS CSI Driver](https://github.com/kubernetes-csi/csi-driver-nfs).
 
-Karvdash can run side-by-side with [JupyterHub](https://jupyter.org/hub), [Argo Workflows](https://argoproj.github.io/workflows), [Harbor](https://goharbor.io), [Grafana](https://grafana.com)/[Prometheus](https://prometheus.io), and [OpenBio](https://github.com/kantale/OpenBio.eu) providing SSO services to users. For Argo Workflows, Karvdash also configures appropriate authorization directives, so each user will be allowed to access resources in the corresponding Karvdash-defined namespace. For Harbor, Karvdash sets up OAuth authentication, fetches users' CLI secrets, and configures Kubernetes to use them. Harbor is also used to store service templates as Helm charts. When running within the Karvdash-based software stack, OpenBio transparently submits workflows for execution through Argo Workflows, while utilizing the automatically mounted storage to exchange data between steps.
+Karvdash runs side-by-side with [JupyterHub](https://jupyter.org/hub), [Argo Workflows](https://argoproj.github.io/workflows), [Harbor](https://goharbor.io), [Grafana](https://grafana.com)/[Prometheus](https://prometheus.io), and [OpenBio](https://github.com/kantale/OpenBio.eu) providing SSO services to users. For Argo Workflows, Karvdash also configures appropriate authorization directives, so each user will be allowed to access resources in the corresponding Karvdash-defined namespace. For Harbor, Karvdash sets up OAuth authentication, fetches users' CLI secrets, and configures Kubernetes to use them. Harbor is also used to store service templates as Helm charts. When running within the Karvdash-based software stack, OpenBio transparently submits workflows for execution through Argo Workflows, while utilizing the automatically mounted storage to exchange data between steps.
 
 Optionally, you can also have Karvdash act as a frontend to [Datashim](https://github.com/datashim-io/datashim), in which case Karvdash can be used to configure datasets (references to objects in S3 buckets that will be mounted in user containers as files).
 
@@ -46,7 +46,7 @@ make develop
 
 When done, point your browser to `https://<your IP address>.nip.io` and login as "admin".
 
-For development on bare metal, check out [these](https://github.com/CARV-ICS-FORTH/karvdash/blob/master/INSTALL.md) instructions that show how to install *everything*, including Docker and Kubernetes.
+For development on bare metal, check out [these](https://carv-ics-forth.github.io/karvdash/install-bare-metal/) instructions that show how to install *everything*, including Docker and Kubernetes.
 
 ## Building images
 

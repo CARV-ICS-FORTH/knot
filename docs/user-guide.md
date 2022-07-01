@@ -8,11 +8,11 @@ Sign up and login
 
 When you visit the dashboard service with your browser, you are greeted with the login screen.
 
-.. figure:: images/login-screen.png
+![](images/login-screen.png)
 
 To create an account, select the "Sign up" option on the main screen and fill in a username, password, and contact email.
 
-.. figure:: images/sign-up-screen.png
+![](images/sign-up-screen.png)
 
 Once the account is activated by an administrator, login using your username and password. You can change your password when logged in by clicking on the user icon at the top-right of the screen and selecting "Change password" from the menu. The menu also provides options to report an issue, access this documentation, and logout. If you ever forget your password, please ask an administrator to reset it.
 
@@ -21,10 +21,9 @@ Services screen
 
 The services screen is accessed by selecting "Services" from the menu on the left. You are presented with a list of running services. Select a service name and you will be taken to the service frontend in a new browser tab. Select the "Actions" button to remove a service.
 
-.. note::
-   The service may take some time to initialize. If you select a service name immediately after creation, you may see a proxy error. Just wait for a few seconds and refresh your browser.
+> 📝 *The service may take some time to initialize. If you select a service name immediately after creation, you may see a proxy error. Just wait for a few seconds and refresh your browser.*
 
-.. figure:: images/services-screen.png
+![](images/services-screen.png)
 
 To start a new service, click on the respective button on the right. You will be shown a list of available service templates. Choose one and click "Create".
 
@@ -35,21 +34,20 @@ Templates screen
 
 The templates screen is accessed by selecting "Templates" from the menu on the left. You are presented with a list of available service templates. Select a template to download it in YAML format. Select the "Actions" button to delete a template (only user templates can be deleted) or start a service from it.
 
-.. figure:: images/templates-screen.png
+![](images/templates-screen.png)
 
-To add a new template, click on the respective button on the right. The template structure is described in the :ref:`Service templates` chapter.
+To add a new template, click on the respective button on the right. The template structure is described in the [Service templates](technical-notes.md#service-templates) chapter.
 
 Datasets screen
 ---------------
 
-.. note::
-   Dataset management is an optional Karvdash feature that may have not been enabled in your deployment.
+> 📝 *Dataset management is an optional Karvdash feature that may have not been enabled in your deployment.*
 
 The datasets screen is accessed by selecting "Datasets" from the menu on the left. You are presented with a list of configured datasets. Select a dataset to download its configuration in YAML format. Select the "Actions" button to delete a dataset.
 
-Datasets are mounted in containers under ``/mnt/datasets/<name>``.
+Datasets are mounted in containers under `/mnt/datasets/<name>`.
 
-.. figure:: images/datasets-screen.png
+![](images/datasets-screen.png)
 
 To add a new dataset, click on the respective button on the right. You will be shown a list of available dataset types. Choose one and click "Add".
 
@@ -60,22 +58,20 @@ Files screen
 
 The files screen is accessed by selecting "Files" from the menu on the left. You are presented with a list of folders and files in the respective domain. Change domain ("private" or "shared") by clicking on the corresponding buttons on the upper-right of the screen. The "private" domain contains private user files, while "shared" is common across all users. Any user can add or remove files in "shared".
 
-Select a folder to navigate into that path (the current path is shown above the list), or a file to download it. Select the "Actions" button to download a folder as an archive or delete an object. An action is also available to add a template (ending in ``.template.yaml``).
+Select a folder to navigate into that path (the current path is shown above the list), or a file to download it. Select the "Actions" button to download a folder as an archive or delete an object.
 
-Files are mounted in containers under ``/private`` and ``/shared`` respectively.
+Files are mounted in containers under `/private` and `/shared` respectively.
 
-.. figure:: images/files-screen.png
+![](images/files-screen.png)
 
 To add a new folder or upload file(s) at the current path, click on the respective buttons on the right. Note that you can not overwrite an existing folder or file.
 
-.. note::
-   The "Files" screen is meant to provide the very basic of file-related operations. Use the notebook environment as you would use a shell on a UNIX-based machine to control the filesystem in a more elaborate manner, or create a "File Browser" service for a web-based management interface on a specific folder.
+> 📝 *The "Files" screen is meant to provide the very basic of file-related operations. Use the notebook environment as you would use a shell on a UNIX-based machine to control the filesystem in a more elaborate manner, or create a "File Browser" service for a web-based management interface on a specific folder.*
 
 Administration
 --------------
 
-.. note::
-   The information in this section applies only to administrators.
+> 📝 *The information in this section applies only to administrators.*
 
 The "admin" user has access to an additional screen named "Users".
 
