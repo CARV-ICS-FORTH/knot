@@ -5,11 +5,11 @@ nav:
   - 'Installation (bare metal)': 'install-bare-metal.md'
   - 'User guide': 'user-guide.md'
   - 'Technical notes': 'technical-notes.md'
+use_directory_urls: false
 theme:
   name: readthedocs
   logo: images/karvdash-blue.png
 extra_css:
-    - css/extra.css
+  - css/extra.css
 repo_url: https://github.com/CARV-ICS-FORTH/karvdash
-edit_uri: docs/docs
 copyright: © 2020-2022, FORTH-ICS

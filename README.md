@@ -46,7 +46,7 @@ make develop
 
 When done, point your browser to `https://<your IP address>.nip.io` and login as "admin".
 
-For development on bare metal, check out [these](https://carv-ics-forth.github.io/karvdash/install-bare-metal/) instructions that show how to install *everything*, including Docker and Kubernetes.
+For development on bare metal, check out [these](https://carv-ics-forth.github.io/karvdash/install-bare-metal.html) instructions that show how to install *everything*, including Docker and Kubernetes.
 
 ## Building images
 
