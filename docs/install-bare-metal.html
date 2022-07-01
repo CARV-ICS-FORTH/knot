@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><link rel="canonical" href="https://carv-ics-forth.github.io/karvdash/docs/install-bare-metal.html" />
+      <link rel="shortcut icon" href="img/favicon.ico" />
+    <title>Installation (bare metal) - Karvdash</title>
+    <link rel="stylesheet" href="css/theme.css" />
+    <link rel="stylesheet" href="css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/styles/github.min.css" />
+        <link href="css/extra.css" rel="stylesheet" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Installation (bare metal)";
+        var mkdocs_page_input_path = "install-bare-metal.md";
+        var mkdocs_page_url = "/karvdash/docs/install-bare-metal.html";
+      </script>
+    
+    <script src="js/jquery-3.6.0.min.js" defer></script>
+    <!--[if lt IE 9]>
+      <script src="js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/highlight.min.js"></script>
+      <script>hljs.initHighlightingOnLoad();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="index.html">
+          <img src="images/karvdash-blue.png" class="logo" alt="Logo"/>
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="./search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="index.html">Overview</a>
+                </li>
+              </ul>
+              <ul class="current">
+                <li class="toctree-l1 current"><a class="reference internal current" href="install-bare-metal.html">Installation (bare metal)</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#system">System</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#docker">Docker</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#kubernetes">Kubernetes</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#helm">Helm</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#helmfile">Helmfile</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#karvdash">Karvdash</a>
+    </li>
+    </ul>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="user-guide.html">User guide</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="technical-notes.html">Technical notes</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Karvdash</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="index.html" class="icon icon-home" alt="Docs"></a> &raquo;</li><li>Installation (bare metal)</li>
+    <li class="wy-breadcrumbs-aside">
+        <a href="https://github.com/CARV-ICS-FORTH/karvdash/edit/master/docs/install-bare-metal.md"
+          class="icon icon-github"> Edit on GitHub</a>
+    </li>
+  </ul>
+  <hr/>
+</div>
+
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="installation-on-bare-metal">Installation on bare metal</h1>
+<p>To install Karvdash on bare metal, first install <a href="https://ubuntu.com/download/server">Ubuntu Server 20.04 LTS</a> on a server with an external IP address (tested on <a href="https://www.virtualbox.org">VirtualBox</a> with 2 CPUs, 4 GB RAM, bridged network adapter). Update packages. Run as root.</p>
+<p>Set external IP address in an environment variable:</p>
+<pre><code class="language-bash">export IP_ADDRESS=`ip -o route get 1 | sed -n 's/.*src \([0-9.]\+\).*/\1/p'`
+</code></pre>
+<h2 id="system">System</h2>
+<p>Disable swap:</p>
+<pre><code class="language-bash">sed -e '/swap/ s/^#*/#/' -i /etc/fstab
+swapoff -a
+</code></pre>
+<h2 id="docker">Docker</h2>
+<p>Follow <a href="https://docs.docker.com/engine/install/ubuntu/">these</a> instructions to install Docker:</p>
+<pre><code class="language-bash">apt-get update
+apt-get install -y ca-certificates curl gnupg lsb-release
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+echo \
+  &quot;deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu \
+  $(lsb_release -cs) stable&quot; | sudo tee /etc/apt/sources.list.d/docker.list &gt; /dev/null
+apt-get update
+apt-get install -y docker-ce docker-ce-cli containerd.io
+apt-mark hold docker-ce docker-ce-cli containerd.io
+</code></pre>
+<p>Follow <a href="https://v1-22.docs.kubernetes.io/docs/setup/production-environment/container-runtimes/#docker">these</a> instructions to configure Docker:</p>
+<pre><code class="language-bash">mkdir -p /etc/docker
+cat &lt;&lt;EOF | sudo tee /etc/docker/daemon.json
+{
+  &quot;exec-opts&quot;: [&quot;native.cgroupdriver=systemd&quot;],
+  &quot;log-driver&quot;: &quot;json-file&quot;,
+  &quot;log-opts&quot;: {
+    &quot;max-size&quot;: &quot;100m&quot;
+  },
+  &quot;storage-driver&quot;: &quot;overlay2&quot;
+}
+EOF
+systemctl enable docker
+systemctl daemon-reload
+systemctl restart docker
+</code></pre>
+<h2 id="kubernetes">Kubernetes</h2>
+<p>Follow <a href="https://v1-22.docs.kubernetes.io/docs/setup/production-environment/tools/kubeadm/install-kubeadm/">these</a> instructions to install kubeadm:</p>
+<pre><code class="language-bash">KUBERNETES_VERSION=&quot;1.22.4&quot;
+apt-get update
+apt-get install -y apt-transport-https ca-certificates curl
+curl -fsSLo /usr/share/keyrings/kubernetes-archive-keyring.gpg https://packages.cloud.google.com/apt/doc/apt-key.gpg
+echo &quot;deb [signed-by=/usr/share/keyrings/kubernetes-archive-keyring.gpg] https://apt.kubernetes.io/ kubernetes-xenial main&quot; | sudo tee /etc/apt/sources.list.d/kubernetes.list
+apt-get update
+apt-get install -y kubelet=${KUBERNETES_VERSION}-00 kubeadm=${KUBERNETES_VERSION}-00 kubectl=${KUBERNETES_VERSION}-00
+apt-mark hold kubelet kubeadm kubectl
+</code></pre>
+<p>Follow <a href="https://v1-22.docs.kubernetes.io/docs/setup/production-environment/tools/kubeadm/create-cluster-kubeadm/">these</a> instructions to initialize Kubernetes:</p>
+<pre><code class="language-bash">kubeadm init --pod-network-cidr=10.244.0.0/16 --kubernetes-version=${KUBERNETES_VERSION}
+mkdir -p $HOME/.kube
+cp /etc/kubernetes/admin.conf $HOME/.kube/config
+kubectl taint nodes --all node-role.kubernetes.io/master-
+</code></pre>
+<p>Install a Pod network add-on:</p>
+<pre><code class="language-bash">FLANNEL_VERSION=&quot;0.15.1&quot;
+kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/v${FLANNEL_VERSION}/Documentation/kube-flannel.yml
+</code></pre>
+<h2 id="helm">Helm</h2>
+<p>Download and install the <a href="https://helm.sh">Helm</a> binary:</p>
+<pre><code class="language-bash">HELM_VERSION=&quot;3.8.0&quot;
+curl -LO https://get.helm.sh/helm-v${HELM_VERSION}-linux-amd64.tar.gz
+tar -zxvf helm-v${HELM_VERSION}-linux-amd64.tar.gz
+cp linux-amd64/helm /usr/local/bin/
+rm -rf helm-v${HELM_VERSION}-linux-amd64.tar.gz linux-amd64
+helm plugin install https://github.com/databus23/helm-diff
+</code></pre>
+<h2 id="helmfile">Helmfile</h2>
+<p>Download and install the <a href="https://github.com/roboll/helmfile">Helmfile</a> binary:</p>
+<pre><code class="language-bash">HELMFILE_VERSION=&quot;0.143.0&quot;
+curl -LO https://github.com/roboll/helmfile/releases/download/v${HELMFILE_VERSION}/helmfile_linux_amd64
+cp helmfile_linux_amd64 /usr/local/bin/helmfile
+chmod +x /usr/local/bin/helmfile
+rm -f helmfile_linux_amd64
+</code></pre>
+<h2 id="karvdash">Karvdash</h2>
+<p>Clone and deploy <a href="https://github.com/CARV-ICS-FORTH/karvdash">Karvdash</a>:</p>
+<pre><code class="language-bash">git clone https://github.com/kantale/OpenBio.eu.git
+git clone https://github.com/CARV-ICS-FORTH/karvdash.git
+cd karvdash
+apt-get install -y make
+BAREMETAL=yes make deploy-requirements
+BAREMETAL=yes make deploy-local
+</code></pre>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="index.html" class="btn btn-neutral float-left" title="Overview"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="user-guide.html" class="btn btn-neutral float-right" title="User guide">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+      <p>© 2020-2022, FORTH-ICS</p>
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+        <span>
+          <a href="https://github.com/CARV-ICS-FORTH/karvdash" class="fa fa-github" style="color: #fcfcfc"> GitHub</a>
+        </span>
+    
+    
+      <span><a href="index.html" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="user-guide.html" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script>var base_url = '.';</script>
+    <script src="js/theme_extra.js" defer></script>
+    <script src="js/theme.js" defer></script>
+      <script src="search/main.js" defer></script>
+    <script defer>
+        window.onload = function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        };
+    </script>
+
+</body>
+</html>
