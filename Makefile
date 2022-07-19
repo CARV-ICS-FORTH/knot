@@ -54,11 +54,11 @@ undeploy: check-ip-address
 	export KNOT_HOST="$(INGRESS_URL)"; \
 	helmfile $(HELMFILE_DEPLOY_VALUES) delete
 
-deploy-test:
+deploy-test: check-ip-address
 	export KNOT_HOST="$(INGRESS_URL)"; \
 	helmfile --state-values-set knot.localImage="true" sync
 
-undeploy-test:
+undeploy-test: check-ip-address
 	export KNOT_HOST="$(INGRESS_URL)"; \
 	helmfile --state-values-set knot.localImage="true" destroy
 
@@ -109,11 +109,12 @@ container-push:
 release:
 	if [[ -z "$${VERSION}" ]]; then echo "VERSION is not set"; exit 1; fi
 	echo "$(VERSION)" > VERSION
+	git add VERSION
 	if [[ $(VERSION) =~ ^v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$$ ]]; then \
 		awk '/chart: knot\/knot/{print;getline;$$0="  version: $(VERSION:v%=%)"}1' helmfile.yaml > helmfile.yaml.tmp; \
 		mv -f helmfile.yaml.tmp helmfile.yaml; \
+		git add helmfile.yaml; \
 	fi
-	git add VERSION
 	git commit -m "Bump version"
 	git tag $(VERSION)
 	# git push && git push --tags

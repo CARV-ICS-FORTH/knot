@@ -1,6 +1,6 @@
 apiVersion: v2
 name: knot
-description: Knot provides a complete software stack for performing data science on Kubernetes
+description: Knot provides a complete environment for unleashing your productivity on Kubernetes
 type: application
 version: 0.0.0
 kubeVersion: ">= 1.19.0"
