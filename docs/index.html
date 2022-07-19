@@ -3,9 +3,9 @@
 <head>
     <meta charset="utf-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="description" content="None" /><link rel="canonical" href="https://carv-ics-forth.github.io/karvdash/docs/index.html" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="description" content="None" /><link rel="canonical" href="https://carv-ics-forth.github.io/knot/docs/index.html" />
       <link rel="shortcut icon" href="img/favicon.ico" />
-    <title>Karvdash</title>
+    <title>Knot</title>
     <link rel="stylesheet" href="css/theme.css" />
     <link rel="stylesheet" href="css/theme_extra.css" />
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/styles/github.min.css" />
@@ -15,7 +15,7 @@
         // Current page data
         var mkdocs_page_name = "Overview";
         var mkdocs_page_input_path = "index.md";
-        var mkdocs_page_url = "/karvdash/docs/index.html";
+        var mkdocs_page_url = "/knot/docs/index.html";
       </script>
     
     <script src="js/jquery-3.6.0.min.js" defer></script>
@@ -33,12 +33,8 @@
     <div class="wy-side-scroll">
       <div class="wy-side-nav-search">
           <a href="index.html">
-          <img src="images/karvdash-blue.png" class="logo" alt="Logo"/>
-        </a><div role="search">
-  <form id ="rtd-search-form" class="wy-form" action="./search.html" method="get">
-      <input type="text" name="q" placeholder="Search docs" title="Type search term here" />
-  </form>
-</div>
+          <img src="images/logo.png" class="logo" alt="Logo"/>
+        </a>
       </div>
 
       <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
@@ -49,7 +45,7 @@
                 </li>
               </ul>
               <ul>
-                <li class="toctree-l1"><a class="reference internal" href="install-bare-metal.html">Installation (bare metal)</a>
+                <li class="toctree-l1"><a class="reference internal" href="deployment.html">Deployment</a>
                 </li>
               </ul>
               <ul>
@@ -67,7 +63,7 @@
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
       <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="index.html">Karvdash</a>
+          <a href="index.html">Knot</a>
         
       </nav>
       <div class="wy-nav-content">
@@ -75,7 +71,7 @@
   <ul class="wy-breadcrumbs">
     <li><a href="index.html" class="icon icon-home" alt="Docs"></a> &raquo;</li><li>Overview</li>
     <li class="wy-breadcrumbs-aside">
-        <a href="https://github.com/CARV-ICS-FORTH/karvdash/edit/master/docs/index.md"
+        <a href="https://github.com/CARV-ICS-FORTH/knot/edit/master/docs/index.md"
           class="icon icon-github"> Edit on GitHub</a>
     </li>
   </ul>
@@ -86,24 +82,29 @@
             <div class="section" itemprop="articleBody">
               
                 <h1 id="overview">Overview</h1>
-<p>Karvdash (Kubernetes CARV dashboard) is a service for facilitating data science in Kubernetes-based environments, by supplying the landing page for users, allowing them to launch notebooks and other services, design workflows, and specify parameters related to execution through a user-friendly interface. Karvdash aims to make it straightforward for domain experts to interact with resources in the underlying infrastructure without having to understand lower-level tools and mechanisms.</p>
-<p>In summary, Karvdash provides a web-based, graphical frontend - a <em>dashboard</em> - for users to:</p>
+<p>Knot is a full-featured software stack for facilitating data science in Kubernetes-based environments, by integrating a web-based environment that includes an extensible set of productivity tools and services. At its core, the Knot dashboard supplies the landing page for users, allowing them to launch notebooks and other services, design workflows, and specify parameters related to execution through a user-friendly interface. Knot aims to make it straightforward for domain experts to interact with resources in the underlying infrastructure without having to understand lower-level mechanisms.</p>
+<p>The Knot dashboard is an interactive, graphical frontend for users to:</p>
 <ul>
-<li>Launch services or applications from customizable templates.</li>
+<li>Switch to any of the included integrations with <a href="https://jupyter.org/hub">JupyterHub</a> (notebook service), <a href="https://argoproj.github.io/workflows">Argo Workflows</a> (workflow service), <a href="https://goharbor.io">Harbor</a> (private container image and and Knot service template registry), and <a href="https://grafana.com">Grafana</a> (metrics service).</li>
+<li>Launch private services or applications from customizable templates.</li>
 <li>Manage files that are automatically attached to service and application containers when launched.</li>
 </ul>
-<p>Under the hood, Karvdash:</p>
+<p>Under the hood, Knot:</p>
 <ul>
-<li>Securely provisions multiple services under one externally-accessible HTTPS endpoint.</li>
 <li>Performs high-level user management and isolates respective services in per-user Kubernetes namespaces.</li>
 <li>Provides an identity service for authenticating users in OAuth 2.0/OIDC-compatible applications.</li>
+<li>Securely provisions multiple services under one externally-accessible HTTPS endpoint.</li>
 </ul>
-<p>Kubernetes provides all the tools to do data sharing, create namespaces, etc., but the exact implementation and structure of the overall environment is left to the developer. Karvdash implements a "traditional" user scheme, which is then mapped to Kubernetes namespaces and service accounts. Kubernetes does not have "users" and no place to "login into" by default. In addition, Karvdash wires up relevant storage to the appropriate paths inside running containers, which significantly simplifies data management. Private and shared files are automatically accessible in all execution contexts and also available through the dashboard.</p>
+<p><img alt="" src="images/overall-diagram.png" /></p>
+<p><em>Knot includes the dashboard, default and custom services. The dashboard provides service, storage, and identity management to the integrated environment.</em></p>
+<p>Kubernetes provides all the tools to do data sharing, create namespaces, etc., but the exact implementation and structure of the overall environment is left to the developer. Knot implements a "traditional" user scheme, which is then mapped to Kubernetes namespaces and service accounts. Kubernetes does not have "users" and no place to "login into" by default.</p>
+<p>Knot sets up single sign-on at the integrated instances of JupyterHub, Argo Workflows, Harbor, and Grafana, so authenticated users can seamlessly move between services. In addition, appropriate authorization directives are automatically set up, so that each user will be allowed to access resources only in their corresponding Knot-defined namespace. For Harbor, Knot also fetches the users' CLI secrets, and configures Kubernetes to use them.</p>
+<p>Equally important to user management, authentication, and authorization, Knot wires up private and shared storage to predefined paths inside running containers, which significantly simplifies data management. Thus, user files are automatically accessible in all respective execution contexts and also available through the dashboard. A workflow can work on some data which have been prepared in a notebook, while produced results can be easily shared via an externally accesible web server. Inside workflows, data can be exchanged between steps, just by placing it on specific directories.</p>
               
             </div>
           </div><footer>
     <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
-        <a href="install-bare-metal.html" class="btn btn-neutral float-right" title="Installation (bare metal)">Next <span class="icon icon-circle-arrow-right"></span></a>
+        <a href="deployment.html" class="btn btn-neutral float-right" title="Deployment">Next <span class="icon icon-circle-arrow-right"></span></a>
     </div>
 
   <hr/>
@@ -127,19 +128,18 @@
   <span class="rst-current-version" data-toggle="rst-current-version">
     
         <span>
-          <a href="https://github.com/CARV-ICS-FORTH/karvdash" class="fa fa-github" style="color: #fcfcfc"> GitHub</a>
+          <a href="https://github.com/CARV-ICS-FORTH/knot" class="fa fa-github" style="color: #fcfcfc"> GitHub</a>
         </span>
     
     
     
-      <span><a href="install-bare-metal.html" style="color: #fcfcfc">Next &raquo;</a></span>
+      <span><a href="deployment.html" style="color: #fcfcfc">Next &raquo;</a></span>
     
   </span>
 </div>
     <script>var base_url = '.';</script>
     <script src="js/theme_extra.js" defer></script>
     <script src="js/theme.js" defer></script>
-      <script src="search/main.js" defer></script>
     <script defer>
         window.onload = function () {
             SphinxRtdTheme.Navigation.enable(true);
@@ -151,5 +151,5 @@
 
 <!--
 MkDocs version : 1.3.0
-Build Date UTC : 2022-07-01 10:35:43.722549+00:00
+Build Date UTC : 2022-07-19 14:31:54.799955+00:00
 -->
