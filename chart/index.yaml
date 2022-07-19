@@ -209,4 +209,18 @@ entries:
     urls:
     - https://CARV-ICS-FORTH.github.io/karvdash/chart/karvdash-2.0.0.tgz
     version: 2.0.0
-generated: "2022-02-17T18:29:10.246072123Z"
+  knot:
+  - apiVersion: v2
+    created: "2022-07-19T14:14:38.472541515Z"
+    description: Knot provides a complete software stack for performing data science
+      on Kubernetes
+    digest: e65d3a3ed00befe89014d1629018233646c014a0fdb188b9b87c27baff865031
+    kubeVersion: '>= 1.19.0'
+    name: knot
+    sources:
+    - https://github.com/CARV-ICS-FORTH/knot
+    type: application
+    urls:
+    - https://CARV-ICS-FORTH.github.io/knot/chart/knot-4.0.0.tgz
+    version: 4.0.0
+generated: "2022-07-19T14:14:38.471528602Z"
