@@ -21,7 +21,6 @@ from urllib.parse import urlparse
 from ruamel.yaml import YAML
 
 from .utils.kubernetes import KubernetesClient
-from .utils.harbor import HarborClient
 from .utils.helm import flatten_values, unflatten_values, HelmLocalRepoClient, HelmRemoteRepoClient, HelmClient
 
 
@@ -99,7 +98,7 @@ class ServiceManager(object):
 
             # Filter out services that are marked as hidden.
             try:
-                if 'karvdash-hidden' in service.metadata.labels.keys():
+                if 'knot-hidden' in service.metadata.labels.keys():
                     continue
             except:
                 pass
@@ -153,7 +152,7 @@ class ServiceManager(object):
         return data
 
     def create(self, chart_name, variables, data, set_local_data=True):
-        variables = [variable for variable in variables if not variable['label'].startswith('data.karvdash.')]
+        variables = [variable for variable in variables if not variable['label'].startswith('data.knot.')]
         for variable in variables:
             value = data.get(variable['label'])
             if value is None:
@@ -190,13 +189,13 @@ class ServiceManager(object):
             ingress_host = '%s:%s' % (ingress_url.hostname, ingress_url.port) if ingress_url.port else ingress_url.hostname
 
             # Set hostname, registry and storage paths, and other local variables.
-            variables += [{'label': 'data.karvdash.enabled',
+            variables += [{'label': 'data.knot.enabled',
                            'value': True},
-                           {'label': 'data.karvdash.hostname',
-                            'value': '%s.%s' % (prefix, ingress_host)}]
+                          {'label': 'data.knot.hostname',
+                           'value': '%s.%s' % (prefix, ingress_host)}]
             for key, value in self.user.local_data.items():
                 key = ''.join((word.title() if i > 0 else word) for i, word in enumerate(key.split('_'))) # Convert to lowerCamelCase.
-                variables.append({'label': 'data.karvdash.' + key, 'value': value})
+                variables.append({'label': 'data.knot.' + key, 'value': value})
 
         # Apply.
         self.user.update_kubernetes_credentials(kubernetes_client=kubernetes_client)

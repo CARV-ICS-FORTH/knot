@@ -5,8 +5,8 @@ image:
 rbac:
   create: true
 
-karvdash:
-  # REQUIRED: If set, use this persistent volume claim for storing state (database, running services repository, template library).
+knot:
+  # REQUIRED: If set, use this persistent volume claim for storing the database.
   stateVolumeClaim:
   # REQUIRED: The host path to use for storing state, when no existing volume claim is set.
   stateHostPath:
@@ -38,7 +38,7 @@ karvdash:
   # If set, the path to export the htpasswd file in (only for local users).
   htpasswdExportDir:
   # The title of the dashboard.
-  dashboardTitle: Karvdash
+  dashboardTitle: Knot
   # If set, override the internal "Documentation" URL in the user menu.
   documentationURL:
   # If set, an option to "Report an issue" is shown in the user menu.
@@ -65,7 +65,7 @@ karvdash:
   # List of predefined URL prefixes for services.
   serviceURLPrefixes:
 
-  # If enabled, forward requests to another Karvdash instance.
+  # If enabled, forward requests to another dashboard instance.
   developmentURL:
 
   # JupyterHub URL for integration with the notebook frontend.

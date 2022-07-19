@@ -36,8 +36,8 @@ def pod_mutate(request):
         assert(data['request']['operation'] == 'CREATE')
         uid = data['request']['uid']
         namespace = data['request']['namespace']
-        assert(namespace.startswith('karvdash-'))
-        user = User.objects.get(username=namespace[len('karvdash-'):])
+        assert(namespace.startswith('knot-'))
+        user = User.objects.get(username=namespace[len('knot-'):])
         service = copy.deepcopy(data['request']['object'])
     except:
         return HttpResponseBadRequest()
@@ -52,7 +52,7 @@ def pod_mutate(request):
                              'kind': 'AdmissionReview',
                              'response': {'uid': uid,
                                           'allowed': True,
-                                          'status': {'message': 'Adding Karvdash volumes'},
+                                          'status': {'message': 'Adding Knot volumes'},
                                           'patchType': 'JSONPatch',
                                           'patch': encoded_patch}})
     response['X-Log-User'] = user.username
@@ -67,8 +67,8 @@ def pod_validate(request):
         assert(data['request']['operation'] == 'CREATE')
         uid = data['request']['uid']
         namespace = data['request']['namespace']
-        assert(namespace.startswith('karvdash-'))
-        user = User.objects.get(username=namespace[len('karvdash-'):])
+        assert(namespace.startswith('knot-'))
+        user = User.objects.get(username=namespace[len('knot-'):])
         service = copy.deepcopy(data['request']['object'])
     except:
         return HttpResponseBadRequest()
@@ -90,8 +90,8 @@ def ingress_mutate(request):
         assert(data['request']['operation'] == 'CREATE')
         uid = data['request']['uid']
         namespace = data['request']['namespace']
-        assert(namespace.startswith('karvdash-'))
-        user = User.objects.get(username=namespace[len('karvdash-'):])
+        assert(namespace.startswith('knot-'))
+        user = User.objects.get(username=namespace[len('knot-'):])
         service = copy.deepcopy(data['request']['object'])
     except:
         return HttpResponseBadRequest()
@@ -101,7 +101,7 @@ def ingress_mutate(request):
         auth_config = {'vouch_url': settings.VOUCH_URL,
                        'username': user.username}
     else:
-        auth_config = {'secret': 'karvdash-auth',
+        auth_config = {'secret': 'knot-auth',
                        'realm': 'Authentication Required - %s' % settings.DASHBOARD_TITLE}
     inject_ingress_auth([service], auth_config, redirect_ssl=(ingress_url.scheme == 'https'))
     patch = jsonpatch.JsonPatch.from_diff(data['request']['object'], service)
@@ -111,7 +111,7 @@ def ingress_mutate(request):
                              'kind': 'AdmissionReview',
                              'response': {'uid': uid,
                                           'allowed': True,
-                                          'status': {'message': 'Adding Karvdash authentication'},
+                                          'status': {'message': 'Adding Knot authentication'},
                                           'patchType': 'JSONPatch',
                                           'patch': encoded_patch}})
     response['X-Log-User'] = user.username

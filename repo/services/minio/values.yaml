@@ -3,6 +3,6 @@ folder: /private # Folder to expose
 accessKey: admin
 secretKey: password # Please use a strong secret
 
-karvdash:
+knot:
   enabled: true
   hostname: minio.example.com

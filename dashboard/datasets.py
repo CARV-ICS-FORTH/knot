@@ -49,7 +49,7 @@ class DatasetManager(ServiceManager):
 
             # Filter out datasets that are marked as hidden.
             try:
-                if 'karvdash-hidden' in dataset['metadata']['labels'].keys():
+                if 'knot-hidden' in dataset['metadata']['labels'].keys():
                     continue
             except:
                 pass

@@ -24,8 +24,8 @@ spec:
         - |
           export KAFKA_BROKER_ID=${HOSTNAME##*-} && \
           export KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://${HOSTNAME}.{{ $fullName }}.{{ .Release.Namespace }}.svc:9092,EXTERNAL://${HOST_IP}:$((31090 + ${KAFKA_BROKER_ID})) && \
-          mkdir -p {{ .Values.karvdash.privateDir }}/.kafka/{{ $fullName }}-$KAFKA_BROKER_ID/data && \
-          find /etc -type f -exec sed -i "s|/var/lib/kafka/*|{{ .Values.karvdash.privateDir }}/.kafka/{{ $fullName }}-$KAFKA_BROKER_ID/|" {} \; && \
+          mkdir -p {{ .Values.knot.privateDir }}/.kafka/{{ $fullName }}-$KAFKA_BROKER_ID/data && \
+          find /etc -type f -exec sed -i "s|/var/lib/kafka/*|{{ .Values.knot.privateDir }}/.kafka/{{ $fullName }}-$KAFKA_BROKER_ID/|" {} \; && \
           unset KAFKA_HOST; unset KAFKA_PORT && \
           /etc/confluent/docker/run
         env:

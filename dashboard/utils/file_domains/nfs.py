@@ -45,7 +45,7 @@ spec:
   capacity:
     storage: 1Pi
   mountOptions:
-    - hard
+    - nfsvers=4.1
   csi:
     driver: nfs.csi.k8s.io
     readOnly: false

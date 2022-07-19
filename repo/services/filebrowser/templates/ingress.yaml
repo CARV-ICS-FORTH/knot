@@ -11,7 +11,7 @@ metadata:
     nginx.ingress.kubernetes.io/proxy-body-size: "0"
 spec:
   rules:
-  - host: {{ .Values.karvdash.hostname | quote }}
+  - host: {{ .Values.knot.hostname | quote }}
     http:
       paths:
       - path: /

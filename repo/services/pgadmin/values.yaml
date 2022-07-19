@@ -1,7 +1,7 @@
 email: user@domain.com # PGAdmin email address to login
 password: SuperSecret # PGAdmin password to login
 
-karvdash:
+knot:
   enabled: true
   hostname: pgadmin.example.com
   privateDir: /private

@@ -13,7 +13,7 @@
 # limitations under the License.
 
 """
-WSGI config for karvdash project.
+WSGI config for knot project.
 
 It exposes the WSGI callable as a module-level variable named ``application``.
 
@@ -26,6 +26,6 @@ import os
 from django.core.wsgi import get_wsgi_application
 
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'karvdash.settings')
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'knot.settings')
 
 application = get_wsgi_application()

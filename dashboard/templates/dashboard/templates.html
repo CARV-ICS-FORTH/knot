@@ -6,7 +6,7 @@
 <div class="row">
   <div class="col-md-2 order-md-2">
     {% if harbor_url %}
-    <a type="button" class="d-block btn btn-success mb-2 w-100" href="{{ harbor_url }}/harbor/projects" target="_blank"><i class="fa fa-download" aria-hidden="true"></i> Add template</a>
+    <button type="button" class="d-block btn btn-success mb-2 w-100" onclick="window.open('{{ harbor_url }}/harbor/projects', '_blank').focus();"><i class="fa fa-download" aria-hidden="true"></i> Add template</button>
     {% endif %}
   </div>
 

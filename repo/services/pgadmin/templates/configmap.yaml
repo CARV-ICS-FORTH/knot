@@ -9,7 +9,7 @@ data:
   config_system.py: |
     import os
 
-    DATA_DIR = '{{ .Values.karvdash.privateDir }}/.pgadmin/{{ $fullName }}/'
+    DATA_DIR = '{{ .Values.knot.privateDir }}/.pgadmin/{{ $fullName }}/'
     LOG_FILE = os.path.join(DATA_DIR, 'pgadmin4.log')
     SQLITE_PATH = os.path.join(DATA_DIR, 'pgadmin4.db')
     SESSION_DB_PATH = os.path.join(DATA_DIR, 'sessions')

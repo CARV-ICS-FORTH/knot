@@ -4,8 +4,8 @@ metadata:
   name: {{ include "ubuntu.fullname" . }}
   labels:
     {{- include "ubuntu.labels" . | nindent 4 }}
-    {{- if .Values.karvdash.enabled }}
-    karvdash-no-datasets: "true"
+    {{- if .Values.knot.enabled }}
+    knot-no-datasets: "true"
     {{- end }}
 spec:
   replicas: 1

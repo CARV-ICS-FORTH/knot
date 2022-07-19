@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from django.conf import settings
 from oauth2_provider.oauth2_validators import OAuth2Validator
 
 from .models import User
@@ -28,5 +27,5 @@ class CustomOAuth2Validator(OAuth2Validator):
                   'name': user.get_full_name(),
                   'given_name': user.first_name,
                   'family_name': user.last_name}
-        claims.update({('karvdash_%s' % key): value for key, value in user.local_data.items()})
+        claims.update({('knot_%s' % key): value for key, value in user.local_data.items()})
         return claims

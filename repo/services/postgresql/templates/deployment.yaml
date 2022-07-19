@@ -5,8 +5,8 @@ metadata:
   name: {{ $fullName }}
   labels:
     {{- include "postgresql.labels" . | nindent 4 }}
-    {{- if .Values.karvdash.enabled }}
-    karvdash-no-datasets: "true"
+    {{- if .Values.knot.enabled }}
+    knot-no-datasets: "true"
     {{- end }}
 spec:
   replicas: 1
@@ -27,4 +27,4 @@ spec:
         - name: POSTGRES_PASSWORD
           value: {{ .Values.password }}
         - name: PGDATA
-          value: {{ .Values.karvdash.privateDir }}/.postgresql/{{ $fullName }}/data
+          value: {{ .Values.knot.privateDir }}/.postgresql/{{ $fullName }}/data

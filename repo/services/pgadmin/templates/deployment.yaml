@@ -5,8 +5,8 @@ metadata:
   name: {{ $fullName }}
   labels:
     {{- include "pgadmin.labels" . | nindent 4 }}
-    {{- if .Values.karvdash.enabled }}
-    karvdash-no-datasets: "true"
+    {{- if .Values.knot.enabled }}
+    knot-no-datasets: "true"
     {{- end }}
 spec:
   replicas: 1
@@ -25,7 +25,7 @@ spec:
         - /bin/sh
         - -c
         - |
-          mkdir -p {{ .Values.karvdash.privateDir }}/.pgadmin/{{ $fullName }} && \
+          mkdir -p {{ .Values.knot.privateDir }}/.pgadmin/{{ $fullName }} && \
           /entrypoint.sh
         securityContext:
           runAsUser: 0

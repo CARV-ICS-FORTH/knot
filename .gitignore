@@ -3,5 +3,5 @@
 __pycache__/
 venv/
 site/
-db/
+state/
 files/

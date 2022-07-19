@@ -14,56 +14,58 @@
 
 SHELL=/bin/bash
 
-BAREMETAL?=no
-DEVELOPMENT?=no
-
 REGISTRY_NAME?=carvicsforth
 KUBECTL_VERSION?=v1.22.4
 
-KARVDASH_VERSION=$(shell cat VERSION)
-KARVDASH_IMAGE_TAG=$(REGISTRY_NAME)/karvdash:$(KARVDASH_VERSION)
+KNOT_VERSION=$(shell cat VERSION)
+KNOT_IMAGE_TAG=$(REGISTRY_NAME)/knot:$(KNOT_VERSION)
 
-CHART_DIR=./chart/karvdash
+CHART_DIR=./chart/knot
 
-.PHONY: all check-ip-address deploy-requirements undeploy-requirements deploy-local undeploy-local prepare-develop develop container container-push release
+.PHONY: all check-ip-address deploy undeploy deploy-test undeploy-test delete-namespaces prepare-develop develop container container-push release
 
 all: container
 
 IP_ADDRESS?=$(shell ipconfig getifaddr en0 || ipconfig getifaddr en1 2> /dev/null)
-
-ifeq (${BAREMETAL}, yes)
-HELMFILE_ENV=baremetal
-else
-HELMFILE_ENV=default
-endif
-
-ifneq (${DEVELOPMENT}, yes)
-DEVELOPMENT_URL=
-else
-DEVELOPMENT_URL=http://${IP_ADDRESS}:8000
-endif
-
-INGRESS_URL=${IP_ADDRESS}.nip.io
+INGRESS_URL=$(IP_ADDRESS).nip.io
+DEVELOPMENT_URL=http://$(IP_ADDRESS):8000
 HARBOR_ADMIN_PASSWORD=Harbor12345
 
+define HELMFILE_DEPLOY_VALUES
+--state-values-set storage.stateVolume.hostPath=$(PWD)/state \
+--state-values-set storage.filesVolume.hostPath=$(PWD)/files \
+--state-values-set harbor.adminPassword=$(HARBOR_ADMIN_PASSWORD) \
+--state-values-set knot.developmentURL=$(DEVELOPMENT_URL) \
+--state-values-set knot.localImage="true"
+endef
+
 check-ip-address:
-ifeq (${IP_ADDRESS},)
+ifeq ($(IP_ADDRESS),)
 	$(error IP_ADDRESS is not set)
 endif
 
-deploy-requirements: check-ip-address
-	export IP_ADDRESS="${IP_ADDRESS}"; \
-	helmfile -e ${HELMFILE_ENV} sync
-	# Deploy DLF
-	# kubectl apply -f https://raw.githubusercontent.com/datashim-io/datashim/master/release-tools/manifests/dlf.yaml
-	# kubectl wait --timeout=600s --for=condition=ready pods -l app.kubernetes.io/name=dlf -n dlf
+deploy: check-ip-address
+	mkdir -p state state/harbor
+	mkdir -p files
+	export KNOT_HOST="$(INGRESS_URL)"; \
+	helmfile $(HELMFILE_DEPLOY_VALUES) sync
 
-undeploy-requirements: check-ip-address
-	# Remove DLF
-	# kubectl delete -f https://raw.githubusercontent.com/datashim-io/datashim/master/release-tools/manifests/dlf.yaml || true
-	export IP_ADDRESS="${IP_ADDRESS}"; \
-	helmfile -e ${HELMFILE_ENV} delete
-	# Remove namespaces
+undeploy: check-ip-address
+	export KNOT_HOST="$(INGRESS_URL)"; \
+	helmfile $(HELMFILE_DEPLOY_VALUES) delete
+
+deploy-test:
+	export KNOT_HOST="$(INGRESS_URL)"; \
+	helmfile --state-values-set knot.localImage="true" sync
+
+undeploy-test:
+	export KNOT_HOST="$(INGRESS_URL)"; \
+	helmfile --state-values-set knot.localImage="true" destroy
+
+delete-namespaces:
+	kubectl delete namespace knot || true
+	kubectl delete namespace nfs || true
+	kubectl delete namespace csi-nfs || true
 	kubectl delete namespace monitoring || true
 	kubectl delete namespace harbor || true
 	kubectl delete namespace argo || true
@@ -72,77 +74,46 @@ undeploy-requirements: check-ip-address
 	kubectl delete namespace ingress-nginx || true
 	kubectl delete namespace cert-manager || true
 
-deploy-local: check-ip-address
-	# Create necessary directories
-	mkdir -p db
-	mkdir -p files
-	helm list -q | grep karvdash || \
-	helm install karvdash $(CHART_DIR) --namespace default \
-	--set image="$(KARVDASH_IMAGE_TAG)" \
-	--set karvdash.djangoSecret='%ad&%4*!xpf*$$wd3^t56+#ode4=@y^ju_t+j9f+20ajsta^gog' \
-	--set karvdash.djangoDebug="1" \
-	--set karvdash.dashboardTitle="Karvdash on Docker Desktop" \
-	--set karvdash.ingressURL="https://${INGRESS_URL}" \
-	--set karvdash.certificateSecretName="ssl-certificate" \
-	--set karvdash.certificateSecretKey="ca.crt" \
-	--set karvdash.stateHostPath="$(PWD)/db" \
-	--set karvdash.filesURL="file://$(PWD)/files" \
-	--set karvdash.developmentURL="${DEVELOPMENT_URL}" \
-	--set karvdash.jupyterHubURL="https://jupyterhub.${INGRESS_URL}" \
-	--set karvdash.jupyterHubNamespace="jupyterhub" \
-	--set karvdash.jupyterHubNotebookDir="notebooks" \
-	--set karvdash.argoWorkflowsURL="https://argo.${INGRESS_URL}" \
-	--set karvdash.argoWorkflowsNamespace="argo" \
-	--set karvdash.harborURL="https://harbor.${INGRESS_URL}" \
-	--set karvdash.harborNamespace="harbor" \
-	--set karvdash.harborAdminPassword="${HARBOR_ADMIN_PASSWORD}" \
-	--set karvdash.grafanaURL="https://grafana.${INGRESS_URL}" \
-	--set karvdash.grafanaNamespace="monitoring"
-
-undeploy-local:
-	helm uninstall karvdash --namespace default
-
 prepare-develop:
-	# Create necessary directories
-	mkdir -p db
-	mkdir -p files
-	# Create the Python environment and prepare the application
 	if [[ ! -d venv ]]; then python3 -m venv venv; fi
 	source venv/bin/activate; \
-	pip install -r requirements.txt; \
-	./manage.py migrate; \
-	./manage.py createadmin --noinput --username admin --password admin --email admin@example.com --preserve
+	pip install -r requirements.txt;
 
 develop: check-ip-address
 	source venv/bin/activate; \
 	export DJANGO_SECRET='%ad&%4*!xpf*$$wd3^t56+#ode4=@y^ju_t+j9f+20ajsta^gog'; \
 	export DJANGO_DEBUG=1; \
-	export KARVDASH_VOUCH_URL="https://vouch.${INGRESS_URL}"; \
-	export KARVDASH_DASHBOARD_TITLE="Karvdash on Docker Desktop"; \
-	export KARVDASH_INGRESS_URL="https://${INGRESS_URL}"; \
-	export KARVDASH_JUPYTERHUB_URL="https://jupyterhub.${INGRESS_URL}"; \
-	export KARVDASH_JUPYTERHUB_NOTEBOOK_DIR="notebooks"; \
-	export KARVDASH_ARGO_WORKFLOWS_URL="https://argo.${INGRESS_URL}"; \
-	export KARVDASH_ARGO_WORKFLOWS_NAMESPACE="argo"; \
-	export KARVDASH_HARBOR_URL="https://harbor.${INGRESS_URL}"; \
-	export KARVDASH_HARBOR_NAMESPACE="harbor"; \
-	export KARVDASH_HARBOR_ADMIN_PASSWORD="${HARBOR_ADMIN_PASSWORD}"; \
-	export KARVDASH_GRAFANA_URL="https://grafana.${INGRESS_URL}"; \
-	export KARVDASH_GRAFANA_NAMESPACE="monitoring"; \
-	kubectl port-forward deployment/karvdash 6379:6379 & \
-	celery -A karvdash worker -l info & \
+	export KNOT_DATABASE_DIR=$(PWD)/state/knot; \
+	export KNOT_VOUCH_URL="https://vouch.$(INGRESS_URL)"; \
+	export KNOT_DASHBOARD_TITLE="Knot on Docker Desktop"; \
+	export KNOT_INGRESS_URL="https://$(INGRESS_URL)"; \
+	export KNOT_JUPYTERHUB_URL="https://jupyterhub.$(INGRESS_URL)"; \
+	export KNOT_JUPYTERHUB_NOTEBOOK_DIR="notebooks"; \
+	export KNOT_ARGO_WORKFLOWS_URL="https://argo.$(INGRESS_URL)"; \
+	export KNOT_ARGO_WORKFLOWS_NAMESPACE="argo"; \
+	export KNOT_HARBOR_URL="https://harbor.$(INGRESS_URL)"; \
+	export KNOT_HARBOR_NAMESPACE="harbor"; \
+	export KNOT_HARBOR_ADMIN_PASSWORD="$(HARBOR_ADMIN_PASSWORD)"; \
+	export KNOT_GRAFANA_URL="https://grafana.$(INGRESS_URL)"; \
+	export KNOT_GRAFANA_NAMESPACE="monitoring"; \
+	kubectl port-forward -n knot deployment/knot 6379:6379 & \
+	celery -A knot worker -l info & \
 	./manage.py runserver 0.0.0.0:8000
 
 container:
-	docker build -f Dockerfile --build-arg TARGETARCH=amd64 --build-arg KUBECTL_VERSION=$(KUBECTL_VERSION) -t $(KARVDASH_IMAGE_TAG) .
+	docker build -f Dockerfile --build-arg TARGETARCH=amd64 --build-arg KUBECTL_VERSION=$(KUBECTL_VERSION) -t $(KNOT_IMAGE_TAG) .
 
 container-push:
-	docker buildx build --platform linux/amd64,linux/arm64 --push -f Dockerfile --build-arg KUBECTL_VERSION=$(KUBECTL_VERSION) -t $(KARVDASH_IMAGE_TAG) .
+	docker buildx build --platform linux/amd64,linux/arm64 --push -f Dockerfile --build-arg KUBECTL_VERSION=$(KUBECTL_VERSION) -t $(KNOT_IMAGE_TAG) .
 
 release:
 	if [[ -z "$${VERSION}" ]]; then echo "VERSION is not set"; exit 1; fi
-	echo "${VERSION}" > VERSION
+	echo "$(VERSION)" > VERSION
+	if [[ $(VERSION) =~ ^v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$$ ]]; then \
+		awk '/chart: knot\/knot/{print;getline;$$0="  version: $(VERSION:v%=%)"}1' helmfile.yaml > helmfile.yaml.tmp; \
+		mv -f helmfile.yaml.tmp helmfile.yaml; \
+	fi
 	git add VERSION
 	git commit -m "Bump version"
-	git tag ${VERSION}
+	git tag $(VERSION)
 	# git push && git push --tags

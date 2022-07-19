@@ -1,13 +1,13 @@
-{{- if and (not .Values.karvdash.logsVolumeClaim) .Values.karvdash.logsHostPath }}
+{{- if and (not .Values.knot.themeVolumeClaim) .Values.knot.themeHostPath }}
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: {{ .Release.Name }}-logs-pvc
+  name: {{ .Release.Name }}-theme-pvc
   labels:
     app: {{ .Release.Name }}
     chart: {{ .Chart.Name }}-{{ .Chart.Version }}
 spec:
-  storageClassName: karvdash-logs
+  storageClassName: knot-theme
   accessModes:
     - ReadWriteMany
   resources:
@@ -17,16 +17,16 @@ spec:
 apiVersion: v1
 kind: PersistentVolume
 metadata:
-  name: {{ .Release.Name }}-logs-pv
+  name: {{ .Release.Name }}-theme-pv
   labels:
     app: {{ .Release.Name }}
     chart: {{ .Chart.Name }}-{{ .Chart.Version }}
 spec:
-  storageClassName: karvdash-logs
+  storageClassName: knot-theme
   capacity:
     storage: 10Gi
   accessModes:
     - ReadWriteMany
   hostPath:
-    path: {{ .Values.karvdash.logsHostPath | quote }}
+    path: {{ .Values.knot.themeHostPath | quote }}
 {{- end }}

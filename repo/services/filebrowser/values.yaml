@@ -1,5 +1,5 @@
 folder: /private # Folder to browse
 
-karvdash:
+knot:
   enabled: true
   hostname: filebrowser.example.com

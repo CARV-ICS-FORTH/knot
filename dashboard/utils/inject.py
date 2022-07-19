@@ -44,14 +44,14 @@ def inject_volumes(yaml_data, file_domains, is_datasets=False):
             if part['kind'] == 'Deployment':
                 spec = part['spec']['template']['spec']
                 try:
-                    if 'karvdash-no-datasets' in part['spec']['template']['metadata']['labels'].keys():
+                    if 'knot-no-datasets' in part['spec']['template']['metadata']['labels'].keys():
                         no_datasets = True
                 except:
                     pass
             elif part['kind'] == 'Pod':
                 spec = part['spec']
                 try:
-                    if 'karvdash-no-datasets' in part['metadata']['labels'].keys():
+                    if 'knot-no-datasets' in part['metadata']['labels'].keys():
                         no_datasets = True
                 except:
                     pass
@@ -71,7 +71,7 @@ def inject_variables(yaml_data, user):
         for container in spec['containers']:
             if 'env' not in container:
                 container['env'] = []
-            container['env'] += [{'name': ('karvdash_%s' % key).upper(), 'value': value} for key, value in user.local_data.items()]
+            container['env'] += [{'name': ('knot_%s' % key).upper(), 'value': value} for key, value in user.local_data.items()]
 
     for part in yaml_data:
         try:
@@ -117,7 +117,7 @@ def inject_ingress_auth(yaml_data, auth_config, redirect_ssl=False):
     for part in yaml_data:
         if part.get('kind') == 'Ingress':
             try:
-                if 'karvdash-no-auth' in part['metadata']['labels'].keys():
+                if 'knot-no-auth' in part['metadata']['labels'].keys():
                     return
             except:
                 pass

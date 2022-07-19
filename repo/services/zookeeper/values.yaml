@@ -1,6 +1,6 @@
 servers: 3 # Set to an odd number from 3 and above
 
-karvdash:
+knot:
   enabled: true
   hostname: zookeeper.example.com
   privateDir: /private

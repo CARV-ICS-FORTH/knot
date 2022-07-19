@@ -1,6 +1,6 @@
 version: "12.10" # PostgreSQL version
 password: postgres # Password for postgres user
 
-karvdash:
+knot:
   enabled: true
   privateDir: /private

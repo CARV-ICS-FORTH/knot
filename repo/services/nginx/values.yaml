@@ -1,5 +1,5 @@
 folder: /private/html # Folder to serve
 
-karvdash:
+knot:
   enabled: true
   hostname: nginx.example.com

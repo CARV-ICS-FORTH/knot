@@ -1,7 +1,7 @@
 User guide
 ==========
 
-This guide walks you through the various Karvdash screens, starting from user sign up, explaining the available functions.
+This guide walks you through the various Knot screens, starting from user sign up, explaining the available functions.
 
 Sign up and login
 -----------------
@@ -14,7 +14,18 @@ To create an account, select the "Sign up" option on the main screen and fill in
 
 ![](images/sign-up-screen.png)
 
-Once the account is activated by an administrator, login using your username and password. You can change your password when logged in by clicking on the user icon at the top-right of the screen and selecting "Change password" from the menu. The menu also provides options to report an issue, access this documentation, and logout. If you ever forget your password, please ask an administrator to reset it.
+Once the account is activated by an administrator, login using your username and password. You can change your password when logged in by clicking on the user icon at the top-right of the screen and selecting "Change password" from the menu. The menu also provides options to view previous messages reported, access this documentation, and logout. If you ever forget your password, please ask an administrator to reset it.
+
+Notebooks, workflows, images, and metrics buttons
+-------------------------------------------------
+
+Selecting "Notebooks" from the menu on the left will redirect you to JupyterHub. JupyterHub will automatically launch a new server instance for you, if one is not already running. Your notebooks are saved in `/private/notebooks`, so you can also access them as files from the dashboard. You can stop your server instance by clicking on the "Control Panel" button on the top-right of the screen.
+
+Selecting "Workflows" from the menu on the left will redirect you to Argo Workflows. The first time you open up the Argo interface, it will ask you to login. Just click on the "Login" button, as single sign-on is already set up. You should then be redirected to your workflows page, with the namespace set to `knot-<username>`.
+
+Selecting "Images" from the menu on the left will redirect you to Harbor. Select "Login via OIDC provider" for single sign-on with your username. Knot will setup a private project for you named after your username. The "library" project is shared among all users. Each project can be used to store container images or Helm charts (used for Knot templates).
+
+Selecting "Metrics" from the menu on the left will redirect you to Grafana. Select the search icon on the top-left of the screen to get a list of preconfigured metric dashboards.
 
 Services screen
 ---------------
@@ -27,31 +38,29 @@ The services screen is accessed by selecting "Services" from the menu on the lef
 
 To start a new service, click on the respective button on the right. You will be shown a list of available service templates. Choose one and click "Create".
 
-The next screen is where you can define service variables. You can optionally change the service name to one that is easier to remember (if a name is already taken, Karvdash will append random characters). Besides the name, each service template has different variables. When done, click "Create" again, and you will be taken back to the service list, which should contain your new service (a message on the top of the screen will verify that a new service started and provide its name).
+The next screen is where you can define service variables. You can optionally change the service name to one that is easier to remember (if a name is already taken, Knot will append random characters). Besides the name, each service template has different variables. When done, click "Create" again, and you will be taken back to the service list, which should contain your new service (a message on the top of the screen will verify that a new service started and provide its name).
 
 Templates screen
 ----------------
 
-The templates screen is accessed by selecting "Templates" from the menu on the left. You are presented with a list of available service templates. Select a template to download it in YAML format. Select the "Actions" button to delete a template (only user templates can be deleted) or start a service from it.
+The templates screen is accessed by selecting "Templates" from the menu on the left. You are presented with a list of available service templates. Select the "Actions" button to start a service from it.
 
 ![](images/templates-screen.png)
 
-To add a new template, click on the respective button on the right. The template structure is described in the [Service templates](technical-notes.md#service-templates) chapter.
+New templates are added in Harbor. The template structure is described in the [Service templates](technical-notes.md#service-templates) chapter.
 
 Datasets screen
 ---------------
 
-> 📝 *Dataset management is an optional Karvdash feature that may have not been enabled in your deployment.*
+> 📝 *Dataset management is an optional Knot feature that may have not been enabled in your deployment.*
 
-The datasets screen is accessed by selecting "Datasets" from the menu on the left. You are presented with a list of configured datasets. Select a dataset to download its configuration in YAML format. Select the "Actions" button to delete a dataset.
+The datasets screen is accessed by selecting "Datasets" from the menu on the left. You are presented with a list of configured datasets. Select the "Actions" button to download a dataset's values or delete a dataset.
 
 Datasets are mounted in containers under `/mnt/datasets/<name>`.
 
-![](images/datasets-screen.png)
-
 To add a new dataset, click on the respective button on the right. You will be shown a list of available dataset types. Choose one and click "Add".
 
-The next screen is where you can define the dataset configuration. You can optionally change the dataset name to one that is easier to remember (if a name is already taken, Karvdash will append random characters). Besides the name, each dataset type has different configuration options. When done, click "Add" again, and you will be taken back to the datasets list, which should contain your new dataset (a message on the top of the screen will verify that a new dataset has been added and provide its name).
+The next screen is where you can define the dataset configuration. You can optionally change the dataset name to one that is easier to remember (if a name is already taken, Knot will append random characters). Besides the name, each dataset type has different configuration options. When done, click "Add" again, and you will be taken back to the datasets list, which should contain your new dataset (a message on the top of the screen will verify that a new dataset has been added and provide its name).
 
 Files screen
 ------------

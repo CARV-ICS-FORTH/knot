@@ -1,4 +1,4 @@
-name: Publish Karvdash
+name: Publish Knot
 on:
   workflow_dispatch:
   push:

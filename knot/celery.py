@@ -12,20 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""
-ASGI config for karvdash project.
-
-It exposes the ASGI callable as a module-level variable named ``application``.
-
-For more information on this file, see
-https://docs.djangoproject.com/en/3.0/howto/deployment/asgi/
-"""
-
 import os
 
-from django.core.asgi import get_asgi_application
+from celery import Celery
 
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'karvdash.settings')
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'knot.settings')
 
-application = get_asgi_application()
+# Configure with keys having the "CELERY_" prefix and load tasks.
+app = Celery('knot')
+app.config_from_object('django.conf:settings', namespace='CELERY')
+app.autodiscover_tasks()

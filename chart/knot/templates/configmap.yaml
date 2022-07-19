@@ -1,0 +1,152 @@
+{{- $ingressURL := (required "You must set knot.ingressURL to the ingress URL used" .Values.knot.ingressURL) }}
+{{- $knotURL := default "http://127.0.0.1:8000" .Values.knot.developmentURL }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-proxy
+  labels:
+    app: {{ .Release.Name }}
+    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+data:
+  default.conf: |
+    log_format custom '$http_x_forwarded_for - $sent_http_x_log_user [$time_local] "$request" '
+                      '$status $body_bytes_sent "$http_referer" "$http_user_agent"';
+
+    server {
+        listen 80;
+        server_name {{ .Release.Name }}.{{ .Release.Namespace }}.svc;
+        client_max_body_size 10m;
+
+        access_log /var/log/nginx/access.log custom;
+
+        location / {
+            proxy_set_header    Host $host;
+            proxy_set_header    X-Real-IP $remote_addr;
+            proxy_set_header    X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header    X-Forwarded-Proto $scheme;
+
+            proxy_pass          {{ $knotURL }};
+            proxy_read_timeout  {{ .Values.knot.timeout }};
+            proxy_request_buffering off;
+            proxy_buffering     off;
+
+            proxy_redirect      {{ $knotURL }} http://{{ .Release.Name }}.{{ .Release.Namespace }}.svc;
+        }
+    }
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-webhook
+  labels:
+    app: {{ .Release.Name }}
+    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+data:
+  default.conf: |
+    log_format custom '$remote_addr - $sent_http_x_log_user [$time_local] "$request" '
+                      '$status $body_bytes_sent "$http_referer" "$http_user_agent"';
+
+    server {
+        listen 443 ssl;
+        server_name {{ .Release.Name }}.{{ .Release.Namespace }}.svc;
+
+        access_log /var/log/nginx/access.log custom;
+
+        ssl_certificate         /etc/ssl/keys/tls.crt;
+        ssl_certificate_key     /etc/ssl/keys/tls.key;
+
+        ssl_session_cache       builtin:1000 shared:SSL:10m;
+        ssl_protocols           TLSv1 TLSv1.1 TLSv1.2;
+        ssl_ciphers             HIGH:!aNULL:!eNULL:!EXPORT:!CAMELLIA:!DES:!MD5:!PSK:!RC4;
+        ssl_prefer_server_ciphers on;
+
+        location / {
+            proxy_set_header    Host $host;
+            proxy_set_header    X-Real-IP $remote_addr;
+            proxy_set_header    X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header    X-Forwarded-Proto $scheme;
+
+            proxy_pass          {{ $knotURL }};
+            proxy_read_timeout  {{ .Values.knot.timeout }};
+            proxy_request_buffering off;
+            proxy_buffering     off;
+
+            proxy_redirect      {{ $knotURL }} https://{{ .Release.Name }}.{{ .Release.Namespace }}.svc;
+        }
+    }
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-env
+  labels:
+    app: {{ .Release.Name }}
+    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+data:
+  DJANGO_DEBUG: {{- if .Values.knot.djangoDebug }} {{ .Values.knot.djangoDebug | quote }} {{- else }} "" {{- end }}
+  KNOT_TIMEOUT: {{- if .Values.knot.timeout }} {{ .Values.knot.timeout | quote }} {{- else }} "" {{- end }}
+  KNOT_NAMESPACE: {{ .Release.Namespace }}
+  KNOT_LDAP_SERVER_URL: {{- if .Values.knot.ldapServerURL }} {{ .Values.knot.ldapServerURL | quote }} {{- else }} "" {{- end }}
+  KNOT_LDAP_USER_DN_TEMPLATE: {{- if .Values.knot.ldapUserDNTemplate }} {{ .Values.knot.ldapUserDNTemplate | quote }} {{- else }} "" {{- end }}
+  KNOT_LDAP_USER_ATTR_MAP: {{- if .Values.knot.ldapUserAttrMap }} {{ .Values.knot.ldapUserAttrMap | quote }} {{- else }} "" {{- end }}
+  KNOT_VOUCH_URL: {{ printf "%s://vouch.%s" ($ingressURL | urlParse).scheme (split ":" ($ingressURL | urlParse).host)._0 | quote }}
+  KNOT_VOUCH_SECRET: {{ .Release.Name }}-oauth-vouch
+  KNOT_HTPASSWD_EXPORT_DIR: {{- if .Values.knot.htpasswdExportDir }} {{ .Values.knot.htpasswdExportDir | quote }} {{- else }} "" {{- end }}
+  KNOT_DASHBOARD_TITLE: {{- if .Values.knot.dashboardTitle }} {{ .Values.knot.dashboardTitle | quote }} {{- else }} "" {{- end }}
+  KNOT_DOCUMENTATION_URL: {{- if .Values.knot.documentationURL }} {{ .Values.knot.documentationURL | quote }} {{- else }} "" {{- end }}
+  KNOT_ISSUES_URL: {{- if .Values.knot.issuesURL }} {{ .Values.knot.issuesURL | quote }} {{- else }} "" {{- end }}
+  KNOT_INGRESS_URL: {{ $ingressURL | quote }}
+  KNOT_DATASETS_AVAILABLE: {{- if .Values.knot.datasetsAvailable }} {{ .Values.knot.datasetsAvailable | quote }} {{- else }} "" {{- end }}
+  KNOT_FILES_URL: {{- if .Values.knot.filesURL }} {{ .Values.knot.filesURL | quote }} {{- else }} "" {{- end }}
+  KNOT_ALLOWED_HOSTPATH_DIRS: {{- if .Values.knot.allowedHostPathDirs }} {{ .Values.knot.allowedHostPathDirs | quote }} {{- else }} "" {{- end }}
+  KNOT_JUPYTERHUB_URL: {{- if .Values.knot.jupyterHubURL }} {{ .Values.knot.jupyterHubURL | quote }} {{- else }} "" {{- end }}
+  KNOT_JUPYTERHUB_NAMESPACE: {{- if .Values.knot.jupyterHubNamespace }} {{ .Values.knot.jupyterHubNamespace | quote }} {{- else }} "" {{- end }}
+  KNOT_JUPYTERHUB_NOTEBOOK_DIR: {{- if .Values.knot.jupyterHubNotebookDir }} {{ .Values.knot.jupyterHubNotebookDir | quote }} {{- else }} "" {{- end }}
+  KNOT_ARGO_WORKFLOWS_URL: {{- if .Values.knot.argoWorkflowsURL }} {{ .Values.knot.argoWorkflowsURL | quote }} {{- else }} "" {{- end }}
+  KNOT_ARGO_WORKFLOWS_NAMESPACE: {{- if .Values.knot.argoWorkflowsNamespace }} {{ .Values.knot.argoWorkflowsNamespace | quote }} {{- else }} "" {{- end }}
+  KNOT_HARBOR_URL: {{- if .Values.knot.harborURL }} {{ .Values.knot.harborURL | quote }} {{- else }} "" {{- end }}
+  KNOT_HARBOR_NAMESPACE: {{- if .Values.knot.harborNamespace }} {{ .Values.knot.harborNamespace | quote }} {{- else }} "" {{- end }}
+  KNOT_HARBOR_ADMIN_PASSWORD: {{- if .Values.knot.harborAdminPassword }} {{ .Values.knot.harborAdminPassword | quote }} {{- else }} "" {{- end }}
+  KNOT_GRAFANA_URL: {{- if .Values.knot.grafanaURL }} {{ .Values.knot.grafanaURL | quote }} {{- else }} "" {{- end }}
+  KNOT_GRAFANA_NAMESPACE: {{- if .Values.knot.grafanaNamespace }} {{ .Values.knot.grafanaNamespace | quote }} {{- else }} "" {{- end }}
+  KNOT_OPENBIO_URL: {{- if .Values.knot.openBioURL }} {{ .Values.knot.openBioURL | quote }} {{- else }} "" {{- end }}
+  KNOT_OPENBIO_NAMESPACE: {{- if .Values.knot.openBioNamespace }} {{ .Values.knot.openBioNamespace | quote }} {{- else }} "" {{- end }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-files
+  labels:
+    app: {{ .Release.Name }}
+    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+data:
+  disabled_services: |
+    {{- range $val := .Values.knot.disabledServices }}
+    {{ $val }}
+    {{- end }}
+  disabled_datasets: |
+    {{- range $val := .Values.knot.disabledDatasets }}
+    {{ $val }}
+    {{- end }}
+  service_url_prefixes: |
+    {{- range $val := .Values.knot.serviceURLPrefixes }}
+    {{ $val }}
+    {{- end }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-vouch-proxy
+  labels:
+    app: {{ .Release.Name }}
+    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+data:
+  VOUCH_ALLOWALLUSERS: "true"
+  VOUCH_COOKIE_DOMAIN: {{ (split ":" ($ingressURL | urlParse).host)._0 }}
+  VOUCH_COOKIE_SECURE: "false"
+  VOUCH_HEADERS_CLAIMS: "preferred_username"
+  OAUTH_PROVIDER: oidc
+  OAUTH_AUTH_URL: {{ $ingressURL }}/oauth/authorize/
+  OAUTH_TOKEN_URL: http://127.0.0.1/oauth/token/
+  OAUTH_USER_INFO_URL: http://127.0.0.1/oauth/userinfo/
+  OAUTH_CALLBACK_URL: {{ printf "%s://vouch.%s/auth" ($ingressURL | urlParse).scheme (split ":" ($ingressURL | urlParse).host)._0 | quote }}

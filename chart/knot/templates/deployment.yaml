@@ -1,4 +1,4 @@
-{{- $ingressURL := (required "You must set karvdash.ingressURL to the ingress URL used" .Values.karvdash.ingressURL) }}
+{{- $ingressURL := (required "You must set knot.ingressURL to the ingress URL used" .Values.knot.ingressURL) }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -30,7 +30,7 @@ spec:
         - name: {{ .Release.Name }}-proxy-config
           mountPath: /etc/nginx/conf.d/default.conf
           subPath: default.conf
-        {{- if or .Values.karvdash.logsVolumeClaim .Values.karvdash.logsHostPath }}
+        {{- if or .Values.knot.logsVolumeClaim .Values.knot.logsHostPath }}
         - name: {{ .Release.Name }}-logs-volume
           mountPath: /var/log/nginx
           subPath: proxy
@@ -50,12 +50,12 @@ spec:
         - name: {{ .Release.Name }}-webhook-secret
           mountPath: /etc/ssl/keys
           readOnly: true
-        {{- if or .Values.karvdash.logsVolumeClaim .Values.karvdash.logsHostPath }}
+        {{- if or .Values.knot.logsVolumeClaim .Values.knot.logsHostPath }}
         - name: {{ .Release.Name }}-logs-volume
           mountPath: /var/log/nginx
           subPath: webhook
         {{- end }}
-      - image: {{- if .Values.image }} {{ .Values.image }} {{- else }} carvicsforth/karvdash:v{{ .Chart.Version }} {{- end }}
+      - image: {{- if .Values.image }} {{ .Values.image }} {{- else }} carvicsforth/knot:v{{ .Chart.Version }} {{- end }}
         name: dashboard
         envFrom:
         - secretRef:
@@ -63,38 +63,38 @@ spec:
         - configMapRef:
             name: {{ .Release.Name }}-env
         env:
-        {{- if .Values.karvdash.disabledServices }}
-        - name: KARVDASH_DISABLED_SERVICES_FILE
-          value: /etc/karvdash/disabled_services
+        {{- if .Values.knot.disabledServices }}
+        - name: KNOT_DISABLED_SERVICES_FILE
+          value: /etc/knot/disabled_services
         {{- end }}
-        {{- if .Values.karvdash.disabledDatasets }}
-        - name: KARVDASH_DISABLED_DATASETS_FILE
-          value: /etc/karvdash/disabled_datasets
+        {{- if .Values.knot.disabledDatasets }}
+        - name: KNOT_DISABLED_DATASETS_FILE
+          value: /etc/knot/disabled_datasets
         {{- end }}
-        {{- if .Values.karvdash.serviceURLPrefixes }}
-        - name: KARVDASH_SERVICE_URL_PREFIXES_FILE
-          value: /etc/karvdash/service_url_prefixes
+        {{- if .Values.knot.serviceURLPrefixes }}
+        - name: KNOT_SERVICE_URL_PREFIXES_FILE
+          value: /etc/knot/service_url_prefixes
         {{- end }}
         ports:
         - containerPort: 8000
           name: http
         volumeMounts:
-        {{- if .Values.karvdash.disabledServices }}
+        {{- if .Values.knot.disabledServices }}
         - name: {{ .Release.Name }}-files-config
-          mountPath: /etc/karvdash/disabled_services
+          mountPath: /etc/knot/disabled_services
           subPath: disabled_services
         {{- end }}
-        {{- if .Values.karvdash.disabledDatasets }}
+        {{- if .Values.knot.disabledDatasets }}
         - name: {{ .Release.Name }}-files-config
-          mountPath: /etc/karvdash/disabled_datasets
+          mountPath: /etc/knot/disabled_datasets
           subPath: disabled_datasets
         {{- end }}
-        {{- if .Values.karvdash.serviceURLPrefixes }}
+        {{- if .Values.knot.serviceURLPrefixes }}
         - name: {{ .Release.Name }}-files-config
-          mountPath: /etc/karvdash/service_url_prefixes
+          mountPath: /etc/knot/service_url_prefixes
           subPath: service_url_prefixes
         {{- end }}
-        {{- if or .Values.karvdash.themeVolumeClaim .Values.karvdash.themeHostPath }}
+        {{- if or .Values.knot.themeVolumeClaim .Values.knot.themeHostPath }}
         - name: {{ .Release.Name }}-theme-volume
           mountPath: /app/dashboard/static/dashboard/theme
         {{- end }}
@@ -102,13 +102,13 @@ spec:
           mountPath: /db
         - name: {{ .Release.Name }}-files-volume
           mountPath: /files
-        {{- if and .Values.karvdash.certificateSecretName .Values.karvdash.certificateSecretKey }}
+        {{- if and .Values.knot.certificateSecretName .Values.knot.certificateSecretKey }}
         - name: ssl-certificate-volume
           mountPath: /usr/local/share/ca-certificates/{{ (split ":" ($ingressURL | urlParse).host)._0 }}.crt
-          subPath: {{ .Values.karvdash.certificateSecretKey }}
+          subPath: {{ .Values.knot.certificateSecretKey }}
         {{- end }}
-      {{- if not .Values.karvdash.developmentURL }}
-      - image: {{- if .Values.image }} {{ .Values.image }} {{- else }} carvicsforth/karvdash:v{{ .Chart.Version }} {{- end }}
+      {{- if not .Values.knot.developmentURL }}
+      - image: {{- if .Values.image }} {{ .Values.image }} {{- else }} carvicsforth/knot:v{{ .Chart.Version }} {{- end }}
         name: worker
         command: ["./start.sh"]
         args: ["worker"]
@@ -120,10 +120,10 @@ spec:
         volumeMounts:
         - name: {{ .Release.Name }}-state-volume
           mountPath: /db
-        {{- if and .Values.karvdash.certificateSecretName .Values.karvdash.certificateSecretKey }}
+        {{- if and .Values.knot.certificateSecretName .Values.knot.certificateSecretKey }}
         - name: ssl-certificate-volume
           mountPath: /usr/local/share/ca-certificates/{{ (split ":" ($ingressURL | urlParse).host)._0 }}.crt
-          subPath: {{ .Values.karvdash.certificateSecretKey }}
+          subPath: {{ .Values.knot.certificateSecretKey }}
         {{- end }}
       {{- end }}
       - image: voucher/vouch-proxy:0.27.1
@@ -166,31 +166,31 @@ spec:
         configMap:
           name: {{ .Release.Name }}-webhook
           defaultMode: 0644
-      {{- if .Values.karvdash.themeVolumeClaim }}
+      {{- if .Values.knot.themeVolumeClaim }}
       - name: {{ .Release.Name }}-theme-volume
         persistentVolumeClaim:
-          claimName: {{ .Values.karvdash.themeVolumeClaim }}
-      {{- else if .Values.karvdash.themeHostPath }}
+          claimName: {{ .Values.knot.themeVolumeClaim }}
+      {{- else if .Values.knot.themeHostPath }}
       - name: {{ .Release.Name }}-theme-volume
         persistentVolumeClaim:
           claimName: {{ .Release.Name }}-theme-pvc
       {{- end }}
-      {{- if .Values.karvdash.logsVolumeClaim }}
+      {{- if .Values.knot.logsVolumeClaim }}
       - name: {{ .Release.Name }}-logs-volume
         persistentVolumeClaim:
-          claimName: {{ .Values.karvdash.logsVolumeClaim }}
-      {{- else if .Values.karvdash.logsHostPath }}
+          claimName: {{ .Values.knot.logsVolumeClaim }}
+      {{- else if .Values.knot.logsHostPath }}
       - name: {{ .Release.Name }}-logs-volume
         persistentVolumeClaim:
           claimName: {{ .Release.Name }}-logs-pvc
       {{- end }}
       - name: {{ .Release.Name }}-state-volume
         persistentVolumeClaim:
-          claimName: {{- if .Values.karvdash.stateVolumeClaim }} {{ .Values.karvdash.stateVolumeClaim }} {{- else }} {{ .Release.Name }}-state-pvc {{- end }}
+          claimName: {{- if .Values.knot.stateVolumeClaim }} {{ .Values.knot.stateVolumeClaim }} {{- else }} {{ .Release.Name }}-state-pvc {{- end }}
       - name: {{ .Release.Name }}-files-volume
         persistentVolumeClaim:
           claimName: {{ .Release.Name }}-files-pvc
-      {{- if and .Values.karvdash.certificateSecretName .Values.karvdash.certificateSecretKey }}
+      {{- if and .Values.knot.certificateSecretName .Values.knot.certificateSecretKey }}
       - name: ssl-certificate-volume
         secret:
           secretName: ssl-certificate

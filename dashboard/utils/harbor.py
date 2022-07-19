@@ -63,7 +63,7 @@ class HarborClient(object):
                                               'oidc_client_id': oidc_client_id,
                                               'oidc_client_secret': oidc_client_secret,
                                               'oidc_endpoint': oidc_endpoint,
-                                              'oidc_name': 'karvdash',
+                                              'oidc_name': 'knot',
                                               'oidc_scope': 'openid,profile,email',
                                               'oidc_user_claim': 'sub',
                                               'project_creation_restriction': 'adminonly'})

@@ -1,4 +1,4 @@
-{{- $filesURL := (required "You must set karvdash.filesURL to the base URL for the private and shared file domains" .Values.karvdash.filesURL) | urlParse }}
+{{- $filesURL := (required "You must set knot.filesURL to the base URL for the private and shared file domains" .Values.knot.filesURL) | urlParse }}
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
@@ -13,7 +13,7 @@ spec:
     - ReadWriteMany
   resources:
     requests:
-      storage: {{ .Values.karvdash.filesSize }}
+      storage: {{ .Values.knot.filesSize }}
 ---
 apiVersion: v1
 kind: PersistentVolume
@@ -26,12 +26,14 @@ spec:
   accessModes:
     - ReadWriteMany
   capacity:
-    storage: {{ .Values.karvdash.filesSize }}
+    storage: {{ .Values.knot.filesSize }}
   persistentVolumeReclaimPolicy: Retain
   {{- if eq $filesURL.scheme "file" }}
   hostPath:
     path: {{ $filesURL.path | clean | quote }}
   {{- else if eq $filesURL.scheme "nfs" }}
+  mountOptions:
+    - nfsvers=4.1
   csi:
     driver: nfs.csi.k8s.io
     readOnly: false

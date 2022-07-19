@@ -1,4 +1,4 @@
-{{- if not .Values.karvdash.stateVolumeClaim }}
+{{- if not .Values.knot.stateVolumeClaim }}
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
@@ -13,7 +13,7 @@ spec:
     - ReadWriteOnce
   resources:
     requests:
-      storage: 1Gi
+      storage: 10Gi
 ---
 apiVersion: v1
 kind: PersistentVolume
@@ -26,8 +26,8 @@ spec:
   accessModes:
     - ReadWriteOnce
   capacity:
-    storage: 1Gi
+    storage: 10Gi
   persistentVolumeReclaimPolicy: Retain
   hostPath:
-    path: {{ required "You must set karvdash.stateHostPath to the host path for storing state, since no existing volume claim is set" .Values.karvdash.stateHostPath | quote }}
+    path: {{ required "You must set knot.stateHostPath to the host path for storing state, since no existing volume claim is set" .Values.knot.stateHostPath | quote }}
 {{- end }}

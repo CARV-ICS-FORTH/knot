@@ -1,26 +1,10 @@
-# Installation on bare metal
+#!/bin/bash
 
-To install Karvdash on bare metal, first install [Ubuntu Server 20.04 LTS](https://ubuntu.com/download/server) on a server with an external IP address (tested on [VirtualBox](https://www.virtualbox.org) with 2 CPUs, 4 GB RAM, bridged network adapter). Update packages. Run as root.
-
-Set external IP address in an environment variable:
-```bash
-export IP_ADDRESS=`ip -o route get 1 | sed -n 's/.*src \([0-9.]\+\).*/\1/p'`
-```
-
-## System
-
-Disable swap:
-
-```bash
+# Disable swap
 sed -e '/swap/ s/^#*/#/' -i /etc/fstab
 swapoff -a
-```
 
-## Docker
-
-Follow [these](https://docs.docker.com/engine/install/ubuntu/) instructions to install Docker:
-
-```bash
+# Install Docker (https://docs.docker.com/engine/install/ubuntu/)
 apt-get update
 apt-get install -y ca-certificates curl gnupg lsb-release
 curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
@@ -30,11 +14,8 @@ echo \
 apt-get update
 apt-get install -y docker-ce docker-ce-cli containerd.io
 apt-mark hold docker-ce docker-ce-cli containerd.io
-```
 
-Follow [these](https://v1-22.docs.kubernetes.io/docs/setup/production-environment/container-runtimes/#docker) instructions to configure Docker:
-
-```bash
+# Configure Docker (https://v1-22.docs.kubernetes.io/docs/setup/production-environment/container-runtimes/#docker)
 mkdir -p /etc/docker
 cat <<EOF | sudo tee /etc/docker/daemon.json
 {
@@ -49,13 +30,8 @@ EOF
 systemctl enable docker
 systemctl daemon-reload
 systemctl restart docker
-```
 
-## Kubernetes
-
-Follow [these](https://v1-22.docs.kubernetes.io/docs/setup/production-environment/tools/kubeadm/install-kubeadm/) instructions to install kubeadm:
-
-```bash
+# Install kubeadm (https://v1-22.docs.kubernetes.io/docs/setup/production-environment/tools/kubeadm/install-kubeadm/)
 KUBERNETES_VERSION="1.22.4"
 apt-get update
 apt-get install -y apt-transport-https ca-certificates curl
@@ -64,58 +40,43 @@ echo "deb [signed-by=/usr/share/keyrings/kubernetes-archive-keyring.gpg] https:/
 apt-get update
 apt-get install -y kubelet=${KUBERNETES_VERSION}-00 kubeadm=${KUBERNETES_VERSION}-00 kubectl=${KUBERNETES_VERSION}-00
 apt-mark hold kubelet kubeadm kubectl
-```
 
-Follow [these](https://v1-22.docs.kubernetes.io/docs/setup/production-environment/tools/kubeadm/create-cluster-kubeadm/) instructions to initialize Kubernetes:
-
-```bash
+# Initialize Kubernetes (https://v1-22.docs.kubernetes.io/docs/setup/production-environment/tools/kubeadm/create-cluster-kubeadm/)
 kubeadm init --pod-network-cidr=10.244.0.0/16 --kubernetes-version=${KUBERNETES_VERSION}
 mkdir -p $HOME/.kube
 cp /etc/kubernetes/admin.conf $HOME/.kube/config
 kubectl taint nodes --all node-role.kubernetes.io/master-
-```
 
-Install a Pod network add-on:
-
-```bash
+# Install a Pod network add-on
 FLANNEL_VERSION="0.15.1"
 kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/v${FLANNEL_VERSION}/Documentation/kube-flannel.yml
-```
 
-## Helm
-
-Download and install the [Helm](https://helm.sh) binary:
-
-```bash
+# Download and install Helm (https://helm.sh)
 HELM_VERSION="3.8.0"
 curl -LO https://get.helm.sh/helm-v${HELM_VERSION}-linux-amd64.tar.gz
 tar -zxvf helm-v${HELM_VERSION}-linux-amd64.tar.gz
 cp linux-amd64/helm /usr/local/bin/
 rm -rf helm-v${HELM_VERSION}-linux-amd64.tar.gz linux-amd64
 helm plugin install https://github.com/databus23/helm-diff
-```
 
-## Helmfile
-
-Download and install the [Helmfile](https://github.com/roboll/helmfile) binary:
-
-```bash
+# Download and install Helmfile (https://github.com/roboll/helmfile)
 HELMFILE_VERSION="0.143.0"
 curl -LO https://github.com/roboll/helmfile/releases/download/v${HELMFILE_VERSION}/helmfile_linux_amd64
 cp helmfile_linux_amd64 /usr/local/bin/helmfile
 chmod +x /usr/local/bin/helmfile
 rm -f helmfile_linux_amd64
-```
 
-## Karvdash
-
-Clone and deploy [Karvdash](https://github.com/CARV-ICS-FORTH/karvdash):
-
-```bash
-git clone https://github.com/kantale/OpenBio.eu.git
-git clone https://github.com/CARV-ICS-FORTH/karvdash.git
-cd karvdash
-apt-get install -y make
-BAREMETAL=yes make deploy-requirements
-BAREMETAL=yes make deploy-local
-```
+# Install Knot
+IP_ADDRESS=`ip -o route get 1 | sed -n 's/.*src \([0-9.]\+\).*/\1/p'`
+export KNOT_HOST=${IP_ADDRESS}.nip.io
+mkdir -p /mnt/state /mnt/state/jupyterhub /mnt/state/harbor/{database,redis,registry,chartmuseum,jobservice}
+chown 1000:1000 /mnt/state/jupyterhub
+chown 999:999 /mnt/state/harbor/{database,redis}
+chown 10000:10000 /mnt/state/harbor/{registry,chartmuseum,jobservice}
+mkdir -p /mnt/files
+helmfile -f git::https://github.com/CARV-ICS-FORTH/knot.git@helmfile.yaml \
+  --state-values-set ingress.service.type=NodePort \
+  --state-values-set ingress.service.externalIPs\[0\]=${IP_ADDRESS} \
+  --state-values-set storage.stateVolume.hostPath=/mnt/state \
+  --state-values-set storage.filesVolume.hostPath=/mnt/files \
+  sync

@@ -1,5 +1,5 @@
 message: I just deployed this on Kubernetes! # Provide a custom message
 
-karvdash:
+knot:
   enabled: true
   hostname: hello-kubernetes.example.com

@@ -37,7 +37,7 @@ kind: Namespace
 metadata:
   name: {{ name }}
   labels:
-    karvdash: enabled
+    knot: enabled
 ---
 kind: RoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
@@ -96,7 +96,7 @@ class User(AuthUser):
 
     @property
     def namespace(self):
-        return 'karvdash-%s' % self.username
+        return 'knot-%s' % self.username
 
     @property
     def literal_auth(self):
@@ -124,7 +124,7 @@ class User(AuthUser):
             for dataset in kubernetes_client.list_crds(group='com.ie.ibm.hpsys', version='v1alpha1', namespace=self.namespace, plural='datasets'):
                 try:
                     # Hidden datasets are included in file domains.
-                    if 'karvdash-hidden' in dataset['metadata']['labels'].keys():
+                    if 'knot-hidden' in dataset['metadata']['labels'].keys():
                         continue
                 except:
                     pass
@@ -168,7 +168,7 @@ class User(AuthUser):
 
         if not kubernetes_client:
             kubernetes_client = KubernetesClient()
-        kubernetes_client.update_secret(self.namespace, 'karvdash-auth', [self.literal_auth])
+        kubernetes_client.update_secret(self.namespace, 'knot-auth', [self.literal_auth])
 
     def delete_kubernetes_credentials(self, kubernetes_client=None):
         if settings.VOUCH_URL:
@@ -178,7 +178,7 @@ class User(AuthUser):
 
         if not kubernetes_client:
             kubernetes_client = KubernetesClient()
-        kubernetes_client.delete_secret(self.namespace, 'karvdash-auth')
+        kubernetes_client.delete_secret(self.namespace, 'knot-auth')
 
     def update_registry_credentials(self, kubernetes_client=None):
         if not settings.HARBOR_URL or not settings.HARBOR_ADMIN_PASSWORD:

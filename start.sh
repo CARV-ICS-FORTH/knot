@@ -6,30 +6,30 @@ export REQUESTS_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt
 TYPE=${1:-server}
 
 if [[ $TYPE == "worker" ]]; then
-    celery -A karvdash worker -l info
+    celery -A knot worker -l info
     exit $?
 fi
 
-ADMIN_PASSWORD=${KARVDASH_ADMIN_PASSWORD:-admin}
-TIMEOUT=${KARVDASH_TIMEOUT:-180}
+ADMIN_PASSWORD=${KNOT_ADMIN_PASSWORD:-admin}
+TIMEOUT=${KNOT_TIMEOUT:-180}
 
 python manage.py migrate
 python manage.py createadmin --noinput --username admin --password $ADMIN_PASSWORD --email admin@example.com --preserve
-python manage.py createoauthapplication --name vouch --redirect-uri $KARVDASH_VOUCH_URL/auth --secret-name $KARVDASH_VOUCH_SECRET --secret-namespace $KARVDASH_NAMESPACE
-if [[ -n $KARVDASH_JUPYTERHUB_URL && -n $KARVDASH_JUPYTERHUB_NAMESPACE ]]; then
-    python manage.py createoauthapplication --name jupyterhub --redirect-uri $KARVDASH_JUPYTERHUB_URL/hub/oauth_callback --secret-name karvdash-oauth-jupyterhub --secret-namespace $KARVDASH_JUPYTERHUB_NAMESPACE
+python manage.py createoauthapplication --name vouch --redirect-uri $KNOT_VOUCH_URL/auth --secret-name $KNOT_VOUCH_SECRET --secret-namespace $KNOT_NAMESPACE
+if [[ -n $KNOT_JUPYTERHUB_URL && -n $KNOT_JUPYTERHUB_NAMESPACE ]]; then
+    python manage.py createoauthapplication --name jupyterhub --redirect-uri $KNOT_JUPYTERHUB_URL/hub/oauth_callback --secret-name knot-oauth-jupyterhub --secret-namespace $KNOT_JUPYTERHUB_NAMESPACE
 fi
-if [[ -n $KARVDASH_ARGO_WORKFLOWS_URL && -n $KARVDASH_ARGO_WORKFLOWS_NAMESPACE ]]; then
-    python manage.py createoauthapplication --name argo --redirect-uri $KARVDASH_ARGO_WORKFLOWS_URL/oauth2/callback --secret-name karvdash-oauth-argo --secret-namespace $KARVDASH_ARGO_WORKFLOWS_NAMESPACE
+if [[ -n $KNOT_ARGO_WORKFLOWS_URL && -n $KNOT_ARGO_WORKFLOWS_NAMESPACE ]]; then
+    python manage.py createoauthapplication --name argo --redirect-uri $KNOT_ARGO_WORKFLOWS_URL/oauth2/callback --secret-name knot-oauth-argo --secret-namespace $KNOT_ARGO_WORKFLOWS_NAMESPACE
 fi
-if [[ -n $KARVDASH_HARBOR_URL && -n $KARVDASH_HARBOR_NAMESPACE && -n $KARVDASH_HARBOR_ADMIN_PASSWORD ]]; then
-    python manage.py createoauthapplication --name harbor --redirect-uri $KARVDASH_HARBOR_URL/c/oidc/callback --secret-name karvdash-oauth-harbor --secret-namespace $KARVDASH_HARBOR_NAMESPACE
-    python manage.py configureharbor --oauth-application-name harbor --harbor-url $KARVDASH_HARBOR_URL --harbor-admin-password `printf "%q" $KARVDASH_HARBOR_ADMIN_PASSWORD` --ingress-url $KARVDASH_INGRESS_URL
+if [[ -n $KNOT_HARBOR_URL && -n $KNOT_HARBOR_NAMESPACE && -n $KNOT_HARBOR_ADMIN_PASSWORD ]]; then
+    python manage.py createoauthapplication --name harbor --redirect-uri $KNOT_HARBOR_URL/c/oidc/callback --secret-name knot-oauth-harbor --secret-namespace $KNOT_HARBOR_NAMESPACE
+    python manage.py configureharbor --oauth-application-name harbor --harbor-url $KNOT_HARBOR_URL --harbor-admin-password `printf "%q" $KNOT_HARBOR_ADMIN_PASSWORD` --ingress-url $KNOT_INGRESS_URL || exit 1
 
     # Upload service charts
     package_charts () {
         for chart in `ls -d ../services/*/`; do
-            if [[ -n $KARVDASH_DISABLED_SERVICES_FILE ]] && grep -iq '^'$(basename $chart)'$' $KARVDASH_DISABLED_SERVICES_FILE; then
+            if [[ -n $KNOT_DISABLED_SERVICES_FILE ]] && grep -iq '^'$(basename $chart)'$' $KNOT_DISABLED_SERVICES_FILE; then
                 continue
             fi
             helm package $chart
@@ -42,14 +42,14 @@ if [[ -n $KARVDASH_HARBOR_URL && -n $KARVDASH_HARBOR_NAMESPACE && -n $KARVDASH_H
         done
     }
 
-    helm repo add --username=admin --password="$KARVDASH_HARBOR_ADMIN_PASSWORD" library $KARVDASH_HARBOR_URL/chartrepo/library
+    helm repo add --username=admin --password="$KNOT_HARBOR_ADMIN_PASSWORD" library $KNOT_HARBOR_URL/chartrepo/library
     (mkdir -p repo/services-build && cd repo/services-build && package_charts && upload_charts)
 fi
-if [[ -n $KARVDASH_GRAFANA_URL && -n $KARVDASH_GRAFANA_NAMESPACE ]]; then
-    python manage.py createoauthapplication --name grafana --redirect-uri $KARVDASH_GRAFANA_URL/login/generic_oauth --secret-name karvdash-oauth-grafana --secret-namespace $KARVDASH_GRAFANA_NAMESPACE
+if [[ -n $KNOT_GRAFANA_URL && -n $KNOT_GRAFANA_NAMESPACE ]]; then
+    python manage.py createoauthapplication --name grafana --redirect-uri $KNOT_GRAFANA_URL/login/generic_oauth --secret-name knot-oauth-grafana --secret-namespace $KNOT_GRAFANA_NAMESPACE
 fi
-if [[ -n $KARVDASH_OPENBIO_URL && -n $KARVDASH_OPENBIO_NAMESPACE ]]; then
-    python manage.py createoauthapplication --name openbio --redirect-uri $KARVDASH_OPENBIO_URL/platform/complete/karvdash/ --secret-name karvdash-oauth-openbio --secret-namespace $KARVDASH_OPENBIO_NAMESPACE
+if [[ -n $KNOT_OPENBIO_URL && -n $KNOT_OPENBIO_NAMESPACE ]]; then
+    python manage.py createoauthapplication --name openbio --redirect-uri $KNOT_OPENBIO_URL/platform/complete/knot/ --secret-name knot-oauth-openbio --secret-namespace $KNOT_OPENBIO_NAMESPACE
 fi
 
-gunicorn -w 4 -t $TIMEOUT -b 0.0.0.0:8000 karvdash.wsgi:application
+gunicorn -w 4 -t $TIMEOUT -b 0.0.0.0:8000 knot.wsgi:application

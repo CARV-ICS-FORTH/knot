@@ -25,10 +25,10 @@ spec:
           POD_NUMBER=${HOSTNAME##*-} && \
           export ZOOKEEPER_SERVER_ID=$(($POD_NUMBER+1)) && \
           ZOOKEEPER_SERVERS=""; for i in `seq 0 $(({{ .Values.servers }} - 1))`; do if [ $i == $POD_NUMBER ]; then ZOOKEEPER_SERVERS="$ZOOKEEPER_SERVERS;0.0.0.0:2888:3888"; else ZOOKEEPER_SERVERS="$ZOOKEEPER_SERVERS;{{ $fullName }}-$i.{{ $fullName }}:2888:3888"; fi; done; export ZOOKEEPER_SERVERS=${ZOOKEEPER_SERVERS:1} && \
-          mkdir -p {{ .Values.karvdash.privateDir }}/.zookeeper/{{ $fullName }}-$POD_NUMBER/data && \
-          mkdir -p {{ .Values.karvdash.privateDir }}/.zookeeper/{{ $fullName }}-$POD_NUMBER/log && \
-          find /etc -type f -exec sed -i "s|/var/lib/zookeeper/*|{{ .Values.karvdash.privateDir }}/.zookeeper/{{ $fullName }}-$POD_NUMBER/|" {} \; && \
-          echo $ZOOKEEPER_SERVER_ID > {{ .Values.karvdash.privateDir }}/.zookeeper/{{ $fullName }}-$POD_NUMBER/data/myid && \
+          mkdir -p {{ .Values.knot.privateDir }}/.zookeeper/{{ $fullName }}-$POD_NUMBER/data && \
+          mkdir -p {{ .Values.knot.privateDir }}/.zookeeper/{{ $fullName }}-$POD_NUMBER/log && \
+          find /etc -type f -exec sed -i "s|/var/lib/zookeeper/*|{{ .Values.knot.privateDir }}/.zookeeper/{{ $fullName }}-$POD_NUMBER/|" {} \; && \
+          echo $ZOOKEEPER_SERVER_ID > {{ .Values.knot.privateDir }}/.zookeeper/{{ $fullName }}-$POD_NUMBER/data/myid && \
           /etc/confluent/docker/run
         env:
         - name: ZOOKEEPER_TICK_TIME

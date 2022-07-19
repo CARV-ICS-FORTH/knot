@@ -5,8 +5,8 @@ metadata:
   name: {{ $fullName }}
   labels:
     {{- include "rabbitmq.labels" . | nindent 4 }}
-    {{- if .Values.karvdash.enabled }}
-    karvdash-no-datasets: "true"
+    {{- if .Values.knot.enabled }}
+    knot-no-datasets: "true"
     {{- end }}
 spec:
   replicas: 1
@@ -25,8 +25,8 @@ spec:
         - /bin/bash
         - -c
         - |
-          mkdir -p {{ .Values.karvdash.privateDir }}/.rabbitmq/{{ $fullName }}/mnesia && \
-          chown -R rabbitmq:rabbitmq {{ .Values.karvdash.privateDir }}/.rabbitmq/{{ $fullName }}/mnesia && \
+          mkdir -p {{ .Values.knot.privateDir }}/.rabbitmq/{{ $fullName }}/mnesia && \
+          chown -R rabbitmq:rabbitmq {{ .Values.knot.privateDir }}/.rabbitmq/{{ $fullName }}/mnesia && \
           /usr/local/bin/docker-entrypoint.sh rabbitmq-server
         ports:
         - containerPort: 5672
@@ -35,7 +35,7 @@ spec:
         - name: RABBITMQ_NODENAME
           value: rabbit@localhost
         - name: RABBITMQ_MNESIA_BASE
-          value: {{ .Values.karvdash.privateDir }}/.rabbitmq/{{ $fullName }}/mnesia
+          value: {{ .Values.knot.privateDir }}/.rabbitmq/{{ $fullName }}/mnesia
         - name: RABBITMQ_DEFAULT_USER
           value: {{ .Values.username }}
         - name: RABBITMQ_DEFAULT_PASS

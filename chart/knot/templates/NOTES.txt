@@ -1,0 +1,3 @@
+Thank you for installing {{ .Chart.Name }}.
+
+Your release is named {{ .Release.Name }} and will be available at {{ .Values.knot.ingressURL }} in a few moments.

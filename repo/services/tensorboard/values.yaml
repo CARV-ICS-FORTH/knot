@@ -1,5 +1,5 @@
 logDir: /private/tf/logs # Log directory
 
-karvdash:
+knot:
   enabled: true
   hostname: tensorboard.example.com

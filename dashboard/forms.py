@@ -78,7 +78,7 @@ class CreateServiceForm(forms.Form):
         super().__init__(*args, **kwargs)
         for variable in variables:
             label = variable['label']
-            if label.startswith('data.karvdash.'):
+            if label.startswith('data.knot.'):
                 continue
             kwargs = {'validators': [validate_kubernetes_label], 'required': True} if label == 'name' else {'required': False}
             if label.startswith('data.'):

@@ -1,7 +1,7 @@
 username: username # Username for RabbitMQ
 password: password # Password for RabbitMQ
 
-karvdash:
+knot:
   enabled: true
   hostname: rabbitmq.example.com
   privateDir: /private

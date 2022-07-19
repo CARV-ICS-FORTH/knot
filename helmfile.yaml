@@ -1,91 +1,47 @@
 environments:
-  # Default deployment for development with Docker Desktop.
   default:
     values:
+    - storage:
+        # The volume to use for storing state across all applications.
+        stateVolume:
+          existingClaim:
+          hostPath:
+          size: 10Gi
+        # The volume to use for storing user files.
+        filesVolume:
+          existingClaim:
+          hostPath:
+          size: 10Gi
     - ingress:
-        host: {{ env "IP_ADDRESS" | default "192.168.1.1" }}.nip.io
+        host: {{ requiredEnv "KNOT_HOST" }}
         service:
           type: LoadBalancer
         createSelfsignedCertificate: true
     - jupyterHub:
         enabled: true
-        persistence:
-          provisioning: auto
-        clientID: 56kSn87XXbk4GuFBQ7zQrXcVQNyyMWKb1vR2diUZ
         clientSecret: FvxWxBTbhgQbo1sGbc6yLsza0Vwo6jZQBpiOSDYcghCjWWcpRzBygzJSQ8M4CunflPn9pCOr25vVnGr0N2ytR6FjklSesc28BqkHSM6aVIYA5RKFZaOpiMj9Ghc5VDfN
     - argo:
         enabled: true
-        clientID: T8DrPY49xlYvjsJ1nUIhxs17fG07gMZpQSOM7d3K
         clientSecret: 6TjANPj1oe59MexsTYdMV5yiSyOYULDEzkyxfff4CmAPFa8mQ1dhYE7BHeEEVyg1tRgTkXRWYj2zhiKLiLZvhUGDnrixQQDshrWVtWCgQX23Vmdo37ktuVmsgOEfO2eG
     - harbor:
         enabled: true
-        persistence:
-          provisioning: auto
         adminPassword: Harbor12345
         secretKey: 4sdcg3urQQd00vHU
-        clientID: XAOdj9vN5BAjKJD0XjRMlqNybdlRKCF1XcOJHmPT
         clientSecret: rgRQVzfZnoU9WAOqfni5hyC0bXZHjKPyLKOCUVfmBBWbVdaMRQfuep7lPKDjef5bZDxYc4OpiVjGMpXuRye872ATHejjMRKvfPAOA482uh2SjpwmIKUBigBZaVKFkYF3
     - grafana:
         enabled: true
-        clientID: tSlY0FSd7tmS7jR0J6KLyIhisd9yYitlmyx3oVb3
         clientSecret: eYLaIV2NtZHhR7M9zh1ouLl4LpuwwpcrYBspXbS2gTCm61Hn01ghmZf7iBxxk5r3SdPHnlg6Ovm6IKK4CmJKNl8gnkvxjmOt7YOxZJR0BJH8DPHnA9Nh6pHpmESM8mfE
-    - openBio:
-        enabled: false
-        version: 0.2.1
-        djangoDebug: 1
-        databaseHostPath: {{ requiredEnv "PWD" }}/db/openbio
-        clientID: GtgX0LX4nZ27kYPQOtQV9szC1jFdeN35NMCjamqL
-        clientSecret: dQffp68kBzNDZrG4vgrIG8uguc2j0KRAXnTR5mrLuMuNq2sVl5PDtDnNyQoxpe2HiNuBehj5t35O3i8pBqZC2RO92CHTprkb8L662ka9lCUBqmo5F1OBB1QmzBo4jEK6
-  # Use local folders instead of volumes for development on baremetal.
-  baremetal:
-    values:
-    - ingress:
-        host: {{ env "IP_ADDRESS" | default "192.168.1.1" }}.nip.io
-        service:
-          type: NodePort
-          externalIPs:
-          - {{ env "IP_ADDRESS" | default "192.168.1.1" }}
-          # nodePorts:
-          #   http: 30080
-          #   https: 30443
-        createSelfsignedCertificate: true
-    - jupyterHub:
-        enabled: true
-        persistence:
-          provisioning: local
-          path: {{ requiredEnv "PWD" }}/db/jupyterhub
-        # singleuserExtra: # Use to set a custom image.
-        #   image:
-        #     name: jupyterhub/k8s-singleuser-sample
-        #     tag: "1.2.0"
-        clientID: 56kSn87XXbk4GuFBQ7zQrXcVQNyyMWKb1vR2diUZ
-        clientSecret: FvxWxBTbhgQbo1sGbc6yLsza0Vwo6jZQBpiOSDYcghCjWWcpRzBygzJSQ8M4CunflPn9pCOr25vVnGr0N2ytR6FjklSesc28BqkHSM6aVIYA5RKFZaOpiMj9Ghc5VDfN
-    - argo:
-        enabled: true
-        clientID: T8DrPY49xlYvjsJ1nUIhxs17fG07gMZpQSOM7d3K
-        clientSecret: 6TjANPj1oe59MexsTYdMV5yiSyOYULDEzkyxfff4CmAPFa8mQ1dhYE7BHeEEVyg1tRgTkXRWYj2zhiKLiLZvhUGDnrixQQDshrWVtWCgQX23Vmdo37ktuVmsgOEfO2eG
-    - harbor:
-        enabled: true
-        persistence:
-          provisioning: local
-          path: {{ requiredEnv "PWD" }}/db/harbor
-        adminPassword: Harbor12345
-        secretKey: 4sdcg3urQQd00vHU
-        clientID: XAOdj9vN5BAjKJD0XjRMlqNybdlRKCF1XcOJHmPT
-        clientSecret: rgRQVzfZnoU9WAOqfni5hyC0bXZHjKPyLKOCUVfmBBWbVdaMRQfuep7lPKDjef5bZDxYc4OpiVjGMpXuRye872ATHejjMRKvfPAOA482uh2SjpwmIKUBigBZaVKFkYF3
-    - grafana:
-        enabled: true
-        clientID: tSlY0FSd7tmS7jR0J6KLyIhisd9yYitlmyx3oVb3
-        clientSecret: eYLaIV2NtZHhR7M9zh1ouLl4LpuwwpcrYBspXbS2gTCm61Hn01ghmZf7iBxxk5r3SdPHnlg6Ovm6IKK4CmJKNl8gnkvxjmOt7YOxZJR0BJH8DPHnA9Nh6pHpmESM8mfE
-    - openBio:
-        enabled: false
-        version: 0.2.1
-        djangoDebug: 1
-        databaseHostPath: {{ requiredEnv "PWD" }}/db/openbio
-        clientID: GtgX0LX4nZ27kYPQOtQV9szC1jFdeN35NMCjamqL
-        clientSecret: dQffp68kBzNDZrG4vgrIG8uguc2j0KRAXnTR5mrLuMuNq2sVl5PDtDnNyQoxpe2HiNuBehj5t35O3i8pBqZC2RO92CHTprkb8L662ka9lCUBqmo5F1OBB1QmzBo4jEK6
+    - knot:
+        # Forward requests for development.
+        developmentURL:
+        # Use local chart and image.
+        localImage: false
 ---
 repositories:
+{{- if not (and .Values.storage.stateVolume.hostPath .Values.storage.filesVolume.hostPath) }}
+- name: csi-driver-nfs
+  url: https://raw.githubusercontent.com/kubernetes-csi/csi-driver-nfs/master/charts
+{{- end }}
 - name: cert-manager
   url: https://charts.jetstack.io
 - name: ingress-nginx
@@ -112,7 +68,180 @@ repositories:
 - name: prometheus-community
   url: https://prometheus-community.github.io/helm-charts
 {{- end }}
+{{- if not .Values.knot.localImage }}
+- name: knot
+  url: https://carv-ics-forth.github.io/knot/chart
+{{- end }}
 releases:
+{{- if not (and .Values.storage.stateVolume.hostPath .Values.storage.filesVolume.hostPath) }}
+- name: csi-driver-nfs
+  namespace: csi-nfs
+  createNamespace: true
+  chart: csi-driver-nfs/csi-driver-nfs
+  version: v4.1.0
+  values:
+  - controller:
+      dnsPolicy: ClusterFirstWithHostNet
+  - node:
+      dnsPolicy: ClusterFirstWithHostNet
+{{- end }}
+{{- if not .Values.storage.stateVolume.hostPath }}
+- name: nfs-server-state
+  namespace: nfs
+  createNamespace: true
+  chart: bedag/raw
+  version: 1.1.0
+  values:
+  - resources:
+    - apiVersion: v1
+      kind: Service
+      metadata:
+        name: nfs-server-state
+      spec:
+        ports:
+          - name: nfs
+            port: 2049
+          - name: mountd
+            port: 20048
+          - name: rpcbind
+            port: 111
+        selector:
+          app: nfs-server-state
+    - apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: nfs-server-state
+      spec:
+        replicas: 1
+        selector:
+          matchLabels:
+            app: nfs-server-state
+        template:
+          metadata:
+            labels:
+              app: nfs-server-state
+          spec:
+            containers:
+            - name: nfs-server-state
+              image: gcr.io/google_containers/volume-nfs:0.8
+              ports:
+                - name: nfs
+                  containerPort: 2049
+                - name: mountd
+                  containerPort: 20048
+                - name: rpcbind
+                  containerPort: 111
+              securityContext:
+                privileged: true
+              volumeMounts:
+                - mountPath: /exports
+                  name: nfs-server-state-disk
+            volumes:
+              - name: nfs-server-state-disk
+                persistentVolumeClaim:
+                  {{- if .Values.storage.stateVolume.existingClaim }}
+                  claimName: {{ .Values.storage.stateVolume.existingClaim }}
+                  {{- else }}
+                  claimName: knot-state-pvc
+                  {{- end }}
+    - apiVersion: storage.k8s.io/v1
+      kind: StorageClass
+      metadata:
+        name: nfs-state
+      provisioner: nfs.csi.k8s.io
+      parameters:
+        server: nfs-server-state.nfs.svc
+        share: /
+        subDir: ${pvc.metadata.name}
+      reclaimPolicy: Delete
+      volumeBindingMode: Immediate
+      mountOptions:
+        - nfsvers=4.1
+    {{- if not .Values.storage.stateVolume.existingClaim }}
+    - apiVersion: v1
+      kind: PersistentVolumeClaim
+      metadata:
+        name: knot-state-pvc
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: {{ .Values.storage.stateVolume.size }}
+    {{- end }}
+{{- end }}
+{{- if not .Values.storage.filesVolume.hostPath }}
+- name: nfs-server-files
+  namespace: nfs
+  createNamespace: true
+  chart: bedag/raw
+  version: 1.1.0
+  values:
+  - resources:
+    - apiVersion: v1
+      kind: Service
+      metadata:
+        name: nfs-server-files
+      spec:
+        ports:
+          - name: nfs
+            port: 2049
+          - name: mountd
+            port: 20048
+          - name: rpcbind
+            port: 111
+        selector:
+          app: nfs-server-files
+    - apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: nfs-server-files
+      spec:
+        replicas: 1
+        selector:
+          matchLabels:
+            app: nfs-server-files
+        template:
+          metadata:
+            labels:
+              app: nfs-server-files
+          spec:
+            containers:
+            - name: nfs-server-files
+              image: gcr.io/google_containers/volume-nfs:0.8
+              ports:
+                - name: nfs
+                  containerPort: 2049
+                - name: mountd
+                  containerPort: 20048
+                - name: rpcbind
+                  containerPort: 111
+              securityContext:
+                privileged: true
+              volumeMounts:
+                - mountPath: /exports
+                  name: nfs-server-files-disk
+            volumes:
+              - name: nfs-server-files-disk
+                persistentVolumeClaim:
+                  {{- if .Values.storage.filesVolume.existingClaim }}
+                  claimName: {{ .Values.storage.filesVolume.existingClaim }}
+                  {{- else }}
+                  claimName: knot-files-pvc
+                  {{- end }}
+    {{- if not .Values.storage.filesVolume.existingClaim }}
+    - apiVersion: v1
+      kind: PersistentVolumeClaim
+      metadata:
+        name: knot-files-pvc
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: {{ .Values.storage.filesVolume.size }}
+    {{- end }}
+{{- end }}
 - name: cert-manager
   namespace: cert-manager
   createNamespace: true
@@ -171,14 +300,12 @@ releases:
         name: ssl-certificate
       spec:
         secretName: ssl-certificate
-        {{- if or .Values.argo.enabled .Values.harbor.enabled }}
         secretTemplate:
           annotations:
             "reflector.v1.k8s.emberstack.com/reflection-allowed": "true"
-            "reflector.v1.k8s.emberstack.com/reflection-allowed-namespaces": "default,argo,harbor"
+            "reflector.v1.k8s.emberstack.com/reflection-allowed-namespaces": "knot,argo,harbor"
             "reflector.v1.k8s.emberstack.com/reflection-auto-enabled": "true"
-            "reflector.v1.k8s.emberstack.com/reflection-auto-namespaces": "default,argo,harbor"
-        {{- end }}
+            "reflector.v1.k8s.emberstack.com/reflection-auto-namespaces": "knot,argo,harbor"
         duration: 87600h
         commonName: {{ .Values.ingress.host }}
         dnsNames:
@@ -204,7 +331,7 @@ releases:
         Authenticator:
           auto_login: true
         GenericOAuthenticator:
-          client_id: {{ .Values.jupyterHub.clientID }}
+          client_id: jupyterhub
           client_secret: {{ .Values.jupyterHub.clientSecret }}
           {{- if .Values.ingress.createSelfsignedCertificate }}
           tls_verify: false
@@ -223,23 +350,26 @@ releases:
           c.ConfigurableHTTPProxy.api_url = "http://proxy-api.jupyterhub.svc:8001"
           c.JupyterHub.hub_connect_url = "http://hub.jupyterhub.svc:8081"
           c.KubeSpawner.enable_user_namespaces = True
-          c.KubeSpawner.user_namespace_template = "karvdash-{username}"
+          c.KubeSpawner.user_namespace_template = "knot-{username}"
           c.KubeSpawner.notebook_dir = "/private/notebooks"
       networkPolicy:
         enabled: false
-      {{- if eq .Values.jupyterHub.persistence.provisioning "local" }}
       db:
         type: other
         upgrade: true
         url: sqlite:///jupyterhub.sqlite
       extraVolumes:
       - name: jupyterhub-volume
+        {{- if .Values.storage.stateVolume.hostPath }}
         hostPath:
-          path: {{ .Values.jupyterHub.persistence.path | quote }}
+          path: {{ .Values.storage.stateVolume.hostPath }}/jupyterhub
+        {{- else }}
+        persistentVolumeClaim:
+          claimName: jupyterhub-state-pvc
+        {{- end }}
       extraVolumeMounts:
       - name: jupyterhub-volume
         mountPath: /srv/jupyterhub
-      {{- end }}
   - proxy:
       service:
         type: ClusterIP
@@ -268,15 +398,30 @@ releases:
       - jupyterhub.{{ .Values.ingress.host }}
       annotations:
         "nginx.ingress.kubernetes.io/force-ssl-redirect": "true"
-  {{- if eq .Values.jupyterHub.persistence.provisioning "local" }}
-  hooks:
-  - events: ["presync"]
-    showlogs: true
-    command: "/bin/bash"
-    args:
-    - "-c"
-    - "mkdir -p {{ .Values.jupyterHub.persistence.path }} && chown 1000:1000 {{ .Values.jupyterHub.persistence.path }}"
+{{- if not .Values.storage.stateVolume.hostPath }}
+- name: jupyterhub-state-pvc
+  namespace: jupyterhub
+  createNamespace: true
+  chart: bedag/raw
+  version: 1.1.0
+  {{- if not .Values.storage.stateVolume.hostPath }}
+  needs:
+  - nfs/nfs-server-state
   {{- end }}
+  values:
+  - resources:
+    - apiVersion: v1
+      kind: PersistentVolumeClaim
+      metadata:
+        name: jupyterhub-state-pvc
+      spec:
+        storageClassName: nfs-state
+        accessModes:
+          - ReadWriteMany
+        resources:
+          requests:
+            storage: 10Gi
+{{- end }}
 - name: jupyterhub-oauth-secret
   namespace: jupyterhub
   createNamespace: true
@@ -287,10 +432,10 @@ releases:
     - apiVersion: v1
       kind: Secret
       metadata:
-        name: karvdash-oauth-jupyterhub
+        name: knot-oauth-jupyterhub
       type: Opaque
       data:
-        client-id: {{ .Values.jupyterHub.clientID | b64enc }}
+        client-id: {{ "jupyterhub" | b64enc }}
         client-secret: {{ .Values.jupyterHub.clientSecret | b64enc }}
 - name: jupyterhub-clusterrolebinding
   namespace: jupyterhub
@@ -343,10 +488,10 @@ releases:
       sso:
         issuer: https://{{ .Values.ingress.host }}/oauth
         clientId:
-          name: karvdash-oauth-argo
+          name: knot-oauth-argo
           key: client-id
         clientSecret:
-          name: karvdash-oauth-argo
+          name: knot-oauth-argo
           key: client-secret
         redirectUrl: https://argo.{{ .Values.ingress.host }}/oauth2/callback
         rbac:
@@ -361,10 +506,10 @@ releases:
     - apiVersion: v1
       kind: Secret
       metadata:
-        name: karvdash-oauth-argo
+        name: knot-oauth-argo
       type: Opaque
       data:
-        client-id: {{ .Values.argo.clientID | b64enc }}
+        client-id: {{ "argo" | b64enc }}
         client-secret: {{ .Values.argo.clientSecret | b64enc }}
 {{- end }}
 {{- if .Values.harbor.enabled }}
@@ -384,25 +529,23 @@ releases:
         annotations:
           "nginx.ingress.kubernetes.io/force-ssl-redirect": "true"
   - externalURL: https://harbor.{{ .Values.ingress.host }}
-  {{- if eq .Values.harbor.persistence.provisioning "local" }}
   - persistence:
       persistentVolumeClaim:
         registry:
-          existingClaim: harbor-pvc
+          existingClaim: harbor-state-pvc
           subPath: registry
         chartmuseum:
-          existingClaim: harbor-pvc
+          existingClaim: harbor-state-pvc
           subPath: chartmuseum
         jobservice:
-          existingClaim: harbor-pvc
+          existingClaim: harbor-state-pvc
           subPath: jobservice
         database:
-          existingClaim: harbor-pvc
+          existingClaim: harbor-state-pvc
           subPath: database
         redis:
-          existingClaim: harbor-pvc
+          existingClaim: harbor-state-pvc
           subPath: redis
-  {{- end }}
   - harborAdminPassword: {{ .Values.harbor.adminPassword | quote }}
   - secretKey: {{ .Values.harbor.secretKey | quote }}
   {{- if .Values.ingress.createSelfsignedCertificate }}
@@ -412,46 +555,47 @@ releases:
       enabled: false
   - notary:
       enabled: false
-{{- if eq .Values.harbor.persistence.provisioning "local" }}
-- name: harbor-persistentvolumeclaim
+- name: harbor-state-pvc
   namespace: harbor
   createNamespace: true
   chart: bedag/raw
   version: 1.1.0
+  {{- if not .Values.storage.stateVolume.hostPath }}
+  needs:
+  - nfs/nfs-server-state
+  {{- end }}
   values:
   - resources:
     - apiVersion: v1
       kind: PersistentVolumeClaim
       metadata:
-        name: harbor-pvc
+        name: harbor-state-pvc
       spec:
+        {{- if not .Values.storage.stateVolume.hostPath }}
+        storageClassName: nfs-state
+        {{- else }}
         storageClassName: ""
-        volumeName: harbor-pv
+        volumeName: harbor-state-pv
+        {{- end }}
         accessModes:
           - ReadWriteMany
         resources:
           requests:
-            storage: 1Ti
+            storage: 10Gi
+    {{- if .Values.storage.stateVolume.hostPath }}
     - apiVersion: v1
       kind: PersistentVolume
       metadata:
-        name: harbor-pv
+        name: harbor-state-pv
       spec:
         accessModes:
           - ReadWriteMany
         capacity:
-          storage: 1Ti
+          storage: 10Gi
         persistentVolumeReclaimPolicy: Retain
         hostPath:
-          path: {{ .Values.harbor.persistence.path }}
-  hooks:
-  - events: ["presync"]
-    showlogs: true
-    command: "/bin/bash"
-    args:
-    - "-c"
-    - "mkdir -p {{ .Values.harbor.persistence.path }}/{registry,chartmuseum,jobservice,database,redis} && chown 999:999 {{ .Values.harbor.persistence.path }}/{database,redis} && chown 10000:10000 {{ .Values.harbor.persistence.path }}/{registry,chartmuseum,jobservice}"
-{{- end }}
+          path: {{ .Values.storage.stateVolume.hostPath }}/harbor
+    {{- end }}
 - name: harbor-oauth-secret
   namespace: harbor
   createNamespace: true
@@ -462,10 +606,10 @@ releases:
     - apiVersion: v1
       kind: Secret
       metadata:
-        name: karvdash-oauth-harbor
+        name: knot-oauth-harbor
       type: Opaque
       data:
-        client-id: {{ .Values.harbor.clientID | b64enc }}
+        client-id: {{ "harbor" | b64enc }}
         client-secret: {{ .Values.harbor.clientSecret | b64enc }}
 {{- end }}
 {{- if .Values.grafana.enabled }}
@@ -492,7 +636,7 @@ releases:
         "auth.generic_oauth":
           enabled: true
           allow_sign_up: true
-          client_id: {{ .Values.grafana.clientID }}
+          client_id: "grafana"
           client_secret: {{ .Values.grafana.clientSecret }}
           {{- if .Values.ingress.createSelfsignedCertificate }}
           tls_skip_verify_insecure: true
@@ -520,77 +664,92 @@ releases:
     - apiVersion: v1
       kind: Secret
       metadata:
-        name: karvdash-oauth-grafana
+        name: knot-oauth-grafana
       type: Opaque
       data:
-        client-id: {{ .Values.grafana.clientID | b64enc }}
+        client-id: {{ "grafana" | b64enc }}
         client-secret: {{ .Values.grafana.clientSecret | b64enc }}
 {{- end }}
-{{- if .Values.openBio.enabled }}
-- name: openbio
-  namespace: openbio
+- name: knot
+  namespace: knot
   createNamespace: true
-  chart: ../OpenBio.eu/chart/openbio
+  {{- if .Values.knot.localImage }}
+  chart: chart/knot
+  {{- else }}
+  chart: knot/knot
+  version: 4.0.0
+  {{- end }}
+  needs:
+  - cert-manager/cert-manager
+  {{- if not .Values.storage.filesVolume.hostPath }}
+  - nfs/nfs-server-files
+  {{- end }}
   values:
-  - image: kantale/openbio:{{ .Values.openBio.version }}
-  - openbio:
-      databaseHostPath: {{ .Values.openBio.databaseHostPath | quote }}
-      djangoSecret: {{ .Values.openBio | get "djangoSecret" "" | quote }}
-      djangoDebug: {{ .Values.openBio | get "djangoDebug" "0" | quote }}
-      title: {{ .Values.openBio | get "title" "OpenBio" | quote }}
-      serverURL: https://openbio.{{ .Values.ingress.host }}
-      fromEmail: admin@{{ .Values.ingress.host }}
-      adminEmail: admin@{{ .Values.ingress.host }}
-      termsURL: ""
-      privacyURL: ""
-      showFundingLogos: false
-      karvdashEndpointURL: https://{{ .Values.ingress.host }}/oauth
-      karvdashClientID: {{ .Values.openBio.clientID | quote }}
-      karvdashClientSecret: {{ .Values.openBio.clientSecret | quote }}
-      {{- if .Values.ingress.createSelfsignedCertificate }}
-      karvdashVerifySSL: false
+  {{- if .Values.knot.localImage }}
+  - image: carvicsforth/knot:{{ readFile "VERSION" }}
+  {{- end }}
+  - knot:
+      djangoSecret: {{ .Values.knot | get "djangoSecret" "" | quote }}
+      djangoDebug: {{ .Values.knot | get "djangoDebug" "0" | quote }}
+      htpasswdExportDir: {{ .Values.knot | get "htpasswdExportDir" "" | quote }}
+      dashboardTitle: {{ .Values.knot | get "title" "Knot" | quote }}
+      issuesURL: {{ .Values.knot | get "issuesURL" "" | quote }}
+      ingressURL: https://{{ .Values.ingress.host }}
+      {{- if .Values.storage.stateVolume.hostPath }}
+      stateHostPath: {{ .Values.storage.stateVolume.hostPath }}/knot
+      {{- else }}
+      stateVolumeClaim: knot-state-pvc
       {{- end }}
-      ingressEnabled: true
-      ingressURL: https://openbio.{{ .Values.ingress.host }}
-  hooks:
-  - events: ["presync"]
-    showlogs: true
-    command: "/bin/bash"
-    args:
-    - "-c"
-    - "mkdir -p {{ .Values.openBio.databaseHostPath }}"
-- name: openbio-clusterrolebinding
-  namespace: openbio
+      {{- if .Values.ingress.createSelfsignedCertificate }}
+      certificateSecretName: ssl-certificate
+      certificateSecretKey: ca.crt
+      {{- end }}
+      datasetsAvailable: {{ .Values.knot | get "datasetsAvailable" "" | quote }}
+      {{- if .Values.storage.filesVolume.hostPath }}
+      filesURL: file://{{ .Values.storage.filesVolume.hostPath }}
+      {{- else }}
+      filesURL: nfs://nfs-server-files.nfs.svc/
+      {{- end }}
+      developmentURL: {{ .Values.knot | get "developmentURL" "" | quote }}
+      {{- if .Values.jupyterHub.enabled }}
+      jupyterHubURL: https://jupyterhub.{{ .Values.ingress.host }}
+      jupyterHubNamespace: jupyterhub
+      jupyterHubNotebookDir: notebooks
+      {{- end }}
+      {{- if .Values.argo.enabled }}
+      argoWorkflowsURL: https://argo.{{ .Values.ingress.host }}
+      argoWorkflowsNamespace: argo
+      {{- end }}
+      {{- if .Values.harbor.enabled }}
+      harborURL: https://harbor.{{ .Values.ingress.host }}
+      harborNamespace: harbor
+      harborAdminPassword: {{ .Values.harbor.adminPassword }}
+      {{- end }}
+      {{- if .Values.grafana.enabled }}
+      grafanaURL: https://grafana.{{ .Values.ingress.host }}
+      grafanaNamespace: monitoring
+      {{- end }}
+{{- if not .Values.storage.stateVolume.hostPath }}
+- name: knot-state-pvc
+  namespace: knot
   createNamespace: true
   chart: bedag/raw
   version: 1.1.0
-  values:
-  - resources:
-    - apiVersion: rbac.authorization.k8s.io/v1
-      kind: ClusterRoleBinding
-      metadata:
-        name: openbio-cluster-admin
-      roleRef:
-        apiGroup: rbac.authorization.k8s.io
-        kind: ClusterRole
-        name: cluster-admin
-      subjects:
-      - kind: ServiceAccount
-        name: default
-        namespace: openbio
-- name: openbio-oauth-secret
-  namespace: openbio
-  createNamespace: true
-  chart: bedag/raw
-  version: 1.1.0
+  {{- if not .Values.storage.stateVolume.hostPath }}
+  needs:
+  - nfs/nfs-server-state
+  {{- end }}
   values:
   - resources:
     - apiVersion: v1
-      kind: Secret
+      kind: PersistentVolumeClaim
       metadata:
-        name: karvdash-oauth-openbio
-      type: Opaque
-      data:
-        client-id: {{ .Values.openBio.clientID | b64enc }}
-        client-secret: {{ .Values.openBio.clientSecret | b64enc }}
+        name: knot-state-pvc
+      spec:
+        storageClassName: nfs-state
+        accessModes:
+          - ReadWriteMany
+        resources:
+          requests:
+            storage: 10Gi
 {{- end }}

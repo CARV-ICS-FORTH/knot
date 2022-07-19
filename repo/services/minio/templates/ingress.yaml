@@ -5,8 +5,8 @@ metadata:
   name: {{ $fullName }}
   labels:
     {{- include "minio.labels" . | nindent 4 }}
-    {{- if .Values.karvdash.enabled }}
-    karvdash-no-auth: "true"
+    {{- if .Values.knot.enabled }}
+    knot-no-auth: "true"
     {{- end }}
   annotations:
     nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
@@ -14,7 +14,7 @@ metadata:
     nginx.ingress.kubernetes.io/proxy-body-size: "0"
 spec:
   rules:
-  - host: {{ .Values.karvdash.hostname | quote }}
+  - host: {{ .Values.knot.hostname | quote }}
     http:
       paths:
       - path: /
