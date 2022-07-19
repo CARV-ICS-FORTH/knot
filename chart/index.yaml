@@ -211,10 +211,10 @@ entries:
     version: 2.0.0
   knot:
   - apiVersion: v2
-    created: "2022-07-19T14:14:38.472541515Z"
-    description: Knot provides a complete software stack for performing data science
+    created: "2022-07-19T14:31:53.367225582Z"
+    description: Knot provides a complete environment for unleashing your productivity
       on Kubernetes
-    digest: e65d3a3ed00befe89014d1629018233646c014a0fdb188b9b87c27baff865031
+    digest: 52e800ebe8111de8089d1b047ddead5440155ba4227dea4ec6723b7e1cd56885
     kubeVersion: '>= 1.19.0'
     name: knot
     sources:
@@ -223,4 +223,4 @@ entries:
     urls:
     - https://CARV-ICS-FORTH.github.io/knot/chart/knot-4.0.0.tgz
     version: 4.0.0
-generated: "2022-07-19T14:14:38.471528602Z"
+generated: "2022-07-19T14:31:53.365577419Z"
