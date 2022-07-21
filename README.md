@@ -14,7 +14,7 @@ Check out the [documentation](https://carv-ics-forth.github.io/knot/docs/) (also
 
 To deploy Knot you need a typical Kubernetes installation, [Helm](https://helm.sh), the [Helm diff plugin](https://github.com/databus23/helm-diff), and [Helmfile](https://github.com/roboll/helmfile) installed. We develop, test, and run Knot on Kubernetes 1.22.x.
 
-Apply the the latest Knot `helmfile.yaml` with:
+For quickly trying out Knot, apply the the latest Knot `helmfile.yaml` with:
 ```bash
 export KNOT_HOST=example.com
 helmfile -f git::https://github.com/CARV-ICS-FORTH/knot.git@helmfile.yaml sync
@@ -24,7 +24,7 @@ The variable `KNOT_HOST` is necessary. By default, we use [cert-manager](https:/
 
 For storage, Knot uses two persistent volume claims: one for internal state (shared by all services) and one for user files. You can use helmfile variables to setup Knot on top of existing PVCs, or skip the storage controller and directly use local storage (useful for single-server, bare metal setups).
 
-Deployment options are discussed in the [deployment chapter](https://carv-ics-forth.github.io/knot/docs/deployment.html) of the [documentation](https://carv-ics-forth.github.io/knot/docs/).
+Deployment options are discussed in the [deployment chapter](https://carv-ics-forth.github.io/knot/docs/deployment.html) of the [documentation](https://carv-ics-forth.github.io/knot/docs/). To customize deployment values like volume sizes and OAuth secrets, you can create easily create a custom helmfile that [extends the default](https://helmfile.readthedocs.io/en/latest/#configuration).
 
 ## Development
 
@@ -38,7 +38,7 @@ Then install Knot in a special configuration, where all requests to the dashboar
 make deploy
 ```
 
-Then, start the local server and async task worker with:
+Start the local server and async task worker with:
 ```bash
 make develop
 ```
