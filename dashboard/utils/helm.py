@@ -149,7 +149,7 @@ class HelmClient(object):
         return [{k: v for k, v in release.items() if k in valid_keys} for release in releases]
 
     def values(self, namespace, name):
-        command = 'helm get values -n %s %s' % (namespace, name)
+        command = 'helm get values -o yaml -n %s %s' % (namespace, name)
         result = subprocess.check_output(command, shell=True)
         return YAML().load(result)
 
