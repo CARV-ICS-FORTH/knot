@@ -16,7 +16,7 @@ import os
 import random
 
 from django.db import models
-from django.contrib.auth.models import User as AuthUser
+from django.contrib.auth.models import User as AuthUser, update_last_login
 from django.contrib.auth.signals import user_logged_in
 from django.contrib import messages
 from django.dispatch import receiver
@@ -285,4 +285,6 @@ class Message(models.Model):
 @receiver(user_logged_in)
 def create_user_namespace(sender, user, request, **kwargs):
     user = User.objects.get(pk=user.pk)
+    if not user.last_login:
+        update_last_login(sender, user, **kwargs) # The first time, this handler may be called first
     user.create_namespace(request) # Make sure namespace and volumes are created on upgrade
