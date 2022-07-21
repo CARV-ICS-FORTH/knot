@@ -5,7 +5,7 @@ Knot is a full-featured software stack for facilitating data science in Kubernet
 
 The Knot dashboard is an interactive, graphical frontend for users to:
 
-- Switch to any of the included integrations with [JupyterHub](https://jupyter.org/hub) (notebook service), [Argo Workflows](https://argoproj.github.io/workflows) (workflow service), [Harbor](https://goharbor.io) (private container image and and Knot service template registry), and [Grafana](https://grafana.com) (metrics service).
+- Switch to any of the included integrations with [JupyterHub](https://jupyter.org/hub) (notebook service), [Argo Workflows](https://argoproj.github.io/workflows) (workflow service), [Harbor](https://goharbor.io) (private container image and Knot service template registry), and [Grafana](https://grafana.com) (metrics service).
 - Launch private services or applications from customizable templates.
 - Manage files that are automatically attached to service and application containers when launched.
 
