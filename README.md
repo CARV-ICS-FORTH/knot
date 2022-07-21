@@ -35,7 +35,7 @@ make prepare-develop
 
 Then install Knot in a special configuration, where all requests to the dashboard are forwarded locally:
 ```bash
-make deploy
+make deploy-sync
 ```
 
 Start the local server and async task worker with:
@@ -58,7 +58,7 @@ To change the version, edit `VERSION`. Other variables, like the `kubectl` versi
 
 To test the container in a local Kubernetes environment, run:
 ```bash
-make deploy-test
+make test-sync
 ```
 
 Then point your browser to `https://<your IP address>.nip.io` and login.

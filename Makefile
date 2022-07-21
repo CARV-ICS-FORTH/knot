@@ -20,47 +20,38 @@ KUBECTL_VERSION?=v1.22.4
 KNOT_VERSION=$(shell cat VERSION)
 KNOT_IMAGE_TAG=$(REGISTRY_NAME)/knot:$(KNOT_VERSION)
 
-CHART_DIR=./chart/knot
-
-.PHONY: all check-ip-address deploy undeploy deploy-test undeploy-test delete-namespaces prepare-develop develop container container-push release
+.PHONY: all check-ip-address deploy-sync deploy-destroy test-sync test-destroy delete-namespaces prepare-develop develop container container-push release
 
 all: container
 
-IP_ADDRESS?=$(shell ipconfig getifaddr en0 || ipconfig getifaddr en1 2> /dev/null)
+IP_ADDRESS?=$(shell if which ipconfig; then ipconfig getifaddr en0 || ipconfig getifaddr en1 2> /dev/null; fi)
 INGRESS_URL=$(IP_ADDRESS).nip.io
 DEVELOPMENT_URL=http://$(IP_ADDRESS):8000
 HARBOR_ADMIN_PASSWORD=Harbor12345
-
-define HELMFILE_DEPLOY_VALUES
---state-values-set storage.stateVolume.hostPath=$(PWD)/state \
---state-values-set storage.filesVolume.hostPath=$(PWD)/files \
---state-values-set harbor.adminPassword=$(HARBOR_ADMIN_PASSWORD) \
---state-values-set knot.developmentURL=$(DEVELOPMENT_URL) \
---state-values-set knot.localImage="true"
-endef
 
 check-ip-address:
 ifeq ($(IP_ADDRESS),)
 	$(error IP_ADDRESS is not set)
 endif
 
-deploy: check-ip-address
+DEPLOY_TARGETS=deploy-sync deploy-destroy
+TEST_TARGETS=test-sync test-destroy
+
+$(DEPLOY_TARGETS): check-ip-address
 	mkdir -p state state/harbor
 	mkdir -p files
 	export KNOT_HOST="$(INGRESS_URL)"; \
-	helmfile $(HELMFILE_DEPLOY_VALUES) sync
+	helmfile \
+	--state-values-set storage.stateVolume.hostPath=$(PWD)/state \
+	--state-values-set storage.filesVolume.hostPath=$(PWD)/files \
+	--state-values-set harbor.adminPassword=$(HARBOR_ADMIN_PASSWORD) \
+	--state-values-set knot.developmentURL=$(DEVELOPMENT_URL) \
+	--state-values-set knot.localImage="true" \
+	$(word 2,$(subst -, ,$@))
 
-undeploy: check-ip-address
+$(TEST_TARGETS): check-ip-address
 	export KNOT_HOST="$(INGRESS_URL)"; \
-	helmfile $(HELMFILE_DEPLOY_VALUES) delete
-
-deploy-test: check-ip-address
-	export KNOT_HOST="$(INGRESS_URL)"; \
-	helmfile --state-values-set knot.localImage="true" sync
-
-undeploy-test: check-ip-address
-	export KNOT_HOST="$(INGRESS_URL)"; \
-	helmfile --state-values-set knot.localImage="true" destroy
+	helmfile --state-values-set knot.localImage="true" $(word 2,$(subst -, ,$@))
 
 delete-namespaces:
 	kubectl delete namespace knot || true
