@@ -404,10 +404,8 @@ releases:
   createNamespace: true
   chart: bedag/raw
   version: 1.1.0
-  {{- if not .Values.storage.stateVolume.hostPath }}
   needs:
   - nfs/nfs-server-state
-  {{- end }}
   values:
   - resources:
     - apiVersion: v1
@@ -729,16 +727,18 @@ releases:
       grafanaURL: https://grafana.{{ .Values.ingress.host }}
       grafanaNamespace: monitoring
       {{- end }}
+      {{- if (.Values | get "openBio.enabled" false) }}
+      openBioURL: https://openbio.{{ .Values.ingress.host }}
+      openBioNamespace: openbio
+      {{- end }}
 {{- if not .Values.storage.stateVolume.hostPath }}
 - name: knot-state-pvc
   namespace: knot
   createNamespace: true
   chart: bedag/raw
   version: 1.1.0
-  {{- if not .Values.storage.stateVolume.hostPath }}
   needs:
   - nfs/nfs-server-state
-  {{- end }}
   values:
   - resources:
     - apiVersion: v1
