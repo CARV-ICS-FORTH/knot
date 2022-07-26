@@ -1,0 +1,3 @@
+knot:
+  enabled: true
+  hostname: ubuntu-lxde.example.com

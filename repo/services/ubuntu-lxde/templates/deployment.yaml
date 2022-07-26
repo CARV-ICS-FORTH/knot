@@ -1,0 +1,34 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "ubuntu-lxde.fullname" . }}
+  labels:
+    {{- include "ubuntu-lxde.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "ubuntu-lxde.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "ubuntu-lxde.selectorLabels" . | nindent 8 }}
+    spec:
+      containers:
+      - name: {{ .Chart.Name }}
+        image: dorowu/ubuntu-desktop-lxde-vnc:latest
+        ports:
+        - containerPort: 80
+        env:
+        {{- if .Values.message }}
+        - name: MESSAGE
+          value: "{{ .Values.message }}"
+        {{- end }}
+        volumeMounts:
+        - mountPath: /dev/shm
+          name: shm-volume
+      volumes:
+      - name: shm-volume
+        emptyDir:
+          medium: Memory
+          sizeLimit: 2Gi

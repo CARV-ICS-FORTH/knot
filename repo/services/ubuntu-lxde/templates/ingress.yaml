@@ -1,0 +1,19 @@
+{{- $fullName := include "ubuntu-lxde.fullname" . -}}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ $fullName }}
+  labels:
+    {{- include "ubuntu-lxde.labels" . | nindent 4 }}
+spec:
+  rules:
+  - host: {{ .Values.knot.hostname | quote }}
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: {{ $fullName }}
+            port:
+              number: 80
