@@ -14,6 +14,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='apitoken',
             name='token',
-            field=models.CharField(default=dashboard.models.generate_token, max_length=64),
+            field=models.CharField(max_length=64),
         ),
     ]

@@ -13,7 +13,6 @@
 # limitations under the License.
 
 import os
-import random
 
 from django.db import models
 from django.contrib.auth.models import User as AuthUser, update_last_login
@@ -22,7 +21,7 @@ from django.contrib import messages
 from django.dispatch import receiver
 from django.conf import settings
 from urllib.parse import urlparse
-from collections import namedtuple
+from dataclasses import dataclass
 from jinja2 import Template
 
 from .utils.kubernetes import KubernetesClient
@@ -79,6 +78,12 @@ subjects:
   namespace: {{ argo_namespace }}
 '''
 
+@dataclass
+class Dataset:
+    volume_name: str
+    url: str
+    mount_dir: str
+
 class User(AuthUser):
     class Meta:
         proxy = True
@@ -115,9 +120,6 @@ class User(AuthUser):
 
     @property
     def dataset_volumes(self):
-        # Return datasets as objects.
-        DatasetTuple = namedtuple('DatasetTuple', ['volume_name', 'url', 'mount_dir'])
-
         datasets = {}
         kubernetes_client = KubernetesClient()
         try:
@@ -132,7 +134,7 @@ class User(AuthUser):
                     dataset_type = dataset['spec']['local']['type']
                     if dataset_type in ('COS', 'H3', 'ARCHIVE'):
                         dataset_name = dataset['metadata']['name']
-                        datasets[dataset_name] = DatasetTuple(dataset_name, 'dataset://%s' % dataset_name, '/mnt/datasets/%s' % dataset_name)
+                        datasets[dataset_name] = Dataset(dataset_name, 'dataset://%s' % dataset_name, '/mnt/datasets/%s' % dataset_name)
                     else:
                         continue
                 except:
@@ -259,9 +261,6 @@ class User(AuthUser):
         # Delete volumes.
         for name, domain in self.file_domains.items():
             domain.delete_domain()
-
-def generate_token():
-    return ''.join(random.choice('0123456789abcdef') for n in range(40))
 
 class Message(models.Model):
     user = models.ForeignKey(User, related_name='messages', on_delete=models.CASCADE)
