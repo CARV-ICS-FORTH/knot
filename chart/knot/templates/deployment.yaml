@@ -26,25 +26,10 @@ spec:
         ports:
         - containerPort: 80
           name: http
-        volumeMounts:
-        - name: {{ .Release.Name }}-proxy-config
-          mountPath: /etc/nginx/conf.d/default.conf
-          subPath: default.conf
-        {{- if or .Values.knot.logsVolumeClaim .Values.knot.logsHostPath }}
-        - name: {{ .Release.Name }}-logs-volume
-          mountPath: /var/log/nginx
-          subPath: proxy
-        {{- end }}
-      - image: nginx:1.19.6-alpine
-        name: webhook
-        env:
-        - name: NGINX_ENTRYPOINT_QUIET_LOGS
-          value: "1"
-        ports:
         - containerPort: 443
           name: https
         volumeMounts:
-        - name: {{ .Release.Name }}-webhook-config
+        - name: {{ .Release.Name }}-proxy-config
           mountPath: /etc/nginx/conf.d/default.conf
           subPath: default.conf
         - name: {{ .Release.Name }}-webhook-secret
@@ -53,7 +38,6 @@ spec:
         {{- if or .Values.knot.logsVolumeClaim .Values.knot.logsHostPath }}
         - name: {{ .Release.Name }}-logs-volume
           mountPath: /var/log/nginx
-          subPath: webhook
         {{- end }}
       - image: {{- if .Values.image }} {{ .Values.image }} {{- else }} carvicsforth/knot:v{{ .Chart.Version }} {{- end }}
         name: dashboard

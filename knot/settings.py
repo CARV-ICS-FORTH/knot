@@ -68,6 +68,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'channels',
 ]
 
 MIDDLEWARE = [
@@ -104,8 +105,16 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'knot.wsgi.application'
-
+# WSGI_APPLICATION = 'knot.wsgi.application'
+ASGI_APPLICATION = 'knot.asgi.application'
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            "hosts": [('127.0.0.1', 6379)],
+        },
+    },
+}
 
 # Password hashes
 

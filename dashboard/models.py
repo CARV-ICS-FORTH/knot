@@ -23,6 +23,8 @@ from django.conf import settings
 from urllib.parse import urlparse
 from dataclasses import dataclass
 from jinja2 import Template
+from channels.layers import get_channel_layer
+from asgiref.sync import async_to_sync
 
 from .utils.kubernetes import KubernetesClient
 from .utils.file_domains.file import PrivateFileDomain, SharedFileDomain
@@ -161,6 +163,11 @@ class User(AuthUser):
                          'private_repo_url': '%s/chartrepo/%s' % (settings.HARBOR_URL, self.username),
                          'shared_repo_url': '%s/chartrepo/%s' % (settings.HARBOR_URL, 'library')})
         return data
+
+    def send_update(self, message):
+        channel_layer = get_channel_layer()
+        group_name = 'updates_%s' % self.username
+        async_to_sync(channel_layer.group_send)(group_name, {'type': 'update_message', 'message': message})
 
     def update_kubernetes_credentials(self, kubernetes_client=None):
         if settings.VOUCH_URL:

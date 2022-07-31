@@ -9,46 +9,14 @@ metadata:
     chart: {{ .Chart.Name }}-{{ .Chart.Version }}
 data:
   default.conf: |
-    log_format custom '$http_x_forwarded_for - $sent_http_x_log_user [$time_local] "$request" '
-                      '$status $body_bytes_sent "$http_referer" "$http_user_agent"';
-
-    server {
-        listen 80;
-        server_name {{ .Release.Name }}.{{ .Release.Namespace }}.svc;
-        client_max_body_size 10m;
-
-        access_log /var/log/nginx/access.log custom;
-
-        location / {
-            proxy_set_header    Host $host;
-            proxy_set_header    X-Real-IP $remote_addr;
-            proxy_set_header    X-Forwarded-For $proxy_add_x_forwarded_for;
-            proxy_set_header    X-Forwarded-Proto $scheme;
-
-            proxy_pass          {{ $knotURL }};
-            proxy_read_timeout  {{ .Values.knot.timeout }};
-            proxy_request_buffering off;
-            proxy_buffering     off;
-
-            proxy_redirect      {{ $knotURL }} http://{{ .Release.Name }}.{{ .Release.Namespace }}.svc;
-        }
-    }
----
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: {{ .Release.Name }}-webhook
-  labels:
-    app: {{ .Release.Name }}
-    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
-data:
-  default.conf: |
     log_format custom '$remote_addr - $sent_http_x_log_user [$time_local] "$request" '
                       '$status $body_bytes_sent "$http_referer" "$http_user_agent"';
 
     server {
+        listen 80;
         listen 443 ssl;
         server_name {{ .Release.Name }}.{{ .Release.Namespace }}.svc;
+        client_max_body_size 10m;
 
         access_log /var/log/nginx/access.log custom;
 
@@ -67,11 +35,19 @@ data:
             proxy_set_header    X-Forwarded-Proto $scheme;
 
             proxy_pass          {{ $knotURL }};
+            proxy_redirect      default;
             proxy_read_timeout  {{ .Values.knot.timeout }};
             proxy_request_buffering off;
             proxy_buffering     off;
+        }
 
-            proxy_redirect      {{ $knotURL }} https://{{ .Release.Name }}.{{ .Release.Namespace }}.svc;
+        location /ws/ {
+            proxy_set_header    Host $host;
+            proxy_set_header    Upgrade $http_upgrade;
+            proxy_set_header    Connection "Upgrade";
+
+            proxy_pass          {{ $knotURL }};
+            proxy_http_version  1.1;
         }
     }
 ---

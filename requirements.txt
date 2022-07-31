@@ -4,6 +4,8 @@ django-impersonate==1.7.3
 django-chunked-upload==2.0.0
 django-oauth-toolkit==1.5.0
 django-auth-ldap==3.0.0
+channels==3.0.5
+channels_redis==3.4.1
 celery==5.2.3
 redis==4.1.2
 requests==2.27.1
