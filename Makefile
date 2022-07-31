@@ -24,7 +24,7 @@ KNOT_IMAGE_TAG=$(REGISTRY_NAME)/knot:$(KNOT_VERSION)
 
 all: container
 
-IP_ADDRESS?=$(shell if which ipconfig; then ipconfig getifaddr en0 || ipconfig getifaddr en1 2> /dev/null; fi)
+IP_ADDRESS?=$(shell if command -v ipconfig > /dev/null 2>&1; then ipconfig getifaddr en0 || ipconfig getifaddr en1 2> /dev/null; fi)
 INGRESS_URL=$(IP_ADDRESS).nip.io
 DEVELOPMENT_URL=http://$(IP_ADDRESS):8000
 HARBOR_ADMIN_PASSWORD=Harbor12345
