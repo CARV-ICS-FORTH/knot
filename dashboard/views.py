@@ -23,12 +23,14 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import SetPasswordForm, PasswordChangeForm
 from django.contrib.admin.views.decorators import staff_member_required
 from chunked_upload.views import ChunkedUploadView, ChunkedUploadCompleteView
+from celery.result import AsyncResult
 
-from .models import User, Message
+from .models import User, Message, Task
 from .forms import SignUpForm, EditUserForm, AddServiceForm, CreateServiceForm, ShowServiceForm, AddDatasetForm, CreateDatasetForm, ShowDatasetForm, AddFolderForm, AddImageFromFileForm
 from .services import ServiceTemplateManager, ServiceManager
 from .datasets import DatasetTemplateManager, DatasetManager
 from .utils.kubernetes import KubernetesClient
+from .tasks import create_service_task
 
 
 @login_required
@@ -91,12 +93,28 @@ def services(request):
                       key=lambda x: x[sort_by],
                       reverse=True if order == 'desc' else False)
 
+    # Get pending tasks.
+    tasks = []
+    for task in request.user.tasks.filter(name='create_service'):
+        task_result = AsyncResult(task.task_id)
+        if task_result.status == 'STARTED' or task_result.status == 'PENDING':
+            tasks.append(task)
+            continue
+
+        if task_result.status == 'SUCCESS':
+            Message.add(request, 'success', task_result.result)
+        elif task_result.status == 'FAILURE':
+            Message.add(request, 'error', str(task_result.result))
+        # Delete done and revoked.
+        task.delete()
+
     return render(request, 'dashboard/services.html', {'title': 'Services',
                                                        'trail': trail,
                                                        'contents': contents,
                                                        'sort_by': sort_by,
                                                        'order': order,
-                                                       'add_service_form': AddServiceForm(user=request.user)})
+                                                       'add_service_form': AddServiceForm(user=request.user),
+                                                       'tasks': tasks})
 
 @login_required
 def service_info(request, name=''):
@@ -133,15 +151,8 @@ def service_create(request, name=''):
         form = CreateServiceForm(request.POST, variables=variables)
         if form.is_valid():
             data = request.POST.dict()
-
-            service_manager = ServiceManager(request.user)
-            try:
-                service_name = service_manager.create(chart_name, variables, data)
-            except Exception as e:
-                Message.add(request, 'error', 'Can not create service: %s' % str(e))
-            else:
-                Message.add(request, 'success', 'Service "%s" created.' % service_name)
-
+            task_result = create_service_task.apply_async((request.user.pk, name, variables, data))
+            Task.add(request.user, 'create_service', task_result.task_id)
             return redirect('services')
     else:
         form = CreateServiceForm(variables=variables)

@@ -288,6 +288,16 @@ class Message(models.Model):
             return 'danger'
         return self.level
 
+class Task(models.Model):
+    user = models.ForeignKey(User, related_name='tasks', on_delete=models.CASCADE)
+    name = models.CharField(max_length=32, blank=False, null=False)
+    task_id = models.CharField(max_length=36, blank=False, null=False)
+    created = models.DateTimeField(auto_now_add=True)
+
+    @classmethod
+    def add(cls, user, name, task_id):
+        cls.objects.create(user=user, name=name, task_id=task_id)
+
 @receiver(user_logged_in)
 def create_user_namespace(sender, user, request, **kwargs):
     user = User.objects.get(pk=user.pk)

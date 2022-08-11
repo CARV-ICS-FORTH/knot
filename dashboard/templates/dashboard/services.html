@@ -3,12 +3,36 @@
 {% load crispy_forms_tags %}
 
 {% block script %}
+{% if tasks %}
+<script>
+  setTimeout(function() {
+    window.location.reload();
+  }, 60000);
+
+  const wsProtocol = window.location.protocol === 'https:' ? 'wss://' : 'ws://'
+  const updatesSocket = new WebSocket(wsProtocol + window.location.host + '/ws/updates');
+
+  updatesSocket.onmessage = function(e) {
+    const data = JSON.parse(e.data);
+    if (data['message'] == 'create_service')
+      window.location.reload();
+  };
+</script>
+{% endif %}
 <script>
   $(document).on('click', '.confirm-remove', function () {
     $("#removeNameText").text($(this).attr("id"));
     $("#removeNameInput").val($(this).attr("id"));
   });
 </script>
+{% endblock %}
+
+{% block messages %}
+{% if tasks %}
+<div class="alert alert-info" role="alert">
+  Waiting for service{{ tasks|pluralize }} to start...
+</div>
+{% endif %}
 {% endblock %}
 
 {% block main %}

@@ -153,14 +153,19 @@ class HelmClient(object):
         result = subprocess.check_output(command, shell=True)
         return YAML().load(result)
 
-    def install(self, namespace, name, chart_name, values_file):
-        command = 'helm install %s -n %s -f %s %s %s' % ('--insecure-skip-tls-verify' if os.environ.get('VIRTUAL_ENV') else '', # XXX Do not verify if running in virtual environment.
-                                                         namespace,
-                                                         values_file,
-                                                         name,
-                                                         chart_name)
-        subprocess.check_output(command, shell=True)
+    def install(self, namespace, name, chart_name, values_file, wait=True, timeout='20m'):
+        command = 'helm install %s %s %s -n %s -f %s %s %s' % ('--insecure-skip-tls-verify' if os.environ.get('VIRTUAL_ENV') else '', # XXX Do not verify if running in virtual environment.
+                                                               '--atomic --wait' if wait else '',
+                                                               ('--timeout %s' % timeout) if timeout else '',
+                                                               namespace,
+                                                               values_file,
+                                                               name,
+                                                               chart_name)
+        subprocess.check_output(command, shell=True, stderr=subprocess.STDOUT)
 
-    def uninstall(self, namespace, name):
-        command = 'helm uninstall -n %s %s' % (namespace, name)
-        subprocess.check_output(command, shell=True)
+    def uninstall(self, namespace, name, wait=True, timeout='20m'):
+        command = 'helm uninstall %s %s -n %s %s' % ('--wait' if wait else '',
+                                                     ('--timeout %s' % timeout) if timeout else '',
+                                                     namespace,
+                                                     name)
+        subprocess.check_output(command, shell=True, stderr=subprocess.STDOUT)

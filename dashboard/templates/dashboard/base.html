@@ -22,19 +22,6 @@
     <!-- jQuery first, then Bootstrap JS with Popper.js -->
     <script src="{% static 'dashboard/assets/js/jquery-3.4.1.min.js' %}"></script>
     <script src="{% static 'dashboard/assets/js/bootstrap.bundle.min.js' %}"></script>
-    <script>
-      const wsProtocol = window.location.protocol === 'https:' ? 'wss://' : 'ws://'
-      const updatesSocket = new WebSocket(wsProtocol + window.location.host + '/ws/updates');
-
-      updatesSocket.onmessage = function(e) {
-        const data = JSON.parse(e.data);
-        console.log('Received update: ' + data + '\n')
-      };
-
-      updatesSocket.onclose = function(e) {
-        console.error('Chat socket closed');
-      };
-    </script>
     {% block script %}
     {% endblock %}
 

@@ -11,3 +11,36 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+import subprocess
+
+from celery import shared_task
+
+from .models import User
+from .services import ServiceTemplateManager, ServiceManager
+
+
+@shared_task
+def create_service_task(user_id, service_name, variables, data):
+    user = User.objects.get(pk=user_id)
+
+    # Adds the Helm repository locally.
+    template_manager = ServiceTemplateManager(user)
+    try:
+        chart_name, _ = template_manager.variables(service_name)
+    except Exception as e:
+        user.send_update('create_service')
+        raise ValueError('Can not create service: %s' % str(e))
+
+    service_manager = ServiceManager(user)
+    try:
+        service_name = service_manager.create(chart_name, variables, data)
+    except subprocess.CalledProcessError as e:
+        user.send_update('create_service')
+        raise ValueError('Can not create service: %s' % e.output.decode())
+    except Exception as e:
+        user.send_update('create_service')
+        raise ValueError('Can not create service: %s' % str(e))
+
+    user.send_update('create_service')
+    return 'Service "%s" created.' % service_name

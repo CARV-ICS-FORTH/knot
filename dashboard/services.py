@@ -201,10 +201,10 @@ class ServiceManager(object):
         self.user.update_kubernetes_credentials(kubernetes_client=kubernetes_client)
         with tempfile.NamedTemporaryFile() as f:
             YAML().dump(unflatten_values(variables)['data'], f)
-            helm_client.install(self.user.namespace, name, chart_name, f.name)
+            helm_client.install(self.user.namespace, name, chart_name, f.name, wait=True)
 
         return name
 
     def delete(self, name):
         helm_client = HelmClient()
-        helm_client.uninstall(self.user.namespace, name)
+        helm_client.uninstall(self.user.namespace, name, wait=False)

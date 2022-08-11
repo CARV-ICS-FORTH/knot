@@ -62,6 +62,8 @@ spec:
         ports:
         - containerPort: 8000
           name: http
+        - containerPort: 8001
+          name: ws
         volumeMounts:
         {{- if .Values.knot.disabledServices }}
         - name: {{ .Release.Name }}-files-config

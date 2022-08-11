@@ -1,5 +1,4 @@
 {{- $ingressURL := (required "You must set knot.ingressURL to the ingress URL used" .Values.knot.ingressURL) }}
-{{- $knotURL := default "http://127.0.0.1:8000" .Values.knot.developmentURL }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -34,7 +33,7 @@ data:
             proxy_set_header    X-Forwarded-For $proxy_add_x_forwarded_for;
             proxy_set_header    X-Forwarded-Proto $scheme;
 
-            proxy_pass          {{ $knotURL }};
+            proxy_pass          {{ default "http://127.0.0.1:8000" .Values.knot.developmentURL }};
             proxy_redirect      default;
             proxy_read_timeout  {{ .Values.knot.timeout }};
             proxy_request_buffering off;
@@ -46,7 +45,7 @@ data:
             proxy_set_header    Upgrade $http_upgrade;
             proxy_set_header    Connection "Upgrade";
 
-            proxy_pass          {{ $knotURL }};
+            proxy_pass          {{ default "http://127.0.0.1:8001" .Values.knot.developmentURL }};
             proxy_http_version  1.1;
         }
     }

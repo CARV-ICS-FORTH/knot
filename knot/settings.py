@@ -105,7 +105,7 @@ TEMPLATES = [
     },
 ]
 
-# WSGI_APPLICATION = 'knot.wsgi.application'
+WSGI_APPLICATION = 'knot.wsgi.application'
 ASGI_APPLICATION = 'knot.asgi.application'
 CHANNEL_LAYERS = {
     'default': {
@@ -236,7 +236,10 @@ VOUCH_URL = os.getenv('KNOT_VOUCH_URL')
 # Async tasks
 
 CELERY_BROKER_URL = 'redis://localhost'
+CELERY_RESULT_BACKEND = 'redis'
+CELERY_TASK_ANNOTATIONS = {'*': {'expires': 1800}}
 CELERY_TASK_TIME_LIMIT = 1800
+CELERY_TASK_TRACK_STARTED = True
 CELERY_CONCURRENCY = 4
 
 

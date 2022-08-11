@@ -52,4 +52,7 @@ if [[ -n $KNOT_OPENBIO_URL && -n $KNOT_OPENBIO_NAMESPACE ]]; then
     python manage.py createoauthapplication --name openbio --redirect-uri $KNOT_OPENBIO_URL/platform/complete/knot/ --secret-name knot-oauth-openbio --secret-namespace $KNOT_OPENBIO_NAMESPACE
 fi
 
-gunicorn -w 4 -t $TIMEOUT -b 0.0.0.0:8000 knot.wsgi:application
+gunicorn -w 4 -t $TIMEOUT -b 0.0.0.0:8000 knot.wsgi:application &
+daphne -b 0.0.0.0 -p 8001 knot.asgi:application &
+wait -n
+exit $?
