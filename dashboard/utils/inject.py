@@ -146,3 +146,19 @@ def inject_ingress_auth(yaml_data, auth_config, redirect_ssl=False):
                 part['metadata']['annotations']['nginx.ingress.kubernetes.io/auth-realm'] = auth_config['realm']
             if redirect_ssl:
                 part['metadata']['annotations']['nginx.ingress.kubernetes.io/force-ssl-redirect'] = 'true'
+
+def validate_ingress_host(yaml_data, username, ingress_host):
+    for part in yaml_data:
+        if part.get('kind') != 'Ingress':
+            continue
+        try:
+            spec_rules = part['spec']['rules']
+        except:
+            continue
+        if not spec_rules:
+            continue
+        for rule in spec_rules:
+            if 'host' in rule and not rule['host'].endswith('-%s.%s' % (username, ingress_host)):
+                return False
+
+    return True

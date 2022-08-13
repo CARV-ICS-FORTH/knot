@@ -46,4 +46,5 @@ urlpatterns = [
     path('webhooks/pod/mutate', webhooks.pod_mutate),
     path('webhooks/pod/validate', webhooks.pod_validate),
     path('webhooks/ingress/mutate', webhooks.ingress_mutate),
+    path('webhooks/ingress/validate', webhooks.ingress_validate),
 ]

@@ -24,33 +24,39 @@ from django.conf import settings
 from urllib.parse import urlparse
 
 from .models import User
-from .utils.inject import inject_volumes, inject_variables, validate_hostpath_volumes, inject_ingress_auth
+from .utils.inject import inject_volumes, inject_variables, validate_hostpath_volumes, inject_ingress_auth, validate_ingress_host
 
+
+def validate_admission_review(request, allowed_operations):
+    data = json.loads(request.body.decode('utf-8'))
+    assert(data['kind'] == 'AdmissionReview')
+    assert(data['request']['operation'] in allowed_operations)
+    request_uid = data['request']['uid']
+    namespace = data['request']['namespace']
+    assert(namespace.startswith('knot-'))
+    user = User.objects.get(username=namespace[len('knot-'):])
+    request_service = data['request']['object']
+
+    return request_uid, request_service, user
 
 @require_POST
 @csrf_exempt
 def pod_mutate(request):
     try:
-        data = json.loads(request.body.decode('utf-8'))
-        assert(data['kind'] == 'AdmissionReview')
-        assert(data['request']['operation'] == 'CREATE')
-        uid = data['request']['uid']
-        namespace = data['request']['namespace']
-        assert(namespace.startswith('knot-'))
-        user = User.objects.get(username=namespace[len('knot-'):])
-        service = copy.deepcopy(data['request']['object'])
+        request_uid, request_service, user = validate_admission_review(request, ['CREATE'])
+        service = copy.deepcopy(request_service)
     except:
         return HttpResponseBadRequest()
 
     inject_volumes([service], user.file_domains)
     inject_volumes([service], user.dataset_volumes, is_datasets=True)
     inject_variables([service], user)
-    patch = jsonpatch.JsonPatch.from_diff(data['request']['object'], service)
+    patch = jsonpatch.JsonPatch.from_diff(request_service, service)
     encoded_patch = base64.b64encode(patch.to_string().encode('utf-8')).decode('utf-8')
 
     response = JsonResponse({'apiVersion': 'admission.k8s.io/v1',
                              'kind': 'AdmissionReview',
-                             'response': {'uid': uid,
+                             'response': {'uid': request_uid,
                                           'allowed': True,
                                           'status': {'message': 'Adding Knot volumes'},
                                           'patchType': 'JSONPatch',
@@ -62,22 +68,15 @@ def pod_mutate(request):
 @csrf_exempt
 def pod_validate(request):
     try:
-        data = json.loads(request.body.decode('utf-8'))
-        assert(data['kind'] == 'AdmissionReview')
-        assert(data['request']['operation'] == 'CREATE')
-        uid = data['request']['uid']
-        namespace = data['request']['namespace']
-        assert(namespace.startswith('knot-'))
-        user = User.objects.get(username=namespace[len('knot-'):])
-        service = copy.deepcopy(data['request']['object'])
+        request_uid, request_service, user = validate_admission_review(request, ['CREATE'])
     except:
         return HttpResponseBadRequest()
 
     response = JsonResponse({'apiVersion': 'admission.k8s.io/v1',
                              'kind': 'AdmissionReview',
-                             'response': {'uid': uid,
-                                          'allowed': validate_hostpath_volumes([service], user.file_domains, other_allowed_paths=settings.ALLOWED_HOSTPATH_DIRS),
-                                          'status': {'message': 'Checking for unauthorized volumes'}}})
+                             'response': {'uid': request_uid,
+                                          'allowed': validate_hostpath_volumes([request_service], user.file_domains, other_allowed_paths=settings.ALLOWED_HOSTPATH_DIRS),
+                                          'status': {'message': 'Unauthorized volumes check'}}})
     response['X-Log-User'] = user.username
     return response
 
@@ -85,14 +84,8 @@ def pod_validate(request):
 @csrf_exempt
 def ingress_mutate(request):
     try:
-        data = json.loads(request.body.decode('utf-8'))
-        assert(data['kind'] == 'AdmissionReview')
-        assert(data['request']['operation'] == 'CREATE')
-        uid = data['request']['uid']
-        namespace = data['request']['namespace']
-        assert(namespace.startswith('knot-'))
-        user = User.objects.get(username=namespace[len('knot-'):])
-        service = copy.deepcopy(data['request']['object'])
+        request_uid, request_service, user = validate_admission_review(request, ['CREATE'])
+        service = copy.deepcopy(request_service)
     except:
         return HttpResponseBadRequest()
 
@@ -104,15 +97,34 @@ def ingress_mutate(request):
         auth_config = {'secret': 'knot-auth',
                        'realm': 'Authentication Required - %s' % settings.DASHBOARD_TITLE}
     inject_ingress_auth([service], auth_config, redirect_ssl=(ingress_url.scheme == 'https'))
-    patch = jsonpatch.JsonPatch.from_diff(data['request']['object'], service)
+    patch = jsonpatch.JsonPatch.from_diff(request_service, service)
     encoded_patch = base64.b64encode(patch.to_string().encode('utf-8')).decode('utf-8')
 
     response = JsonResponse({'apiVersion': 'admission.k8s.io/v1',
                              'kind': 'AdmissionReview',
-                             'response': {'uid': uid,
+                             'response': {'uid': request_uid,
                                           'allowed': True,
                                           'status': {'message': 'Adding Knot authentication'},
                                           'patchType': 'JSONPatch',
                                           'patch': encoded_patch}})
+    response['X-Log-User'] = user.username
+    return response
+
+@require_POST
+@csrf_exempt
+def ingress_validate(request):
+    try:
+        request_uid, request_service, user = validate_admission_review(request, ['CREATE'])
+    except:
+        return HttpResponseBadRequest()
+
+    ingress_url = urlparse(settings.INGRESS_URL)
+    ingress_host = '%s:%s' % (ingress_url.hostname, ingress_url.port) if ingress_url.port else ingress_url.hostname
+
+    response = JsonResponse({'apiVersion': 'admission.k8s.io/v1',
+                             'kind': 'AdmissionReview',
+                             'response': {'uid': request_uid,
+                                          'allowed': validate_ingress_host([request_service], user.username, ingress_host),
+                                          'status': {'message': 'Valid hostname check'}}})
     response['X-Log-User'] = user.username
     return response
