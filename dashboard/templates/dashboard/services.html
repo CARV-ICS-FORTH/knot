@@ -119,6 +119,9 @@
               </button>
               <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownActionsButton">
                 <a class="dropdown-item btn-sm text-secondary" href="{% url 'service_info' item.release.name %}"><i class="fa fa-tags" aria-hidden="true"></i> Values</a>
+                {% if item.upgradeable %}
+                <a class="dropdown-item btn-sm text-secondary" href="{% url 'service_upgrade' item.release.name %}"><i class="fa fa-wrench" aria-hidden="true"></i> Upgrade</a>
+                {% endif %}
                 <button type="button" class="dropdown-item btn-sm text-secondary confirm-remove" data-toggle="modal" data-target="#removeModal" id="{{ item.release.name }}"><i class="fa fa-bomb" aria-hidden="true"></i> Remove</button>
               </div>
             </div>

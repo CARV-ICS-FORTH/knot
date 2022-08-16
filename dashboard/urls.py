@@ -25,6 +25,7 @@ urlpatterns = [
     path('services', views.services, name='services'),
     path('service/<str:name>', views.service_info, name='service_info'),
     path('service/create/<str:name>', views.service_create, name='service_create'),
+    path('service/upgrade/<str:name>', views.service_upgrade, name='service_upgrade'),
     path('templates', views.templates, name='templates'),
     path('datasets', views.datasets, name='datasets'),
     path('dataset/<str:name>', views.dataset_info, name='dataset_info'),

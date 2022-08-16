@@ -27,9 +27,10 @@ from .utils.helm import flatten_values, unflatten_values, HelmLocalRepoClient, H
 class ServiceTemplateManager(object):
     def __init__(self, user):
         self.user = user
-        self.repos = {'local': HelmLocalRepoClient('local', settings.SERVICES_REPO_DIR),
-                      'shared': None,
-                      'private': None}
+        # The order of repos in the list determines precedence.
+        self.repos = {'shared': None,
+                      'private': None,
+                      'local': HelmLocalRepoClient('local', settings.SERVICES_REPO_DIR)}
         del(self.repos['local']) # Comment out to work on local charts.
         if self.repo_base_url:
             self.repos['shared'] = HelmRemoteRepoClient('library', '%s/%s' % (self.repo_base_url, 'library'), repo_password=settings.HARBOR_ADMIN_PASSWORD)
@@ -126,10 +127,21 @@ class ServiceManager(object):
                 if url:
                     break
 
+            # Figure out the chart version.
+            try:
+                chart_parts = release['chart'].split('-')
+                chart_name = '-'.join(chart_parts[:-1])
+                chart_version = chart_parts[-1]
+            except:
+                chart_name = ''
+                chart_version = None
+
             contents.append({'name': name,
                              'url': url,
                              'created': service.metadata.creation_timestamp,
-                             'release': release})
+                             'release': release,
+                             'chart': chart_name,
+                             'version': chart_version})
 
         return contents
 
@@ -151,7 +163,7 @@ class ServiceManager(object):
                         'type': 'str'})
         return data
 
-    def create(self, chart_name, variables, data, set_local_data=True):
+    def create(self, chart_name, variables, data, set_local_data=True, upgrade=False):
         variables = [variable for variable in variables if not variable['label'].startswith('data.knot.')]
         for variable in variables:
             value = data.get(variable['label'])
@@ -164,9 +176,10 @@ class ServiceManager(object):
 
         # Resolve naming conflicts.
         name = data['name']
-        names = [release['name'] for release in helm_client.list(self.user.namespace)]
-        while name in names:
-            name = data['name'] + '-' + ''.join([random.choice(string.ascii_lowercase) for i in range(4)])
+        if not upgrade:
+            names = [release['name'] for release in helm_client.list(self.user.namespace)]
+            while name in names:
+                name = data['name'] + '-' + ''.join([random.choice(string.ascii_lowercase) for i in range(4)])
 
         if set_local_data:
             # Generate service URLs.

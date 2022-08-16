@@ -140,13 +140,12 @@ class HelmClient(object):
         self.kubernetes_client = kubernetes_client if kubernetes_client else KubernetesClient()
 
     def list(self, namespace):
-        secrets = self.kubernetes_client.list_secrets(namespace)
-        releases = [secret.metadata.labels for secret in secrets if secret.type.startswith('helm.sh/release')]
-
+        command = 'helm list -o yaml -n %s' % namespace
+        result = subprocess.check_output(command, shell=True)
+        releases = YAML().load(result)
         for release in releases:
-            release['modified'] = datetime.fromtimestamp(int(release['modifiedAt']))
-        valid_keys = ('name', 'status', 'modified', 'version')
-        return [{k: v for k, v in release.items() if k in valid_keys} for release in releases]
+            del(release['updated']) # We already have this as a datetime object.
+        return releases
 
     def values(self, namespace, name):
         command = 'helm get values -o yaml -n %s %s' % (namespace, name)
@@ -154,13 +153,13 @@ class HelmClient(object):
         return YAML().load(result)
 
     def install(self, namespace, name, chart_name, values_file, wait=True, timeout='20m'):
-        command = 'helm install %s %s %s -n %s -f %s %s %s' % ('--insecure-skip-tls-verify' if os.environ.get('VIRTUAL_ENV') else '', # XXX Do not verify if running in virtual environment.
-                                                               '--atomic --wait' if wait else '',
-                                                               ('--timeout %s' % timeout) if timeout else '',
-                                                               namespace,
-                                                               values_file,
-                                                               name,
-                                                               chart_name)
+        command = 'helm upgrade -i %s %s %s -n %s -f %s %s %s' % ('--insecure-skip-tls-verify' if os.environ.get('VIRTUAL_ENV') else '', # XXX Do not verify if running in virtual environment.
+                                                                  '--atomic --wait' if wait else '',
+                                                                  ('--timeout %s' % timeout) if timeout else '',
+                                                                  namespace,
+                                                                  values_file,
+                                                                  name,
+                                                                  chart_name)
         subprocess.check_output(command, shell=True, stderr=subprocess.STDOUT)
 
     def uninstall(self, namespace, name, wait=True, timeout='20m'):

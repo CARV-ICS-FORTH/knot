@@ -24,6 +24,7 @@ from django.contrib.auth.forms import SetPasswordForm, PasswordChangeForm
 from django.contrib.admin.views.decorators import staff_member_required
 from chunked_upload.views import ChunkedUploadView, ChunkedUploadCompleteView
 from celery.result import AsyncResult
+from packaging import version
 
 from .models import User, Message, Task
 from .forms import SignUpForm, EditUserForm, AddServiceForm, CreateServiceForm, ShowServiceForm, AddDatasetForm, CreateDatasetForm, ShowDatasetForm, AddFolderForm, AddImageFromFileForm
@@ -93,6 +94,19 @@ def services(request):
                       key=lambda x: x[sort_by],
                       reverse=True if order == 'desc' else False)
 
+    # Mark upgradeable services.
+    template_manager = ServiceTemplateManager(request.user)
+    try:
+        templates = template_manager.list()
+    except:
+        templates = None
+    if templates:
+        for service in contents:
+            service['upgradeable'] = False
+            current_version = next((template['version'] for template in templates if template['name'] == service['chart']), None)
+            if current_version and version.parse(current_version) > version.parse(service['version']):
+                service['upgradeable'] = True
+
     # Get pending tasks.
     tasks = []
     for task in request.user.tasks.filter(name='create_service'):
@@ -120,13 +134,23 @@ def services(request):
 def service_info(request, name=''):
     next_view = request.GET.get('next', 'services')
 
-    # Validate given name.
-    template_manager = ServiceManager(request.user)
+    # Validate given service name.
+    service_manager = ServiceManager(request.user)
     try:
-        variables = template_manager.variables(name)
+        variables = service_manager.variables(name)
     except KeyError:
         Message.add(request, 'error', 'Invalid service.')
         return redirect('services')
+
+    # Add template and version info.
+    try:
+        service = next((service for service in service_manager.list() if service['release']['name'] == name), None)
+    except:
+        service = None
+    if service:
+        for variable in variables:
+            if variable['label'] == 'name':
+                variable['help'] = 'Service created on %s from template %s at version %s.' % (service['created'].strftime('%d %b %Y'), service['chart'], service['version'])
 
     form = ShowServiceForm(variables=variables)
     return render(request, 'dashboard/form.html', {'title': 'Service Values',
@@ -138,12 +162,12 @@ def service_info(request, name=''):
 def service_create(request, name=''):
     next_view = request.GET.get('next', 'services')
 
-    # Validate given name.
+    # Validate given template name.
     template_manager = ServiceTemplateManager(request.user)
     try:
         chart_name, variables = template_manager.variables(name)
     except KeyError:
-        Message.add(request, 'error', 'Invalid service.')
+        Message.add(request, 'error', 'Invalid template.')
         return redirect('services')
 
     # Handle changes.
@@ -160,6 +184,50 @@ def service_create(request, name=''):
     return render(request, 'dashboard/form.html', {'title': 'Create Service',
                                                    'form': form,
                                                    'action': 'Create',
+                                                   'next': reverse(next_view)})
+
+@login_required
+def service_upgrade(request, name=''):
+    next_view = request.GET.get('next', 'services')
+
+    # Get service and current variables.
+    service_manager = ServiceManager(request.user)
+    try:
+        service = next((service for service in service_manager.list() if service['release']['name'] == name), None)
+        current_variables = service_manager.variables(name)
+    except KeyError:
+        Message.add(request, 'error', 'Invalid service.')
+        return redirect('services')
+
+    # Get template and default variables.
+    template_manager = ServiceTemplateManager(request.user)
+    try:
+        chart_name, default_variables = template_manager.variables(service['chart'])
+    except KeyError:
+        Message.add(request, 'error', 'Invalid template.')
+        return redirect('services')
+
+    # Replace default values with current values.
+    for variable in default_variables:
+        current_value = next((v['default'] for v in current_variables if (v['label'] == variable['label'] and v['type'] == variable['type'])), None)
+        if current_value:
+            variable['default'] = current_value
+
+    # Handle changes.
+    if request.method == 'POST':
+        form = CreateServiceForm(request.POST, variables=default_variables)
+        if form.is_valid():
+            data = request.POST.dict()
+            task_result = create_service_task.apply_async((request.user.pk, service['chart'], default_variables, data, True))
+            Task.add(request.user, 'create_service', task_result.task_id)
+            return redirect('services')
+        pass
+    else:
+        form = CreateServiceForm(variables=default_variables)
+
+    return render(request, 'dashboard/form.html', {'title': 'Upgrade Service',
+                                                   'form': form,
+                                                   'action': 'Upgrade',
                                                    'next': reverse(next_view)})
 
 @login_required
@@ -281,7 +349,7 @@ def datasets(request):
 def dataset_info(request, name=''):
     next_view = request.GET.get('next', 'datasets')
 
-    # Validate given name.
+    # Validate given dataset name.
     dataset_manager = DatasetManager(request.user)
     try:
         variables = dataset_manager.variables(name)
@@ -299,12 +367,12 @@ def dataset_info(request, name=''):
 def dataset_add(request, name=''):
     next_view = request.GET.get('next', 'datasets')
 
-    # Validate given name.
+    # Validate given template name.
     dataset_manager = DatasetTemplateManager(request.user)
     try:
         chart_name, variables = dataset_manager.variables(name)
     except KeyError:
-        Message.add(request, 'error', 'Invalid dataset.')
+        Message.add(request, 'error', 'Invalid template.')
         return redirect('datasets')
 
     # Handle changes.

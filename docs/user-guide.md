@@ -30,7 +30,7 @@ Selecting "Metrics" from the menu on the left will redirect you to Grafana. Clic
 Services screen
 ---------------
 
-The services screen is accessed by selecting "Services" from the menu on the left. Clicking on a service name from the list of running services will take you to the service frontend in a new browser tab. Use the "Actions" button to remove a service.
+The services screen is accessed by selecting "Services" from the menu on the left. Clicking on a service name from the list of running services will take you to the service frontend in a new browser tab. Use the "Actions" button to view a service's values, upgrade a service (if a new version of its template exists), or remove it.
 
 ![](images/services-screen.png)
 

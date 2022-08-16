@@ -21,7 +21,7 @@ from .services import ServiceTemplateManager, ServiceManager
 
 
 @shared_task
-def create_service_task(user_id, service_name, variables, data):
+def create_service_task(user_id, service_name, variables, data, upgrade=False):
     user = User.objects.get(pk=user_id)
 
     # Adds the Helm repository locally.
@@ -30,17 +30,17 @@ def create_service_task(user_id, service_name, variables, data):
         chart_name, _ = template_manager.variables(service_name)
     except Exception as e:
         user.send_update('create_service')
-        raise ValueError('Can not create service: %s' % str(e))
+        raise ValueError('Can not %s service: %s' % ('upgrade' if upgrade else 'create', str(e)))
 
     service_manager = ServiceManager(user)
     try:
-        service_name = service_manager.create(chart_name, variables, data)
+        service_name = service_manager.create(chart_name, variables, data, upgrade=upgrade)
     except subprocess.CalledProcessError as e:
         user.send_update('create_service')
-        raise ValueError('Can not create service: %s' % e.output.decode())
+        raise ValueError('Can not %s service: %s' % ('upgrade' if upgrade else 'create', str(e)))
     except Exception as e:
         user.send_update('create_service')
-        raise ValueError('Can not create service: %s' % str(e))
+        raise ValueError('Can not %s service: %s' % ('upgrade' if upgrade else 'create', str(e)))
 
     user.send_update('create_service')
-    return 'Service "%s" created.' % service_name
+    return 'Service "%s" %s.' % (service_name, 'upgraded' if upgrade else 'created')
