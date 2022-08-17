@@ -21,7 +21,6 @@ from requests.auth import HTTPBasicAuth
 from ruamel.yaml import YAML
 from ruamel.yaml.comments import CommentedMap
 from packaging import version
-from datetime import datetime
 
 from .kubernetes import KubernetesClient
 
