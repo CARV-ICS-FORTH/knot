@@ -29,12 +29,12 @@ Service templates
 
 Knot provides a way for users to easily configure and start services, by integrating a service templating mechanism based on [Helm](https://helm.sh). Helm service templates, named "charts", are packaged and placed within an artifact registry, like [Harbor](https://goharbor.io). The list of available services includes global and user-specific charts, which are automatically discovered by Knot.
 
-When deploying a service, the user can specify chart values through the dashboard. Knot will silently set "internal" platform configuration values, such as the generated hostname assigned to the service, the location of the private container registry, etc.
+When deploying a service, the user can specify chart values through the dashboard. Knot will silently set "internal" platform configuration values (in the `knot` namespace), such as the generated hostname assigned to the service, the location of the private container registry, etc.
 
 Knot-compatible charts may use the following values:
 
-| Value                         | Description                                                                             | Set in env.
-| ----------------------------- | --------------------------------------------------------------------------------------- | -------------
+| Value                     | Description                                                                             | Set in env.
+| ------------------------- | --------------------------------------------------------------------------------------- | -----------
 | `knot.enabled`            | Set to `true`                                                                           |
 | `knot.hostname`           | The hostname assigned to the service (set to `<release name>-<username>.<ingress url>`) |
 | `knot.username`           | The user's username                                                                     | ✓
@@ -51,6 +51,22 @@ Knot-compatible charts may use the following values:
 | `knot.publicRepoUrl`      | The URL of the "shared" Helm chart repository (set if Harbor is enabled)                | ✓
 
 As shown in the table, some values are also set inside pods as environment variables (in uppercase snake case, i.e. `KNOT_PRIVATE_DIR`).
+
+Inline comments for variables in `values.yaml` are shown as help text to the user. You can also use `knot.metadata` to specify elaborate help messages or specific variable choices. For example, the following excerpt from `values.yaml` sets the help text for variable `message` and preselected choices for `version`:
+
+```
+knot:
+  enabled: true
+  hostname: service.example.com
+  metadata:
+    message:
+      help: The message to display
+    version:
+      help: Select version
+      choices:
+      - "1.0"
+      - "2.0"
+```
 
 Knot will show all services to the user, except those marked with the label `knot-hidden`. Upon deployment, Knot will attach local storage folders to all pods, as well as remote datasets (except on pods labelled with `knot-no-datasets`). Authentication directives are added to all ingress resources (except on those labelled with `knot-no-auth`).
 

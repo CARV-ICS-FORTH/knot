@@ -67,7 +67,20 @@ class ServiceTemplateManager(object):
 
         repo_client = self.repos[template['repo']]
         chart_name, values = repo_client.values(name)
+        try:
+            metadata = values['knot']['metadata']
+            del(values['knot']['metadata']) # Remove metadata.
+        except:
+            metadata = []
         data = flatten_values(values, 'data')
+
+        # Customize interface with options in metadata.
+        for k, v in dict(metadata).items():
+            value = next((d for d in data if d['label'] == ('data.%s' % k)), None)
+            if 'help' in v:
+                value['help'] = v['help']
+            if 'choices' in v:
+                value['choices'] = v['choices']
 
         data.insert(0, {'label': 'name',
                         'default': name,

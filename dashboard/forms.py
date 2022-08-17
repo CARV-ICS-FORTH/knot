@@ -83,10 +83,17 @@ class CreateServiceForm(forms.Form):
             kwargs = {'validators': [validate_kubernetes_label], 'required': True} if label == 'name' else {'required': False}
             if label.startswith('data.'):
                 label = label[5:]
-            self.fields[variable['label']] = forms.CharField(label=label.replace('.', ' ').capitalize(),
-                                                             initial=variable.get('default'),
-                                                             help_text=variable.get('help'),
-                                                             **kwargs)
+            if 'choices' in variable:
+                self.fields[variable['label']] = forms.ChoiceField(label=label.replace('.', ' ').capitalize(),
+                                                                   choices=[(c, c) for c in variable['choices']],
+                                                                   initial=variable.get('default'),
+                                                                   help_text=variable.get('help'),
+                                                                   **kwargs)
+            else:
+                self.fields[variable['label']] = forms.CharField(label=label.replace('.', ' ').capitalize(),
+                                                                 initial=variable.get('default'),
+                                                                 help_text=variable.get('help'),
+                                                                 **kwargs)
 
 class ShowServiceForm(CreateServiceForm):
     def __init__(self, *args, **kwargs):
