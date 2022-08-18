@@ -683,7 +683,9 @@ releases:
   - nfs/nfs-server-files
   {{- end }}
   values:
-  {{- if .Values.knot.localImage }}
+  {{- if .Values.knot | get "customVersion" "" }}
+  - image: carvicsforth/knot:{{ .Values.knot.customVersion }}
+  {{- else if .Values.knot.localImage }}
   - image: carvicsforth/knot:{{ readFile "VERSION" }}
   {{- end }}
   - knot:
