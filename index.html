@@ -1,2 +1,98 @@
 <!DOCTYPE html>
-<meta http-equiv="refresh" content="0; URL=/knot/docs">
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="Antony Chazapis">
+    <title>Knot · Instant productivity for Kubernetes</title>
+
+    <link href="assets/css/bootstrap.min.css" rel="stylesheet">
+    <link href="assets/css/bootstrap-icons.css" rel="stylesheet">
+    <style>
+      .container {
+        max-width: 960px;
+      }
+      .bg-knot {
+        background: rgb(54, 134, 214);
+        background-image: linear-gradient(to bottom, rgb(54, 134, 214), rgb(22, 64, 104));
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container py-3">
+      <header>
+        <div class="d-flex flex-column flex-md-row align-items-center mb-4">
+          <span class="d-flex align-items-center text-dark text-decoration-none">
+            <img src="images/knot.png" alt="Knot" height="40">
+          </span>
+
+          <nav class="d-inline-flex mt-2 mt-md-0 ms-md-auto">
+            <a class="me-3 pt-3 text-dark text-decoration-none" href="https://carv-ics-forth.github.io/knot/docs/" target="_blank"><i class="bi-book"></i> Docs</a>
+            <a class="pt-3 text-dark text-decoration-none" href="https://github.com/CARV-ICS-FORTH/knot" target="_blank"><i class="bi-github"></i> GitHub</a>
+          </nav>
+        </div>
+      </header>
+
+      <div class="h-100 p-5 text-white bg-knot rounded-3">
+        <div class="container-fluid py-5">
+          <h3 class="display-5 fw-bold">Instant productivity for Kubernetes</h3>
+          <p class="fs-4">The Knot environment ties together a complete set of user-facing tools to help you unleash your productivity on Kubernetes. Install Knot and use your browser to create notebooks, run workflows, launch services, and manage datasets. Focus on doing the actual work and let Kubernetes handle scaling.</p>
+        </div>
+      </div>
+
+      <div class="row g-4 pt-5 row-cols-4 d-flex align-items-center">
+        <div class="col px-3">
+          <a href="https://jupyter.org/hub" target="_blank" class="text-muted"><img src="images/jupyterhub.png" class="img-fluid"></a>
+        </div>
+        <div class="col px-3">
+          <a href="https://argoproj.github.io/workflows" target="_blank" class="text-muted"><img src="images/argo.png" class="img-fluid"></a>
+        </div>
+        <div class="col px-3">
+          <a href="https://goharbor.io" target="_blank" class="text-muted"><img src="images/harbor.png" class="img-fluid"></a>
+        </div>
+        <div class="col px-3">
+          <a href="https://grafana.com" target="_blank" class="text-muted"><img src="images/grafana.png" class="img-fluid"></a>
+        </div>
+        <div class="col-12">
+          <h2>Everything included</h2>
+          <p>Engage with Kubernetes faster and easier. Knot includes <a href="https://jupyter.org/hub" target="_blank" class="text-muted">JupyterHub</a> for writing your notebooks, <a href="https://argoproj.github.io/workflows" target="_blank" class="text-muted">Argo Workflows</a> for submitting your workflows, <a href="https://goharbor.io" target="_blank" class="text-muted">Harbor</a> for storing your private containers and <a href="https://helm.sh" target="_blank" class="text-muted">Helm</a> charts, and <a href="https://grafana.com" target="_blank" class="text-muted">Grafana</a> for monitoring your infrastructure. All web-based and accessible through the Knot dashboard. No command line necessary.</p>
+        </div>
+      </div>
+
+      <div class="row g-4 pt-5 row-cols-1 row-cols-lg-3">
+        <div class="col">
+          <p class="text-center"><img src="images/user.png" alt="user" height="120"></p>
+          <h2>User management</h2>
+          <p>Users login into the Knot dashboard with their username and password. Single sign-on is automatically configured, so they can transparently switch from one application to the other without logging in again. Under the hood, each user is isolated in a separate Kubernetes namespace.</p>
+        </div>
+        <div class="col">
+          <p class="text-center"><img src="images/folder.png" alt="folder" height="120"></p>
+          <h2>Data availability</h2>
+          <p>Each user gets a private directory for files which is automatically mounted inside all containers. Run a workflow on some data and continue processing the files in a notebook, or serve the produced results via an externally accesible web server. No need to copy data around.</p>
+        </div>
+        <div class="col">
+          <p class="text-center"><img src="images/rocket.png" alt="rocket" height="120"></p>
+          <h2>Service catalogue</h2>
+          <p>In addition to the bundled set of shared applications, Knot allows users to launch private services, like a databases or a web server. Several service templates are already included, but it is easy to extend the environment using <a href="https://helm.sh" target="_blank" class="text-muted">Helm</a> charts.</p>
+        </div>
+      </div>
+
+      <div class="row g-4 pt-5 row-cols-1">
+        <div class="col">
+          <h2>Super-easy to try out!</h2>
+          <p>Fire up a Kubernetes cluster anywhere in the Cloud and have Knot up and running within minutes using <a href="https://github.com/CARV-ICS-FORTH/knot#deployment" target="_blank" class="text-muted">a simple command</a>.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="container">
+      <footer class="pt-3 my-4 border-top">
+        <p class="text-center text-muted small">© 2020-2022, <a href="https://www.ics.forth.gr/" target="_blank" class="text-muted">FORTH-ICS<a> • A <a href="https://www.ics.forth.gr/carv/" target="_blank" class="text-muted">CARV</a> project</p>
+      </footer>
+    </div>
+
+    <!-- <script src="../assets/dist/js/bootstrap.bundle.min.js"></script> -->
+      
+  </body>
+</html>
