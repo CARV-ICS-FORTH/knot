@@ -675,7 +675,7 @@ releases:
   chart: chart/knot
   {{- else }}
   chart: knot/knot
-  version: 4.0.1
+  version: 4.1.0
   {{- end }}
   needs:
   - cert-manager/cert-manager
