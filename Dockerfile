@@ -1,6 +1,6 @@
 FROM python:3.8.12 AS ldap-build
 
-RUN apt-get update -y && \
+RUN apt-get update && \
     apt-get install -y libsasl2-dev python-dev libldap2-dev libssl-dev && \
     python -m pip wheel --wheel-dir=/tmp python-ldap==3.4.0 ruamel.yaml.clib==0.2.6
 

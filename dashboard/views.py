@@ -401,7 +401,7 @@ def dataset_add(request, name=''):
 @login_required
 def files(request, path='/'):
     # Get user file domains.
-    file_domains = request.user.file_domains if not getattr(request.user, 'is_impersonate', False) else User.objects.get(pk=request.user.pk).file_domains
+    file_domains = request.user.file_domains
 
     # Normalize given path and split.
     path = os.path.normpath(path)
@@ -528,9 +528,7 @@ class UploadCompleteView(ChunkedUploadCompleteView):
         '''
 
         # Get user file domains.
-        file_domains = request.user.file_domains if not getattr(request.user, 'is_impersonate', False) else User.objects.get(pk=request.user.pk).file_domains
-
-        path_worker = file_domains[request.POST['domain']].path_worker(request.POST['path'].split('/'))
+        path_worker = request.user.file_domains[request.POST['domain']].path_worker(request.POST['path'].split('/'))
         if path_worker.exists(uploaded_file.name):
             Message.add(request, 'error', 'Can not add "%s". An item with the same name already exists.' % uploaded_file.name)
             return

@@ -104,9 +104,9 @@
             </button>
             <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownUserButton">
               <a class="dropdown-item text-secondary" data-toggle="modal" data-target="#aboutModal">About</a>
-              {% if user.is_impersonate %}<a class="dropdown-item text-dark" href="{% url 'impersonate-stop' %}">Stop impersonating</a>{% endif %}
+              {% if user.is_impersonate %}<a class="dropdown-item text-secondary" href="{% url 'impersonate-stop' %}">Stop impersonating</a>{% endif %}
               <a class="dropdown-item text-secondary" href="{% url 'messages' %}">Messages</a>
-              <a class="dropdown-item text-secondary" href="{% url 'change_password' %}?next={{ request.path }}">Change password</a>
+              {% if not user.is_impersonate %}<a class="dropdown-item text-secondary" href="{% url 'change_password' %}?next={{ request.path }}">Change password</a>{% endif %}
               {% if issues_url %}<a class="dropdown-item text-secondary" href="{{ issues_url }}" target="_blank">Report an issue</a>{% endif %}
               <a class="dropdown-item text-secondary" href="{% if documentation_url %}{{ documentation_url }}{% else %}{% static 'docs/index.html' %}{% endif %}" target="_blank">Documentation</a>
               <a class="dropdown-item text-secondary" href="{% url 'logout' %}">Logout</a>

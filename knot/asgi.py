@@ -25,13 +25,48 @@ import os
 
 import dashboard.routing
 
-from channels.auth import AuthMiddlewareStack
+from collections import namedtuple
+from channels.db import database_sync_to_async
+from channels.auth import AuthMiddlewareStack, UserLazyObject
+from channels.middleware import BaseMiddleware
 from channels.routing import ProtocolTypeRouter, URLRouter
 from channels.security.websocket import AllowedHostsOriginValidator
+from impersonate.middleware import ImpersonateMiddleware
 from django.core.asgi import get_asgi_application
 
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'knot.settings')
 
+@database_sync_to_async
+def get_impersonated_user(scope):
+    request = namedtuple('Request', 'user session path')
+    request.user = scope['user']
+    request.session = scope['session']
+    request.path = scope['path']
+
+    impersonate_middleware = ImpersonateMiddleware()
+    impersonate_middleware.process_request(request)
+    return request.user
+
+class AsyncImpersonateMiddleware(BaseMiddleware):
+    '''
+    Middleware which populates scope['user'] in case of impersonation.
+    '''
+
+    def populate_scope(self, scope):
+        if 'user' not in scope:
+            raise ValueError(
+                'Cannot find user in scope. You should wrap your consumer in AuthMiddleware.'
+            )
+
+    async def resolve_scope(self, scope):
+        scope['user']._wrapped = await get_impersonated_user(scope)
+
+    async def __call__(self, scope, receive, send):
+        scope = dict(scope)
+        self.populate_scope(scope)
+        await self.resolve_scope(scope)
+        return await super().__call__(scope, receive, send)
+
 application = ProtocolTypeRouter({'http': get_asgi_application(),
-                                  'websocket': AllowedHostsOriginValidator(AuthMiddlewareStack(URLRouter(dashboard.routing.websocket_urlpatterns)))})
+                                  'websocket': AllowedHostsOriginValidator(AuthMiddlewareStack(AsyncImpersonateMiddleware(URLRouter(dashboard.routing.websocket_urlpatterns))))})

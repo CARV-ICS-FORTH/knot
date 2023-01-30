@@ -25,6 +25,7 @@ from dataclasses import dataclass
 from jinja2 import Template
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
+from impersonate.signals import session_begin
 
 from .utils.kubernetes import KubernetesClient
 from .utils.file_domains.file import PrivateFileDomain, SharedFileDomain
@@ -304,3 +305,7 @@ def create_user_namespace(sender, user, request, **kwargs):
     if not user.last_login:
         update_last_login(sender, user, **kwargs) # The first time, this handler may be called first
     user.create_namespace(request) # Make sure namespace and volumes are created on upgrade
+
+@receiver(session_begin)
+def impersonate(sender, impersonating, request, **kwargs):
+    create_user_namespace(sender, impersonating, request, **kwargs)

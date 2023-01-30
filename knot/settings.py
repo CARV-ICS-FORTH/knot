@@ -78,11 +78,11 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'dashboard.middleware.ProxyUserMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'oauth2_provider.middleware.OAuth2TokenMiddleware',
     'impersonate.middleware.ImpersonateMiddleware',
+    'dashboard.middleware.ProxyUserMiddleware',
     'knot.middleware.AddLogUserHeaderMiddleware',
 ]
 
