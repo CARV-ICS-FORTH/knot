@@ -90,6 +90,7 @@ develop: check-ip-address
 	export KNOT_GRAFANA_NAMESPACE="monitoring"; \
 	kubectl port-forward -n knot deployment/knot 6379:6379 & \
 	celery -A knot worker -l info & \
+	./manage.py migrate && \
 	./manage.py runserver 0.0.0.0:8000
 
 container:

@@ -37,6 +37,8 @@ urlpatterns = [
     path('users', views.users, name='users'),
     path('user/edit/<str:username>', views.user_edit, name='user_edit'),
     path('user/change_password/<str:username>', views.user_change_password, name='user_change_password'),
+    path('teams', views.teams, name='teams'),
+    path('team/edit/<str:name>', views.team_edit, name='team_edit'),
 
     path('signup', views.signup, name='signup'),
     path('login', auth_views.LoginView.as_view(template_name='dashboard/login.html'), name='login'),

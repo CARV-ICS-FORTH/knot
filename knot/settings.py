@@ -100,6 +100,7 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'dashboard.context_processors.settings',
+                'dashboard.context_processors.teams',
             ],
         },
     },
@@ -258,6 +259,14 @@ MESSAGE_TAGS = {
     messages.SUCCESS: 'alert-success',
     messages.WARNING: 'alert-warning',
     messages.ERROR: 'alert-danger',
+}
+
+
+# Impersonate customization
+
+IMPERSONATE = {
+    'CUSTOM_ALLOW': 'dashboard.impersonate.custom_allow',
+    'CUSTOM_USER_QUERYSET': 'dashboard.impersonate.custom_user_queryset',
 }
 
 

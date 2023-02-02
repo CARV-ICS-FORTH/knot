@@ -26,8 +26,8 @@ from chunked_upload.views import ChunkedUploadView, ChunkedUploadCompleteView
 from celery.result import AsyncResult
 from packaging import version
 
-from .models import User, Message, Task
-from .forms import SignUpForm, EditUserForm, AddServiceForm, CreateServiceForm, ShowServiceForm, AddDatasetForm, CreateDatasetForm, ShowDatasetForm, AddFolderForm, AddImageFromFileForm
+from .models import User, Profile, Membership, Message, Task
+from .forms import SignUpForm, EditUserForm, AddServiceForm, CreateServiceForm, ShowServiceForm, AddDatasetForm, CreateDatasetForm, ShowDatasetForm, AddFolderForm, AddImageFromFileForm, CreateTeamForm, EditTeamForm
 from .services import ServiceTemplateManager, ServiceManager
 from .datasets import DatasetTemplateManager, DatasetManager
 from .utils.kubernetes import KubernetesClient
@@ -46,7 +46,7 @@ def services(request):
     if request.method == 'POST':
         if 'action' not in request.POST:
             Message.add(request, 'error', 'Invalid action.')
-        elif request.POST['action'] == 'Add':
+        elif request.POST['action'] == 'Create':
             form = AddServiceForm(request.POST, user=request.user)
             if form.is_valid():
                 name = form.cleaned_data['name']
@@ -429,7 +429,7 @@ def files(request, path='/'):
             if form.is_valid():
                 name = form.cleaned_data['name']
                 if path_worker.exists(name):
-                    Message.add(request, 'error', 'Can not add "%s". An item with the same name already exists.' % name)
+                    Message.add(request, 'error', 'Can not create "%s". An item with the same name already exists.' % name)
                 else:
                     path_worker.mkdir(name)
                     Message.add(request, 'success', 'Folder "%s" created.' % name)
@@ -530,7 +530,7 @@ class UploadCompleteView(ChunkedUploadCompleteView):
         # Get user file domains.
         path_worker = request.user.file_domains[request.POST['domain']].path_worker(request.POST['path'].split('/'))
         if path_worker.exists(uploaded_file.name):
-            Message.add(request, 'error', 'Can not add "%s". An item with the same name already exists.' % uploaded_file.name)
+            Message.add(request, 'error', 'Can not upload "%s". An item with the same name already exists.' % uploaded_file.name)
             return
         filename = os.path.join(settings.MEDIA_ROOT, uploaded_file.file.name)
         path_worker.upload(filename, uploaded_file.name)
@@ -596,7 +596,7 @@ def users(request):
 
     # Fill in the contents.
     contents = []
-    for user in User.objects.all():
+    for user in User.objects.exclude(profile__is_team=True):
         contents.append({'id': user.id,
                          'username': user.username,
                          'email': user.email,
@@ -681,6 +681,113 @@ def user_change_password(request, username):
                                                    'form': form,
                                                    'action': 'Change',
                                                    'next': reverse('users')})
+
+@staff_member_required
+def teams(request):
+    # Handle changes.
+    if request.method == 'POST':
+        if 'action' not in request.POST:
+            Message.add(request, 'error', 'Invalid action.')
+        elif request.POST['action'] == 'Create':
+            form = CreateTeamForm(request.POST)
+            if form.is_valid():
+                username = form.cleaned_data['name']
+                try:
+                    team = User.objects.get(username=username)
+                    Message.add(request, 'error', 'Can not create "%s". A team or user with the same name already exists.' % username)
+                    return redirect('teams')
+                except User.DoesNotExist:
+                    pass
+
+                description = form.cleaned_data['description']
+                profile = Profile.objects.create(user=User.objects.create(username=username),
+                                                 is_team=True,
+                                                 description=description)
+                Message.add(request, 'success', 'Team "%s" created.' % username)
+        elif request.POST['action'] == 'Delete':
+            username = request.POST.get('name', None)
+            if username and username != request.user.username:
+                try:
+                    team = User.objects.get(username=username)
+                    try:
+                        team.delete_namespace()
+                    except Exception as e:
+                        Message.add(request, 'error', 'Failed to delete team "%s": %s.' % (username, str(e)))
+                    else:
+                        team.delete()
+                        Message.add(request, 'success', 'Team "%s" deleted.' % username)
+                except User.DoesNotExist:
+                    pass
+            else:
+                Message.add(request, 'error', 'Invalid name')
+        else:
+            Message.add(request, 'error', 'Invalid action.')
+
+        return redirect('teams')
+
+    # Fill in the contents.
+    contents = []
+    for team in User.objects.filter(profile__is_team=True):
+        contents.append({'id': team.id,
+                         'name': team.username,
+                         'description': team.profile.description,
+                         'members': team.members.count(),
+                         'actions': True if team.username != request.user.username else False})
+
+    # Sort them up.
+    sort_by = request.GET.get('sort_by')
+    if sort_by and sort_by in ('name', 'description', 'members'):
+        request.session['teams_sort_by'] = sort_by
+    else:
+        sort_by = request.session.get('teams_sort_by', 'name')
+    order = request.GET.get('order')
+    if order and order in ('asc', 'desc'):
+        request.session['teams_order'] = order
+    else:
+        order = request.session.get('teams_order', 'asc')
+
+    contents = sorted(contents,
+                      key=lambda x: x[sort_by],
+                      reverse=True if order == 'desc' else False)
+
+    return render(request, 'dashboard/teams.html', {'title': 'Teams',
+                                                    'contents': contents,
+                                                    'sort_by': sort_by,
+                                                    'order': order,
+                                                    'create_team_form': CreateTeamForm()})
+
+@staff_member_required
+def team_edit(request, name):
+    # Validate given name.
+    try:
+        team = User.objects.get(username=name, profile__is_team=True)
+    except User.DoesNotExist:
+        Message.add(request, 'error', 'Invalid name.')
+        return redirect('teams')
+
+    if request.method == 'POST':
+        form = EditTeamForm(request.POST, team=team)
+        if form.is_valid():
+            description = form.cleaned_data['description']
+            team.profile.description = description
+            team.profile.save()
+
+            members = form.cleaned_data['members']
+            existing_members = [m.user for m in team.members.all()]
+            for user in [m for m in existing_members if m not in members]:
+                Membership.objects.get(user=user, team=team).delete()
+            for user in [m for m in members if m not in existing_members]:
+                Membership.objects.create(user=user, team=team)
+
+            Message.add(request, 'success', 'Team "%s" edited.' % name)
+            return redirect('teams')
+    else:
+        form = EditTeamForm(team=team)
+
+    return render(request, 'dashboard/form.html', {'title': 'Edit Team',
+                                                   'form': form,
+                                                   'action': 'Edit',
+                                                   'next': reverse('teams')})
 
 def signup(request):
     if request.method == 'POST':

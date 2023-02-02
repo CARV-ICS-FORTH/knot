@@ -75,6 +75,8 @@ User namespaces
 
 Internally, at the Kubernetes level, each Knot user is matched to a unique namespace, which also hosts all of the user's services. Containers launched within the namespace are given Kubernetes service accounts which are only allowed to operate within their own namespace. This practice organizes resources per user and isolates users from each other.
 
+Users may also form teams. Internally, each team is just another Knot user. When a user selects to switch to a team's profile, the user actually impersonates the team user. Administrators are not given the option to switch between different profiles, as they can impersonate any user.
+
 For user "test", Knot creates the namespace `knot-test` and binds the `default` user account in that namespace to the `cluster-admin` cluster role (only for the `knot-test` namespace).
 
 Service exposure

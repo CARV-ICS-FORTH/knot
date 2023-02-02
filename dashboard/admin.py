@@ -13,9 +13,26 @@
 # limitations under the License.
 
 from django.contrib import admin
+from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
+from django.contrib.auth.models import User
 
-from .models import Message, Task
+from .models import Profile, Membership, Message, Task
 
+
+class ProfileInline(admin.StackedInline):
+    model = Profile
+    can_delete = False
+    verbose_name_plural = 'profiles'
+
+class UserAdmin(BaseUserAdmin):
+    inlines = [ProfileInline]
+
+admin.site.unregister(User)
+admin.site.register(User, UserAdmin)
+
+@admin.register(Membership)
+class MembershipAdmin(admin.ModelAdmin):
+    list_display = ('user', 'team', 'created')
 
 @admin.register(Message)
 class MessageAdmin(admin.ModelAdmin):

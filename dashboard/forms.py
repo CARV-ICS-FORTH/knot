@@ -16,6 +16,7 @@ from django import forms
 from django.core.exceptions import ValidationError
 from django.core.validators import RegexValidator
 from django.contrib.auth.forms import UserCreationForm
+from django.forms import CheckboxSelectMultiple
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Submit
 
@@ -41,7 +42,7 @@ class SignUpForm(UserCreationForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['username'].validators.append(validate_username)
-        self.fields['username'].help_text = 'Required. 150 characters or fewer. Letters and digits only.'
+        self.fields['username'].help_text = 'Required. Letters and digits only.'
         self.helper = FormHelper()
         self.helper.layout = Layout(
             'username',
@@ -130,3 +131,19 @@ class AddImageFromFileForm(forms.Form):
 
 class EditUserForm(forms.Form):
     email = forms.EmailField(label='Email')
+
+class CreateTeamForm(forms.Form):
+    name = forms.CharField(label='Name', min_length=1, max_length=128, validators=[validate_username], help_text='Required. Letters and digits only.')
+    description = forms.CharField(label='Description', max_length=128)
+
+class EditTeamForm(forms.Form):
+    def __init__(self, *args, **kwargs):
+        self.team = kwargs.pop('team')
+        super().__init__(*args, **kwargs)
+
+        self.fields['name'] = forms.CharField(label='Name', disabled=True, initial=self.team.username)
+        self.fields['description'] = forms.CharField(label='Description', max_length=128, initial=self.team.profile.description)
+        self.fields['members'] = forms.ModelMultipleChoiceField(widget=CheckboxSelectMultiple(),
+                                                                required=False,
+                                                                queryset=User.objects.exclude(profile__is_team=True),
+                                                                initial=[m.user for m in self.team.members.all()])

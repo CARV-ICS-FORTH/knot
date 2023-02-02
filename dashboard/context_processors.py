@@ -14,6 +14,9 @@
 
 from django.conf import settings as django_settings
 
+from .models import User
+
+
 def settings(request):
     return {'version': django_settings.VERSION,
             'dashboard_title': django_settings.DASHBOARD_TITLE,
@@ -25,3 +28,16 @@ def settings(request):
             'harbor_url': django_settings.HARBOR_URL,
             'grafana_url': django_settings.GRAFANA_URL,
             'openbio_url': django_settings.OPENBIO_URL}
+
+def teams(request):
+    if not request.user.is_authenticated:
+        return {}
+
+    real_user = request.user if not request.user.is_impersonate else request.impersonator
+    result = [real_user] + [u for u in User.objects.filter(members__user=real_user)]
+    try:
+        result.remove(request.user)
+    except ValueError:
+        pass
+
+    return {'teams': result}

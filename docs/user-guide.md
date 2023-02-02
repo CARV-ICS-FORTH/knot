@@ -14,7 +14,7 @@ To create an account, select the "Sign up" option on the main screen and fill in
 
 ![](images/sign-up-screen.png)
 
-Once the account is activated by an administrator, login using your username and password. You can change your password when logged in by clicking on the user icon at the top-right of the screen and selecting "Change password" from the menu. The menu also provides options to view previous messages reported, access this documentation, and logout. If you ever forget your password, please ask an administrator to reset it.
+Once the account is activated by an administrator, login using your username and password. You can change your password when logged in by clicking on the user icon at the top-right of the screen and selecting "Change password" from the menu. The menu also provides options to switch between profiles (if you are a member of one or more teams), view previous messages reported, access this documentation, and logout. If you ever forget your password, please ask an administrator to reset it.
 
 Notebooks, workflows, images, and metrics buttons
 -------------------------------------------------

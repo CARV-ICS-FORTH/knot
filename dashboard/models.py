@@ -96,7 +96,7 @@ class User(AuthUser):
         if not htpasswd_dir:
             return
         with open(os.path.join(htpasswd_dir, 'htpasswd'), 'w') as f:
-            for user in cls.objects.filter(is_active=True):
+            for user in cls.objects.filter(is_active=True).exclude(profile__is_team):
                 if hasattr(user, 'ldap_user'):
                     # Users coming from LDAP have unusable passwords.
                     continue
@@ -269,6 +269,18 @@ class User(AuthUser):
         # Delete volumes.
         for name, domain in self.file_domains.items():
             domain.delete_domain()
+
+class Profile(models.Model):
+    user = models.OneToOneField(AuthUser, primary_key=True, related_name='profile', on_delete=models.CASCADE)
+    is_team = models.BooleanField(blank=False, null=False, default=False)
+    description = models.CharField(max_length=128, blank=False, null=False)
+    created = models.DateTimeField(auto_now_add=True)
+    updated = models.DateTimeField(auto_now=True)
+
+class Membership(models.Model):
+    user = models.ForeignKey(User, related_name='memberships', on_delete=models.CASCADE)
+    team = models.ForeignKey(User, related_name='members', on_delete=models.CASCADE)
+    created = models.DateTimeField(auto_now_add=True)
 
 class Message(models.Model):
     user = models.ForeignKey(User, related_name='messages', on_delete=models.CASCADE)
