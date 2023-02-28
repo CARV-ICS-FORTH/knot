@@ -31,6 +31,8 @@ environments:
     - grafana:
         enabled: true
         clientSecret: eYLaIV2NtZHhR7M9zh1ouLl4LpuwwpcrYBspXbS2gTCm61Hn01ghmZf7iBxxk5r3SdPHnlg6Ovm6IKK4CmJKNl8gnkvxjmOt7YOxZJR0BJH8DPHnA9Nh6pHpmESM8mfE
+    - opencost:
+        enabled: true
     - knot:
         # Forward requests for development.
         developmentURL:
@@ -681,6 +683,188 @@ releases:
       data:
         client-id: {{ "grafana" | b64enc }}
         client-secret: {{ .Values.grafana.clientSecret | b64enc }}
+{{- end }}
+{{- if .Values.opencost.enabled }}
+- name: opencost
+  namespace: opencost
+  createNamespace: true
+  chart: bedag/raw
+  version: 1.1.0
+  values:
+  - resources:
+    - apiVersion: v1
+      kind: ServiceAccount
+      metadata:
+        name: opencost
+    - apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRole
+      metadata:
+        name: opencost
+      rules:
+        - apiGroups:
+            - ''
+          resources:
+            - configmaps
+            - deployments
+            - nodes
+            - pods
+            - services
+            - resourcequotas
+            - replicationcontrollers
+            - limitranges
+            - persistentvolumeclaims
+            - persistentvolumes
+            - namespaces
+            - endpoints
+          verbs:
+            - get
+            - list
+            - watch
+        - apiGroups:
+            - extensions
+          resources:
+            - daemonsets
+            - deployments
+            - replicasets
+          verbs:
+            - get
+            - list
+            - watch
+        - apiGroups:
+            - apps
+          resources:
+            - statefulsets
+            - deployments
+            - daemonsets
+            - replicasets
+          verbs:
+            - list
+            - watch
+        - apiGroups:
+            - batch
+          resources:
+            - cronjobs
+            - jobs
+          verbs:
+            - get
+            - list
+            - watch
+        - apiGroups:
+            - autoscaling
+          resources:
+            - horizontalpodautoscalers
+          verbs:
+            - get
+            - list
+            - watch
+        - apiGroups:
+            - policy
+          resources:
+            - poddisruptionbudgets
+          verbs:
+            - get
+            - list
+            - watch
+        - apiGroups:
+            - storage.k8s.io
+          resources:
+            - storageclasses
+          verbs:
+            - get
+            - list
+            - watch
+    - apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRoleBinding
+      metadata:
+        name: opencost
+      roleRef:
+        apiGroup: rbac.authorization.k8s.io
+        kind: ClusterRole
+        name: opencost
+      subjects:
+        - kind: ServiceAccount
+          name: opencost
+          namespace: opencost
+    - apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: opencost
+        labels:
+          app: opencost
+      spec:
+        replicas: 1
+        selector:
+          matchLabels:
+            app: opencost
+        strategy:
+          rollingUpdate:
+            maxSurge: 1
+            maxUnavailable: 1
+          type: RollingUpdate
+        template:
+          metadata:
+            labels:
+              app: opencost
+          spec:
+            restartPolicy: Always
+            serviceAccountName: opencost
+            containers:
+              - image: quay.io/kubecost1/kubecost-cost-model:prod-1.100.2
+                name: opencost
+                resources:
+                  requests:
+                    cpu: "10m"
+                    memory: "55M"
+                  limits:
+                    cpu: "999m"
+                    memory: "1G"
+                env:
+                  - name: PROMETHEUS_SERVER_ENDPOINT
+                    value: "http://monitoring-kube-prometheus-prometheus.monitoring.svc" # The endpoint should have the form http://<service-name>.<namespace-name>.svc
+                  - name: CLUSTER_ID
+                    value: "knot-cluster" # Default cluster ID to use if cluster_id is not set in Prometheus metrics.
+              - image: quay.io/kubecost1/opencost-ui:prod-1.100.2
+                name: opencost-ui
+                resources:
+                  requests:
+                    cpu: "10m"
+                    memory: "55M"
+                  limits:
+                    cpu: "999m"
+                    memory: "1G"
+    - apiVersion: v1
+      kind: Service
+      metadata:
+        name: opencost
+      spec:
+        selector:
+          app: opencost
+        type: ClusterIP
+        ports:
+          - name: opencost
+            port: 9003
+            targetPort: 9003
+          - name: opencost-ui
+            port: 9090
+            targetPort: 9090
+    - apiVersion: networking.k8s.io/v1
+      kind: Ingress
+      metadata:
+        name: opencost
+        annotations:
+          nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+      spec:
+        rules:
+        - host: opencost.{{ .Values.ingress.host }}
+          http:
+            paths:
+            - path: /
+              pathType: Prefix
+              backend:
+                service:
+                  name: opencost-ui
+                  port:
+                    number: 9090
 {{- end }}
 - name: knot
   namespace: knot
