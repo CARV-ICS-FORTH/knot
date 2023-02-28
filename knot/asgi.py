@@ -31,7 +31,6 @@ from channels.auth import AuthMiddlewareStack, UserLazyObject
 from channels.middleware import BaseMiddleware
 from channels.routing import ProtocolTypeRouter, URLRouter
 from channels.security.websocket import AllowedHostsOriginValidator
-from impersonate.middleware import ImpersonateMiddleware
 from django.core.asgi import get_asgi_application
 
 
@@ -39,6 +38,8 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'knot.settings')
 
 @database_sync_to_async
 def get_impersonated_user(scope):
+    from impersonate.middleware import ImpersonateMiddleware
+
     request = namedtuple('Request', 'user session path')
     request.user = scope['user']
     request.session = scope['session']
