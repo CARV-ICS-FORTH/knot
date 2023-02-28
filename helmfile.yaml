@@ -352,6 +352,7 @@ releases:
           c.KubeSpawner.enable_user_namespaces = True
           c.KubeSpawner.user_namespace_template = "knot-{username}"
           c.KubeSpawner.notebook_dir = "/private/notebooks"
+          c.KubeSpawner.args = ["--allow-root"]
       networkPolicy:
         enabled: false
       db:
@@ -379,8 +380,19 @@ releases:
   - singleuser:
       networkPolicy:
         enabled: false
+      extraEnv:
+        GRANT_SUDO: "yes"
+        NOTEBOOK_ARGS: "--allow-root"
+      uid: 0
       storage:
         type: none
+        extraVolumes:
+          - name: shm-volume
+            emptyDir:
+              medium: Memory
+        extraVolumeMounts:
+          - name: shm-volume
+            mountPath: /dev/shm
       {{- if sprigGet .Values.jupyterHub "singleuserExtra" }}
       {{ toYaml .Values.jupyterHub.singleuserExtra | nindent 6 }}
       {{- end }}
