@@ -47,7 +47,8 @@ def get_impersonated_user(scope):
 
     impersonate_middleware = ImpersonateMiddleware()
     impersonate_middleware.process_request(request)
-    return request.user
+    if request.impersonator:
+        return request.user
 
 class AsyncImpersonateMiddleware(BaseMiddleware):
     '''
@@ -61,7 +62,9 @@ class AsyncImpersonateMiddleware(BaseMiddleware):
             )
 
     async def resolve_scope(self, scope):
-        scope['user']._wrapped = await get_impersonated_user(scope)
+        impersonated_user = await get_impersonated_user(scope)
+        if impersonated_user:
+            scope['user'] = impersonated_user
 
     async def __call__(self, scope, receive, send):
         scope = dict(scope)
