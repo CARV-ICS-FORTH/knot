@@ -832,7 +832,7 @@ releases:
                     memory: "1G"
                 env:
                   - name: PROMETHEUS_SERVER_ENDPOINT
-                    value: "http://monitoring-kube-prometheus-prometheus.monitoring.svc" # The endpoint should have the form http://<service-name>.<namespace-name>.svc
+                    value: "http://monitoring-kube-prometheus-prometheus.monitoring.svc:9090" # The endpoint should have the form http://<service-name>.<namespace-name>.svc
                   - name: CLUSTER_ID
                     value: "knot-cluster" # Default cluster ID to use if cluster_id is not set in Prometheus metrics.
               - image: quay.io/kubecost1/opencost-ui:prod-1.100.2
@@ -866,6 +866,7 @@ releases:
         annotations:
           nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
       spec:
+        ingressClassName: nginx
         rules:
         - host: opencost.{{ .Values.ingress.host }}
           http:
@@ -874,7 +875,7 @@ releases:
               pathType: Prefix
               backend:
                 service:
-                  name: opencost-ui
+                  name: opencost
                   port:
                     number: 9090
 {{- end }}
