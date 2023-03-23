@@ -96,7 +96,7 @@ class User(AuthUser):
         if not htpasswd_dir:
             return
         with open(os.path.join(htpasswd_dir, 'htpasswd'), 'w') as f:
-            for user in cls.objects.filter(is_active=True).exclude(profile__is_team):
+            for user in cls.objects.filter(is_active=True).exclude(profile__is_team=True):
                 if hasattr(user, 'ldap_user'):
                     # Users coming from LDAP have unusable passwords.
                     continue
