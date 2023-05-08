@@ -316,7 +316,10 @@ def image_info(request, name):
     try:
         registry = registry_client.registry(name)
         for alias in registry.list_aliases():
-            digest = registry.get_digest(alias)
+            try:
+                digest = registry.get_digest(alias)
+            except:
+                continue
             existing_content = next((c for c in contents if c['digest'] == digest), None)
             if existing_content:
                 existing_content['aliases'].append(alias)
