@@ -81,10 +81,17 @@ class CreateServiceForm(forms.Form):
             if name.upper() in ('NAMESPACE', 'HOSTNAME', 'REGISTRY', 'PRIVATE', 'PRIVATE_DIR', 'PRIVATE_VOLUME', 'SHARED', 'SHARED_DIR', 'SHARED_VOLUME'):
                 continue
             kwargs = {'validators': [validate_kubernetes_label]} if name == 'NAME' else {'required': all_required}
-            self.fields[name] = forms.CharField(label=variable.get('label', name.capitalize()),
-                                                initial=variable['default'],
-                                                help_text=variable.get('help'),
-                                                **kwargs)
+            if 'choices' in variable:
+                self.fields[name] = forms.ChoiceField(label=variable.get('label', name.capitalize()),
+                                                      choices=[(c, c) for c in variable['choices']],
+                                                      initial=variable['default'],
+                                                      help_text=variable.get('help'),
+                                                      **kwargs)
+            else:
+                self.fields[name] = forms.CharField(label=variable.get('label', name.capitalize()),
+                                                    initial=variable['default'],
+                                                    help_text=variable.get('help'),
+                                                    **kwargs)
 
 class AddTemplateForm(forms.Form):
     file_field = forms.FileField(label='Template file to add')

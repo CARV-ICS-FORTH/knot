@@ -39,3 +39,6 @@ variables:
   default: ubuntu.example.com
 - name: VERSION
   default: 20.04
+  choices:
+  - 20.04
+  - 22.04

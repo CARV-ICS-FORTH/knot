@@ -38,17 +38,17 @@ To convert a YAML deployment into a Karvdash service template:
 
 The "Template" section should contain the following fields:
 
-===============  ========  =============================================================================
+===============  ========  =============================================================================================
 Field            Required  Description
----------------  --------  -----------------------------------------------------------------------------
+---------------  --------  ---------------------------------------------------------------------------------------------
 ``kind``         Yes       Set to ``Template``
 ``name``         Yes       The template name to show in the dashboard
 ``description``  No        A simple, short description
 ``singleton``    No        If set, only one instance of the template can be running (unset by default)
 ``auth``         No        If set, HTTP authentication should be added by the ingress (set by default)
 ``datasets``     No        If set, dataset volumes will be mounted in pods (set by default)
-``variables``    Yes       The template variables (``name`` and ``default`` required, ``help`` optional)
-===============  ========  =============================================================================
+``variables``    Yes       The template variables (``name`` and ``default`` required, ``choices`` and ``help`` optional)
+===============  ========  =============================================================================================
 
 An example template is::
 
