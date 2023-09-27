@@ -22,7 +22,11 @@ Some of the variables set above are required. The table below lists all availabl
 
 | Variable                        | Required | Description                                                                                   | Default                           |
 |---------------------------------|----------|-----------------------------------------------------------------------------------------------|-----------------------------------|
-| `image`                         |          | Container image to use.                                                                       | `carvicsforth/knot:<version>`     |
+| `images.knot`                   |          | Container image to use for Knot.                                                              | `carvicsforth/knot:<version>`     |
+| `images.nginx`                  |          | Container image to use for NGINX (used internally as a proxy).                                | `nginx:1.25.2-alpine`             |
+| `images.vouchProxy`             |          | Container image to use for Vouch Proxy (used internally for service authentication).          | `quay.io/vouch/vouch-proxy:0.39`  |
+| `images.redis`                  |          | Container image to use for Redis (used internally for asynchronous jobs).                     | `redis:6.2.13`                    |
+| `images.kubectl`                |          | Container image to use for kubectl (used internally for periodic clean up of jobs).           | `bitnami/kubectl:1.27.2`          |
 | `rbac.create`                   |          | Assign full permissions to the dashboard, API and namespace discovery to authenticated users. | `true`                            |
 | `knot.stateVolumeClaim`         | &check;  | If set, use this persistent volume claim for storing the database.                            |                                   |
 | `knot.stateHostPath`            | &check;  | The host path to use for storing state, when no existing volume claim is set.                 |                                   |

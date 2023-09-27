@@ -66,6 +66,15 @@ metadata:
   name: {{ argo_service_account }}
   namespace: {{ argo_namespace }}
 ---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ argo_service_account }}.service-account-token
+  annotations:
+    kubernetes.io/service-account.name: {{ argo_service_account }}
+  namespace: {{ argo_namespace }}
+type: kubernetes.io/service-account-token
+---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
@@ -243,7 +252,8 @@ class User(AuthUser):
         # Create service account for Argo.
         if settings.ARGO_WORKFLOWS_NAMESPACE:
             argo_service_account_name = self.namespace
-            if argo_service_account_name not in [s.metadata.name for s in kubernetes_client.list_service_accounts(settings.ARGO_WORKFLOWS_NAMESPACE)]:
+            if (argo_service_account_name not in [s.metadata.name for s in kubernetes_client.list_service_accounts(settings.ARGO_WORKFLOWS_NAMESPACE)] or
+                ("%s.service-account-token" % argo_service_account_name) not in [s.metadata.name for s in kubernetes_client.list_secrets(settings.ARGO_WORKFLOWS_NAMESPACE)]):
                 argo_template = Template(ARGO_SERVICE_ACCOUNT_TEMPLATE).render(name=self.username,
                                                                                namespace=self.namespace,
                                                                                argo_service_account=argo_service_account_name,

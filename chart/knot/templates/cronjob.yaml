@@ -16,7 +16,7 @@ spec:
         spec:
           containers:
           - name: maintenance
-            image: bitnami/kubectl:1.22.4
+            image: {{- if .Values.images.kubectl }} {{ .Values.images.kubectl }} {{- else }} bitnami/kubectl:1.27.2 {{- end }}
             command: ["/bin/bash", "-c"]
             args:
             - POD_NAME=$(kubectl get pods -l app={{ .Release.Name }} -o=jsonpath='{.items[0].metadata.name}');

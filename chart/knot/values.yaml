@@ -1,5 +1,10 @@
-# Container image to use.
-image:
+# Container images to use (leave empty for default).
+images:
+  knot:
+  nginx:
+  vouchProxy:
+  redis:
+  kubectl:
 
 # Include access-control rules for API and namespace discovery.
 rbac:

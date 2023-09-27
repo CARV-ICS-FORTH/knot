@@ -15,7 +15,7 @@
 SHELL=/bin/bash
 
 REGISTRY_NAME?=carvicsforth
-KUBECTL_VERSION?=v1.22.4
+KUBECTL_VERSION?=v1.27.2
 
 KNOT_VERSION=$(shell cat VERSION)
 KNOT_IMAGE_TAG=$(REGISTRY_NAME)/knot:$(KNOT_VERSION)
@@ -46,12 +46,14 @@ $(DEPLOY_TARGETS): check-ip-address
 	--state-values-set storage.filesVolume.hostPath=$(PWD)/files \
 	--state-values-set harbor.adminPassword=$(HARBOR_ADMIN_PASSWORD) \
 	--state-values-set knot.developmentURL=$(DEVELOPMENT_URL) \
-	--state-values-set knot.localImage="true" \
+	--state-values-set knot.localImage=true \
 	$(word 2,$(subst -, ,$@))
 
 $(TEST_TARGETS): check-ip-address
 	export KNOT_HOST="$(INGRESS_URL)"; \
-	helmfile --state-values-set knot.localImage="true" $(word 2,$(subst -, ,$@))
+	helmfile \
+	--state-values-set knot.localImage=true \
+	$(word 2,$(subst -, ,$@))
 
 delete-namespaces:
 	kubectl delete namespace knot || true

@@ -90,7 +90,7 @@ releases:
   namespace: nfs
   createNamespace: true
   chart: bedag/raw
-  version: 1.1.0
+  version: 2.0.0
   values:
   - resources:
     - apiVersion: v1
@@ -175,7 +175,7 @@ releases:
   namespace: nfs
   createNamespace: true
   chart: bedag/raw
-  version: 1.1.0
+  version: 2.0.0
   values:
   - resources:
     - apiVersion: v1
@@ -246,14 +246,14 @@ releases:
   namespace: cert-manager
   createNamespace: true
   chart: cert-manager/cert-manager
-  version: 1.6.1
+  version: 1.13.0
   values:
   - installCRDs: true
 - name: ingress
   namespace: ingress-nginx
   createNamespace: true
   chart: ingress-nginx/ingress-nginx
-  version: 4.0.13
+  version: 4.7.2
   values:
   - controller:
       watchIngressWithoutClass: true
@@ -278,14 +278,14 @@ releases:
   namespace: reflector
   createNamespace: true
   chart: emberstack/reflector
-  version: 6.1.23
+  version: 7.1.203
 - name: ingress-cert
   namespace: ingress-nginx
   createNamespace: true
   chart: bedag/raw
+  version: 2.0.0
   needs:
   - cert-manager/cert-manager
-  version: 1.1.0
   values:
   - resources:
     - apiVersion: cert-manager.io/v1
@@ -322,7 +322,7 @@ releases:
   namespace: jupyterhub
   createNamespace: true
   chart: jupyterhub/jupyterhub
-  version: 1.2.0
+  version: 3.0.3
   values:
   - hub:
       config:
@@ -331,10 +331,11 @@ releases:
         Authenticator:
           auto_login: true
         GenericOAuthenticator:
+          allow_all: true
           client_id: jupyterhub
           client_secret: {{ .Values.jupyterHub.clientSecret }}
           {{- if .Values.ingress.createSelfsignedCertificate }}
-          tls_verify: false
+          validate_server_cert: false
           {{- end }}
           oauth_callback_url: https://jupyterhub.{{ .Values.ingress.host }}/hub/oauth_callback
           authorize_url: https://{{ .Values.ingress.host }}/oauth/authorize/
@@ -344,7 +345,7 @@ releases:
           - openid
           - profile
           - email
-          username_key: preferred_username
+          username_claim: preferred_username
       extraConfig:
         "myConfig.py": |-
           c.ConfigurableHTTPProxy.api_url = "http://proxy-api.jupyterhub.svc:8001"
@@ -415,7 +416,7 @@ releases:
   namespace: jupyterhub
   createNamespace: true
   chart: bedag/raw
-  version: 1.1.0
+  version: 2.0.0
   needs:
   - nfs/nfs-server-state
   values:
@@ -436,7 +437,7 @@ releases:
   namespace: jupyterhub
   createNamespace: true
   chart: bedag/raw
-  version: 1.1.0
+  version: 2.0.0
   values:
   - resources:
     - apiVersion: v1
@@ -451,7 +452,7 @@ releases:
   namespace: jupyterhub
   createNamespace: true
   chart: bedag/raw
-  version: 1.1.0
+  version: 2.0.0
   values:
   - resources:
     - apiVersion: rbac.authorization.k8s.io/v1
@@ -472,7 +473,7 @@ releases:
   namespace: argo
   createNamespace: true
   chart: argo/argo-workflows
-  version: 0.13.1
+  version: 0.33.3
   values:
   - controller:
       containerRuntimeExecutor: k8sapi
@@ -496,6 +497,7 @@ releases:
         annotations:
           "nginx.ingress.kubernetes.io/force-ssl-redirect": "true"
       sso:
+        enabled: true
         issuer: https://{{ .Values.ingress.host }}/oauth
         clientId:
           name: knot-oauth-argo
@@ -510,7 +512,7 @@ releases:
   namespace: argo
   createNamespace: true
   chart: bedag/raw
-  version: 1.1.0
+  version: 2.0.0
   values:
   - resources:
     - apiVersion: v1
@@ -521,13 +523,32 @@ releases:
       data:
         client-id: {{ "argo" | b64enc }}
         client-secret: {{ .Values.argo.clientSecret | b64enc }}
+- name: argo-clusterworkflowtemplates-clusterrolebinding
+  namespace: argo
+  createNamespace: true
+  chart: bedag/raw
+  version: 2.0.0
+  values:
+  - resources:
+    - apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRoleBinding
+      metadata:
+        name: argo-clusterworkflowtemplates-view
+      roleRef:
+        apiGroup: rbac.authorization.k8s.io
+        kind: ClusterRole
+        name: argo-argo-workflows-workflow-controller-cluster-template
+      subjects:
+      - kind: Group
+        name: system:serviceaccounts:argo
+        apiGroup: rbac.authorization.k8s.io
 {{- end }}
 {{- if .Values.harbor.enabled }}
 - name: harbor
   namespace: harbor
   createNamespace: true
   chart: harbor/harbor
-  version: 1.8.1
+  version: 1.11.0
   values:
   - expose:
       type: ingress
@@ -569,7 +590,7 @@ releases:
   namespace: harbor
   createNamespace: true
   chart: bedag/raw
-  version: 1.1.0
+  version: 2.0.0
   {{- if not .Values.storage.stateVolume.hostPath }}
   needs:
   - nfs/nfs-server-state
@@ -610,7 +631,7 @@ releases:
   namespace: harbor
   createNamespace: true
   chart: bedag/raw
-  version: 1.1.0
+  version: 2.0.0
   values:
   - resources:
     - apiVersion: v1
@@ -627,7 +648,7 @@ releases:
   namespace: monitoring
   createNamespace: true
   chart: prometheus-community/kube-prometheus-stack
-  version: 32.2.0
+  version: 51.2.0
   values:
   - alertmanager:
       enabled: false
@@ -662,13 +683,11 @@ releases:
           root_url: https://grafana.{{ .Values.ingress.host }}
         users:
           allow_sign_up: false
-  - prometheus-node-exporter:
-      hostRootFsMount: false
 - name: grafana-oauth-secret
   namespace: monitoring
   createNamespace: true
   chart: bedag/raw
-  version: 1.1.0
+  version: 2.0.0
   values:
   - resources:
     - apiVersion: v1
@@ -687,7 +706,7 @@ releases:
   chart: chart/knot
   {{- else }}
   chart: knot/knot
-  version: 4.2.2
+  version: 4.2.0
   {{- end }}
   needs:
   - cert-manager/cert-manager
@@ -696,9 +715,11 @@ releases:
   {{- end }}
   values:
   {{- if .Values.knot | get "customVersion" "" }}
-  - image: carvicsforth/knot:{{ .Values.knot.customVersion }}
+  - images:
+      knot: carvicsforth/knot:{{ .Values.knot.customVersion }}
   {{- else if .Values.knot.localImage }}
-  - image: carvicsforth/knot:{{ readFile "VERSION" }}
+  - images:
+      knot: carvicsforth/knot:{{ readFile "VERSION" }}
   {{- end }}
   - knot:
       djangoSecret: {{ .Values.knot | get "djangoSecret" "" | quote }}
@@ -750,7 +771,7 @@ releases:
   namespace: knot
   createNamespace: true
   chart: bedag/raw
-  version: 1.1.0
+  version: 2.0.0
   needs:
   - nfs/nfs-server-state
   values:

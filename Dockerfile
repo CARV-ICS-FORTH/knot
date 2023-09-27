@@ -1,10 +1,10 @@
-FROM python:3.8.12 AS ldap-build
+FROM python:3.10.13 AS ldap-build
 
 RUN apt-get update && \
-    apt-get install -y libsasl2-dev python-dev libldap2-dev libssl-dev && \
-    python -m pip wheel --wheel-dir=/tmp python-ldap==3.4.0 ruamel.yaml.clib==0.2.6
+    apt-get install -y libsasl2-dev python3-dev libldap2-dev libssl-dev && \
+    python -m pip wheel --wheel-dir=/tmp python-ldap==3.4.3 ruamel.yaml.clib==0.2.7
 
-FROM python:3.8.12-slim
+FROM python:3.10.13-slim
 
 ARG TARGETARCH
 
@@ -21,11 +21,11 @@ RUN apt-get update && \
         /usr/share/doc \
         /usr/share/doc-base
 
-ARG KUBECTL_VERSION=v1.22.4
+ARG KUBECTL_VERSION=v1.27.2
 RUN curl -Lo /usr/local/bin/kubectl https://storage.googleapis.com/kubernetes-release/release/${KUBECTL_VERSION}/bin/linux/${TARGETARCH}/kubectl && \
     chmod +x /usr/local/bin/kubectl
 
-ARG HELM_VERSION=v3.8.2
+ARG HELM_VERSION=v3.12.3
 RUN curl -LO https://get.helm.sh/helm-${HELM_VERSION}-linux-${TARGETARCH}.tar.gz && \
     tar -zxvf helm-${HELM_VERSION}-linux-${TARGETARCH}.tar.gz linux-${TARGETARCH}/helm && \
     cp linux-${TARGETARCH}/helm /usr/local/bin/ && \
