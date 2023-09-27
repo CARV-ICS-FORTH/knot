@@ -37,7 +37,7 @@ Another option is to directly use local storage via `--state-values-set storage.
 
 ## Bare metal setup
 
-The following [script](install-ubuntu.sh) installs Kubernetes and then Knot on a fresh Ubuntu 20.04 machine. It has been tested on a [VirtualBox](https://www.virtualbox.org) machine with 2 CPUs, 4 GB RAM, and a bridged network adapter, as well as a similarly specced VM in the Cloud.
+The following [script](install-ubuntu.sh) installs Kubernetes and then Knot on a fresh Ubuntu 22.04 machine.
 ```bash
 {% include "install-ubuntu.sh" %}
 ```
