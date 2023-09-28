@@ -12,6 +12,8 @@ environments:
           existingClaim:
           hostPath:
           size: 10Gi
+    # Optionally set to arm64.
+    - architecture:
     - ingress:
         host: {{ requiredEnv "KNOT_HOST" }}
         service:
@@ -583,6 +585,38 @@ releases:
   {{- if .Values.ingress.createSelfsignedCertificate }}
   - caBundleSecretName: ssl-certificate
   {{- end }}
+  {{- if eq .Values.architecture "arm64" }}
+  - portal:
+      image:
+        repository: ghcr.io/octohelm/harbor/harbor-portal
+  - core:
+      image:
+        repository: ghcr.io/octohelm/harbor/harbor-core
+  - jobservice:
+      image:
+        repository: ghcr.io/octohelm/harbor/harbor-jobservice
+  - registry:
+      registry:
+        image:
+          repository: ghcr.io/octohelm/harbor/registry-photon
+      controller:
+        image:
+          repository: ghcr.io/octohelm/harbor/harbor-registryctl
+  - chartmuseum:
+      image:
+        repository: ghcr.io/octohelm/harbor/chartmuseum-photon
+  - database:
+      internal:
+        image:
+          repository: ghcr.io/octohelm/harbor/harbor-db
+  - redis:
+      internal:
+        image:
+          repository: ghcr.io/octohelm/harbor/redis-photon
+  - exporter:
+      image:
+        repository: ghcr.io/octohelm/harbor/harbor-exporter
+  {{- end }}
   - trivy:
       enabled: false
   - notary:
@@ -715,12 +749,14 @@ releases:
   - nfs/nfs-server-files
   {{- end }}
   values:
-  {{- if .Values.knot | get "customVersion" "" }}
   - images:
+  {{- if .Values.knot | get "customVersion" "" }}
       knot: carvicsforth/knot:{{ .Values.knot.customVersion }}
   {{- else if .Values.knot.localImage }}
-  - images:
       knot: carvicsforth/knot:{{ readFile "VERSION" }}
+  {{- end }}
+  {{- if eq .Values.architecture "arm64" }}
+      vouchProxy: voucher/vouch-proxy:latest-arm
   {{- end }}
   - knot:
       djangoSecret: {{ .Values.knot | get "djangoSecret" "" | quote }}
