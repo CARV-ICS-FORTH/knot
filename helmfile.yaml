@@ -16,6 +16,8 @@ environments:
     - architecture:
     - ingress:
         host: {{ requiredEnv "KNOT_HOST" }}
+        # Skip creating the ingress service here - you still need to create it in the "ingress-nginx" namespace.
+        skip: false
         service:
           type: LoadBalancer
         createSelfsignedCertificate: true
@@ -46,8 +48,10 @@ repositories:
 {{- end }}
 - name: cert-manager
   url: https://charts.jetstack.io
+{{- if not .Values.ingress.skip }}
 - name: ingress-nginx
   url: https://kubernetes.github.io/ingress-nginx
+{{- end }}
 - name: bedag
   url: https://bedag.github.io/helm-charts
 {{- if and .Values.ingress.createSelfsignedCertificate (or .Values.argo.enabled .Values.harbor.enabled) }}
@@ -251,6 +255,7 @@ releases:
   version: 1.13.0
   values:
   - installCRDs: true
+{{- if not .Values.ingress.skip }}
 - name: ingress
   namespace: ingress-nginx
   createNamespace: true
@@ -276,6 +281,7 @@ releases:
         enabled: false
       extraArgs:
         default-ssl-certificate: ingress-nginx/ssl-certificate
+{{- end }}
 {{- if .Values.ingress.createSelfsignedCertificate }}
 - name: reflector
   namespace: reflector
