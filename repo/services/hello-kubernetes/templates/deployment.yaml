@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: {{ .Chart.Name }}
-        image: paulbouwer/hello-kubernetes:1.10.1
+        image: carvicsforth/hello-kubernetes:1.10.1
         ports:
         - containerPort: 8080
         env:
