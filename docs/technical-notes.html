@@ -191,13 +191,16 @@
 </tbody>
 </table>
 <p>As shown in the table, some values are also set inside pods as environment variables (in uppercase snake case, i.e. <code>KNOT_PRIVATE_DIR</code>).</p>
-<p>Inline comments for variables in <code>values.yaml</code> are shown as help text to the user. You can also use <code>knot.metadata</code> to specify elaborate help messages or specific variable choices. For example, the following excerpt from <code>values.yaml</code> sets the help text for variable <code>message</code> and preselected choices for <code>version</code>:</p>
+<p>Inline comments for variables in <code>values.yaml</code> are shown as help text to the user. You can also use <code>knot.metadata</code> to specify elaborate help messages or specific variable choices. For example, the following excerpt from <code>values.yaml</code> hides variable <code>image</code>, sets the title and help text for variable <code>message</code>, and defines preselected choices for <code>version</code>:</p>
 <pre><code>knot:
   enabled: true
   hostname: service.example.com
   metadata:
+    image:
+      hidden: true
     message:
-      help: The message to display
+      title: Display message
+      help: Choose a descriptive message
     version:
       help: Select version
       choices:

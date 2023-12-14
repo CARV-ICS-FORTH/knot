@@ -2,22 +2,22 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
          <loc>https://carv-ics-forth.github.io/knot/docs/index.html</loc>
-         <lastmod>2023-09-27</lastmod>
+         <lastmod>2023-12-14</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://carv-ics-forth.github.io/knot/docs/deployment.html</loc>
-         <lastmod>2023-09-27</lastmod>
+         <lastmod>2023-12-14</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://carv-ics-forth.github.io/knot/docs/technical-notes.html</loc>
-         <lastmod>2023-09-27</lastmod>
+         <lastmod>2023-12-14</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://carv-ics-forth.github.io/knot/docs/user-guide.html</loc>
-         <lastmod>2023-09-27</lastmod>
+         <lastmod>2023-12-14</lastmod>
          <changefreq>daily</changefreq>
     </url>
 </urlset>
