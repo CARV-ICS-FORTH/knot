@@ -82,16 +82,15 @@ class CreateServiceForm(forms.Form):
             if label.startswith('data.knot.'):
                 continue
             kwargs = {'validators': [validate_kubernetes_label], 'required': True} if label == 'name' else {'required': False}
-            if label.startswith('data.'):
-                label = label[5:]
+            title = (label[5:] if label.startswith('data.') else label).replace('.', ' ').capitalize()
             if 'choices' in variable:
-                self.fields[variable['label']] = forms.ChoiceField(label=label.replace('.', ' ').capitalize(),
+                self.fields[variable['label']] = forms.ChoiceField(label=variable.get('title', title),
                                                                    choices=[(c, c) for c in variable['choices']],
                                                                    initial=variable.get('default'),
                                                                    help_text=variable.get('help'),
                                                                    **kwargs)
             else:
-                self.fields[variable['label']] = forms.CharField(label=label.replace('.', ' ').capitalize(),
+                self.fields[variable['label']] = forms.CharField(label=variable.get('title', title),
                                                                  initial=variable.get('default'),
                                                                  help_text=variable.get('help'),
                                                                  **kwargs)

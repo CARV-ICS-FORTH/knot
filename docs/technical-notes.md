@@ -52,15 +52,18 @@ Knot-compatible charts may use the following values:
 
 As shown in the table, some values are also set inside pods as environment variables (in uppercase snake case, i.e. `KNOT_PRIVATE_DIR`).
 
-Inline comments for variables in `values.yaml` are shown as help text to the user. You can also use `knot.metadata` to specify elaborate help messages or specific variable choices. For example, the following excerpt from `values.yaml` sets the help text for variable `message` and preselected choices for `version`:
+Inline comments for variables in `values.yaml` are shown as help text to the user. You can also use `knot.metadata` to specify elaborate help messages or specific variable choices. For example, the following excerpt from `values.yaml` hides variable `image`, sets the title and help text for variable `message`, and defines preselected choices for `version`:
 
 ```
 knot:
   enabled: true
   hostname: service.example.com
   metadata:
+    image:
+      hidden: true
     message:
-      help: The message to display
+      title: Display message
+      help: Choose a descriptive message
     version:
       help: Select version
       choices:

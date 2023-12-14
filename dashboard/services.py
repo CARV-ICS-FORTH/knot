@@ -77,6 +77,10 @@ class ServiceTemplateManager(object):
         # Customize interface with options in metadata.
         for k, v in dict(metadata).items():
             value = next((d for d in data if d['label'] == ('data.%s' % k)), None)
+            if 'hidden' in v:
+                data.remove(value)
+            if 'title' in v:
+                value['title'] = v['title']
             if 'help' in v:
                 value['help'] = v['help']
             if 'choices' in v:
