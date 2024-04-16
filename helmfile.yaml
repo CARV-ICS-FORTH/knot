@@ -760,10 +760,17 @@ releases:
       knot: carvicsforth/knot:{{ .Values.knot.customVersion }}
   {{- else if .Values.knot.localImage }}
       knot: carvicsforth/knot:{{ readFile "VERSION" }}
+  {{- else }}
+      knot:
   {{- end }}
   {{- if eq .Values.architecture "arm64" }}
       vouchProxy: voucher/vouch-proxy:latest-arm
+  {{- else }}
+      vouchProxy:
   {{- end }}
+      nginx:
+      redis:
+      kubectl:
   - knot:
       djangoSecret: {{ .Values.knot | get "djangoSecret" "" | quote }}
       djangoDebug: {{ .Values.knot | get "djangoDebug" "0" | quote }}
