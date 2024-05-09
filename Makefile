@@ -47,12 +47,14 @@ $(DEPLOY_TARGETS): check-ip-address
 	--state-values-set harbor.adminPassword=$(HARBOR_ADMIN_PASSWORD) \
 	--state-values-set knot.developmentURL=$(DEVELOPMENT_URL) \
 	--state-values-set knot.localImage=true \
+	--state-values-set knot.ingressALB=true \
 	$(word 2,$(subst -, ,$@))
 
 $(TEST_TARGETS): check-ip-address
 	export KNOT_HOST="$(INGRESS_URL)"; \
 	helmfile \
 	--state-values-set knot.localImage=true \
+	--state-values-set knot.ingressALB=true \
 	$(word 2,$(subst -, ,$@))
 
 delete-namespaces:

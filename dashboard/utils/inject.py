@@ -113,7 +113,7 @@ def validate_hostpath_volumes(yaml_data, file_domains, other_allowed_paths=[]):
 
     return True
 
-def inject_ingress_auth(yaml_data, auth_config, redirect_ssl=False):
+def inject_ingress_auth(yaml_data, auth_config, redirect_ssl=False, include_alb_annotations=False):
     for part in yaml_data:
         if part.get('kind') == 'Ingress':
             try:
@@ -146,6 +146,10 @@ def inject_ingress_auth(yaml_data, auth_config, redirect_ssl=False):
                 part['metadata']['annotations']['nginx.ingress.kubernetes.io/auth-realm'] = auth_config['realm']
             if redirect_ssl:
                 part['metadata']['annotations']['nginx.ingress.kubernetes.io/force-ssl-redirect'] = 'true'
+            if include_alb_annotations:
+                part['metadata']['annotations']['service.beta.kubernetes.io/aws-load-balancer-type'] = 'alb'
+                part['metadata']['annotations']['alb.ingress.kubernetes.io/scheme'] = 'internet-facing'
+                part['metadata']['annotations']['alb.ingress.kubernetes.io/target-type'] = 'instance'
 
 def validate_ingress_host(yaml_data, username, ingress_host):
     for part in yaml_data:

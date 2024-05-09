@@ -96,7 +96,7 @@ def ingress_mutate(request):
     else:
         auth_config = {'secret': 'knot-auth',
                        'realm': 'Authentication Required - %s' % settings.DASHBOARD_TITLE}
-    inject_ingress_auth([service], auth_config, redirect_ssl=(ingress_url.scheme == 'https'))
+    inject_ingress_auth([service], auth_config, redirect_ssl=(ingress_url.scheme == 'https'), include_alb_annotations=settings.INGRESS_ALB)
     patch = jsonpatch.JsonPatch.from_diff(request_service, service)
     encoded_patch = base64.b64encode(patch.to_string().encode('utf-8')).decode('utf-8')
 

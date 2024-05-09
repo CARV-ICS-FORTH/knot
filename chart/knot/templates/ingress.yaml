@@ -13,6 +13,11 @@ metadata:
     nginx.ingress.kubernetes.io/proxy-body-size: 10m
     nginx.ingress.kubernetes.io/proxy-request-buffering: "off"
     nginx.ingress.kubernetes.io/proxy-buffering: "off"
+    {{- if .Values.knot.ingressALB }}
+    service.beta.kubernetes.io/aws-load-balancer-type: "alb"
+    alb.ingress.kubernetes.io/scheme: "internet-facing"
+    alb.ingress.kubernetes.io/target-type: "instance"
+    {{- end }}
 spec:
   rules:
   - host: {{ (split ":" ($ingressURL | urlParse).host)._0 }}

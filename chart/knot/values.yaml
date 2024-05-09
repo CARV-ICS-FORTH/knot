@@ -50,6 +50,8 @@ knot:
   issuesURL:
   # REQUIRED: The ingress URL used.
   ingressURL:
+  # If set, add ALB-specific annotations to each ingress.
+  ingressALB:
   # The name of the secret containing the self-signed certificate for the ingress.
   certificateSecretName:
   # The key in the secret holding the self-signed certificate for the ingress.

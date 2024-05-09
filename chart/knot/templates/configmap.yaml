@@ -71,6 +71,7 @@ data:
   KNOT_DOCUMENTATION_URL: {{- if .Values.knot.documentationURL }} {{ .Values.knot.documentationURL | quote }} {{- else }} "" {{- end }}
   KNOT_ISSUES_URL: {{- if .Values.knot.issuesURL }} {{ .Values.knot.issuesURL | quote }} {{- else }} "" {{- end }}
   KNOT_INGRESS_URL: {{ $ingressURL | quote }}
+  KNOT_INGRESS_ALB: {{- if .Values.knot.ingressALB }} {{ .Values.knot.ingressALB | quote }} {{- else }} "" {{- end }}
   KNOT_DATASETS_AVAILABLE: {{- if .Values.knot.datasetsAvailable }} {{ .Values.knot.datasetsAvailable | quote }} {{- else }} "" {{- end }}
   KNOT_FILES_URL: {{- if .Values.knot.filesURL }} {{ .Values.knot.filesURL | quote }} {{- else }} "" {{- end }}
   KNOT_ALLOWED_HOSTPATH_DIRS: {{- if .Values.knot.allowedHostPathDirs }} {{ .Values.knot.allowedHostPathDirs | quote }} {{- else }} "" {{- end }}

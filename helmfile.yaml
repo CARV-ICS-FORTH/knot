@@ -40,6 +40,8 @@ environments:
         developmentURL:
         # Use local chart and image.
         localImage: false
+        # Add ALB-specific annotations to each ingress.
+        ingressALB: false
 ---
 repositories:
 {{- if not (and .Values.storage.stateVolume.hostPath .Values.storage.filesVolume.hostPath) }}
@@ -778,6 +780,9 @@ releases:
       dashboardTitle: {{ .Values.knot | get "title" "Knot" | quote }}
       issuesURL: {{ .Values.knot | get "issuesURL" "" | quote }}
       ingressURL: https://{{ .Values.ingress.host }}
+      {{- if .Values.knot.ingressALB }}
+      ingressALB: true
+      {{- end }}
       {{- if .Values.storage.stateVolume.hostPath }}
       stateHostPath: {{ .Values.storage.stateVolume.hostPath }}/knot
       {{- else }}

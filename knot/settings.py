@@ -290,6 +290,7 @@ HTPASSWD_EXPORT_DIR = os.getenv('KNOT_HTPASSWD_EXPORT_DIR')
 # Ingress domain
 
 INGRESS_URL = os.getenv('KNOT_INGRESS_URL', 'http://localtest.me')
+INGRESS_ALB = True if os.getenv('KNOT_INGRESS_ALB', '') else False
 
 
 # Title and URLs
