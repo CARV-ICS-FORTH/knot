@@ -267,8 +267,8 @@ releases:
       ingressClassResource:
         default: true
       allowSnippetAnnotations: true
-      {{- if eq .Values.ingress.service.type "NodePort" }}
       service:
+        {{- if eq .Values.ingress.service.type "NodePort" }}
         type: NodePort
         externalIPs:
         {{ toYaml .Values.ingress.service.externalIPs | nindent 8 }}
@@ -276,7 +276,11 @@ releases:
         nodePorts:
           {{ toYaml .Values.ingress.service.nodePorts | nindent 10 }}
         {{- end }}
-      {{- end }}
+        {{- else }}
+        annotations:
+          service.beta.kubernetes.io/aws-load-balancer-scheme: internet-facing
+          service.beta.kubernetes.io/aws-load-balancer-type: nlb
+        {{- end }}
       admissionWebhooks:
         enabled: false
       extraArgs:
