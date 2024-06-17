@@ -397,6 +397,7 @@ releases:
       extraEnv:
         GRANT_SUDO: "yes"
         NOTEBOOK_ARGS: "--allow-root"
+        CONDA_ENVS_PATH: "/private/conda"
       uid: 0
       storage:
         type: none
