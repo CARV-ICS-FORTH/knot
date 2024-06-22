@@ -1,24 +1,30 @@
-How to run knot on aws:
-    - cd into 'eks' folder
-    - run 'terraform apply' to create the eks cluster
-    - run 'aws eks --region us-east-1 update-kubeconfig --name tf-cluster' in order to connect onto the remote cluster and be able to run commands on it
-    - (optional) run 'kubectl get pods -A' to make sure that connected onto the cluster
-    - export the KNOT_HOST envirometal as descibed in knot readme ($env:KNOT_HOST="mydns" in windows)
-    - cd back onto the folder with knot helmfile
-    - run 'helmfile sync --concurrency 1' to deploy knot onto the cluster
-        -after running the helmfile make sure that knot ingress is up
-    - goto aws route53 console and connect knot ingress to your dns
-        - *at the bottom of this read me you'll find details on how to do this*
-    - wait for you dns to propagate and after a while you should be able to see knot be pinging you dns
-    
+# Deploy on EKS with Terraform
 
-*Creating the route53 records
-As an example I'm using the custon dns "boiboiapp.com"
- - Create a route53 hosted zone on aws
- - Create records of said route53 in which
-    - record type = A
-    - alias = on
-    - type = Alias to Network Load Balancer
-    - area = US East (N. Virginia)
-    - Record name = *.boiboiapp.com/boiboiapp.com (create on record for each)
-    ![alt text](image.png)
+How to run Knot on AWS's EKS with [Terraform](https://www.terraform.io):
+```bash
+terraform apply # Create the EKS cluster
+aws eks --region us-east-1 update-kubeconfig --name tf-cluster # Connect to it
+```
+
+You should now be able to run `kubectl get pods -A` and see the cluster's pods with no errors.
+
+Install Knot:
+```bash
+export KNOT_HOST=example.com # $env:KNOT_HOST="example.com" in Windows
+helmfile -f git::https://github.com/CARV-ICS-FORTH/knot.git@helmfile.yaml sync --concurrency 1
+```
+
+Now you need to go to Route53's console, create a hosted zone for your DNS name and two records that point to Knot's ingress: `example.com` and `*.example.com`.
+
+The screenshot below shows an example DNS entry.
+
+![Example Route53 DNS entry](assets/example-dns.png)
+
+For each record, make sure that:
+- Record type is `A`.
+- Alias is on.
+- Type is `Alias to Network Load Balancer`.
+- Area is `US East (N. Virginia)` (or your preferred region).
+- You select Knot's ingress service.
+
+Now wait for the DNS settings to propagate. After a while you should be able to visit Knot in your browser.
