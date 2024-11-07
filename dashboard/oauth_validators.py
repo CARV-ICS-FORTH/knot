@@ -23,7 +23,7 @@ class CustomOAuth2Validator(OAuth2Validator):
 
         claims = {'sub': user.username,
                   'preferred_username': user.username,
-                  'email': user.email,
+                  'email': user.email if user.email else user.username, # Teams lack email.
                   'name': user.get_full_name(),
                   'given_name': user.first_name,
                   'family_name': user.last_name}
