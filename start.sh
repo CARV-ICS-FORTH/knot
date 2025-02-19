@@ -48,9 +48,6 @@ fi
 if [[ -n $KNOT_GRAFANA_URL && -n $KNOT_GRAFANA_NAMESPACE ]]; then
     python manage.py createoauthapplication --name grafana --redirect-uri $KNOT_GRAFANA_URL/login/generic_oauth --secret-name knot-oauth-grafana --secret-namespace $KNOT_GRAFANA_NAMESPACE
 fi
-if [[ -n $KNOT_OPENBIO_URL && -n $KNOT_OPENBIO_NAMESPACE ]]; then
-    python manage.py createoauthapplication --name openbio --redirect-uri $KNOT_OPENBIO_URL/platform/complete/knot/ --secret-name knot-oauth-openbio --secret-namespace $KNOT_OPENBIO_NAMESPACE
-fi
 
 gunicorn -w 4 -t $TIMEOUT -b 0.0.0.0:8000 knot.wsgi:application &
 daphne -b 0.0.0.0 -p 8001 knot.asgi:application &

@@ -96,8 +96,3 @@ knot:
   grafanaURL:
   # Grafana namespace for integration.
   grafanaNamespace:
-
-  # OpenBio URL for integration with the collaborative workflow editor.
-  openBioURL:
-  # OpenBio namespace for integration.
-  openBioNamespace:

@@ -84,8 +84,6 @@ data:
   KNOT_HARBOR_ADMIN_PASSWORD: {{- if .Values.knot.harborAdminPassword }} {{ .Values.knot.harborAdminPassword | quote }} {{- else }} "" {{- end }}
   KNOT_GRAFANA_URL: {{- if .Values.knot.grafanaURL }} {{ .Values.knot.grafanaURL | quote }} {{- else }} "" {{- end }}
   KNOT_GRAFANA_NAMESPACE: {{- if .Values.knot.grafanaNamespace }} {{ .Values.knot.grafanaNamespace | quote }} {{- else }} "" {{- end }}
-  KNOT_OPENBIO_URL: {{- if .Values.knot.openBioURL }} {{ .Values.knot.openBioURL | quote }} {{- else }} "" {{- end }}
-  KNOT_OPENBIO_NAMESPACE: {{- if .Values.knot.openBioNamespace }} {{ .Values.knot.openBioNamespace | quote }} {{- else }} "" {{- end }}
 ---
 apiVersion: v1
 kind: ConfigMap

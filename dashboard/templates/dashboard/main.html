@@ -12,13 +12,6 @@
 
       <ul class="nav nav-pills flex-column mb-3 mr-auto">
         {% includestatic 'dashboard/theme/menu_pre.html' %}
-        {% if openbio_url %}
-        <li class="nav-item">
-          <a class="nav-link" href="{{ openbio_url }}/platform" target="_blank">
-            <i class="fa fa-flask" aria-hidden="true"></i> OpenBio
-          </a>
-        </li>
-        {% endif %}
         {% if jupyterhub_url %}
         <li class="nav-item">
           <a class="nav-link" href="{{ jupyterhub_url }}" target="_blank">

@@ -817,10 +817,6 @@ releases:
       grafanaURL: https://grafana.{{ .Values.ingress.host }}
       grafanaNamespace: monitoring
       {{- end }}
-      {{- if (.Values | get "openBio.enabled" false) }}
-      openBioURL: https://openbio.{{ .Values.ingress.host }}
-      openBioNamespace: openbio
-      {{- end }}
 {{- if not .Values.storage.stateVolume.hostPath }}
 - name: knot-state-pvc
   namespace: knot

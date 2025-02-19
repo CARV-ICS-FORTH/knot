@@ -366,8 +366,3 @@ HARBOR_ADMIN_PASSWORD = os.getenv('KNOT_HARBOR_ADMIN_PASSWORD')
 # Grafana integration
 
 GRAFANA_URL = os.getenv('KNOT_GRAFANA_URL')
-
-
-# OpenBio integration
-
-OPENBIO_URL = os.getenv('KNOT_OPENBIO_URL')
