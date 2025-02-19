@@ -35,6 +35,10 @@ environments:
     - grafana:
         enabled: true
         clientSecret: eYLaIV2NtZHhR7M9zh1ouLl4LpuwwpcrYBspXbS2gTCm61Hn01ghmZf7iBxxk5r3SdPHnlg6Ovm6IKK4CmJKNl8gnkvxjmOt7YOxZJR0BJH8DPHnA9Nh6pHpmESM8mfE
+    - opencost:
+        enabled: false
+        cpuCost: 0.5
+        ramCost: 1
     - knot:
         # Forward requests for development.
         developmentURL:
@@ -75,6 +79,10 @@ repositories:
   url: https://prometheus-community.github.io/helm-charts
 {{- end }}
 {{- if not .Values.knot.localImage }}
+{{- if .Values.opencost.enabled }}
+- name: opencost
+  url: https://opencost.github.io/opencost-helm-chart/
+{{- end }}
 - name: knot
   url: https://carv-ics-forth.github.io/knot/chart
 {{- end }}
@@ -745,6 +753,41 @@ releases:
         client-id: {{ "grafana" | b64enc }}
         client-secret: {{ .Values.grafana.clientSecret | b64enc }}
 {{- end }}
+{{- if .Values.opencost.enabled }}
+- name: opencost
+  namespace: opencost
+  chart: opencost/opencost
+  version: 1.43.2
+  values:
+  - opencost:
+      ui:
+        ingress:
+          enabled: true
+          hosts:
+            - host: opencost.{{ .Values.ingress.host }}
+              paths:
+                - /
+          annotations:
+            "nginx.ingress.kubernetes.io/force-ssl-redirect": "true"
+      customPricing:
+        enabled: true
+        configmapName: custom-pricing-model
+        configPath: /tmp/custom-config
+        createConfigmap: true
+        provider: custom
+        costModel:
+          description: Knot custom pricing configuration
+          CPU: {{ .Values.opencost.cpuCost }}
+          RAM: {{ .Values.opencost.ramCost }}
+      prometheus:
+        external:
+          enabled: false
+        internal:
+          enabled: true
+          serviceName: monitoring-kube-prometheus-prometheus
+          namespaceName: monitoring
+          port: 9090
+{{- end }}
 - name: knot
   namespace: knot
   createNamespace: true
@@ -816,6 +859,10 @@ releases:
       {{- if .Values.grafana.enabled }}
       grafanaURL: https://grafana.{{ .Values.ingress.host }}
       grafanaNamespace: monitoring
+      {{- end }}
+      {{- if .Values.opencost.enabled }}
+      opencostURL: https://opencost.{{ .Values.ingress.host }}
+      opencostNamespace: opencost
       {{- end }}
 {{- if not .Values.storage.stateVolume.hostPath }}
 - name: knot-state-pvc
