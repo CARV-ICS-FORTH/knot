@@ -72,4 +72,4 @@ We use `buildx` to build the Knot container for multiple architectures (`linux/a
 
 ## Acknowledgements
 
-Knot (previously known as Karvdash) was realized in the context of project EVOLVE, which received funding from the European Union’s Horizon 2020 research and innovation programme under grant agreement No 825061. This work is also partly supported by project EUPEX, which is funded from the European High-Performance Computing Joint Undertaking (JU) under grant agreement No 101033975. The JU receives support from the European Union's Horizon 2020 research and innovation programme and France, Germany, Italy, Greece, United Kingdom, the Czech Republic, and Croatia.
+Knot (previously known as Karvdash) was realized in the context of project EVOLVE (GA-825061), which received funding from the European Union’s Horizon 2020 research and innovation programme. Knot is currently supported by the European Union’s Horizon Europe research and innovation programme through projects AERO (GA-101092850) and DaFab (GA-101128693).
