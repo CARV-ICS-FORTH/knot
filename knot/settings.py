@@ -59,6 +59,7 @@ except:
 INSTALLED_APPS = [
     'dashboard.apps.DashboardConfig',
     'crispy_forms',
+    'crispy_bootstrap4',
     'impersonate',
     'chunked_upload',
     'oauth2_provider',

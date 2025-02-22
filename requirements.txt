@@ -1,7 +1,8 @@
 Django==4.2.19
 django-crispy-forms==2.3
+crispy-bootstrap4==2024.10
 django-impersonate==1.9.4
-django-chunked-upload==2.0.0
+django-chunked-upload @ git+https://github.com/juliomalegria/django-chunked-upload@master
 django-oauth-toolkit==3.0.1
 django-auth-ldap==5.1.0
 channels==4.2.0
