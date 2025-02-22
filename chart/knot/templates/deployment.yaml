@@ -18,7 +18,7 @@ spec:
         app: {{ .Release.Name }}
     spec:
       containers:
-      - image: {{- if and (get .Values.images "nginx") .Values.images.nginx }} {{ .Values.images.nginx }} {{- else }} nginx:1.25.2-alpine {{- end }}
+      - image: {{- if and (get .Values.images "nginx") .Values.images.nginx }} {{ .Values.images.nginx }} {{- else }} nginx:1.27.4-alpine {{- end }}
         name: proxy
         env:
         - name: NGINX_ENTRYPOINT_QUIET_LOGS
@@ -112,7 +112,7 @@ spec:
           subPath: {{ .Values.knot.certificateSecretKey }}
         {{- end }}
       {{- end }}
-      - image: {{- if and (get .Values.images "vouchProxy") .Values.images.vouchProxy }} {{ .Values.images.vouchProxy }} {{- else }} quay.io/vouch/vouch-proxy:0.39 {{- end }}
+      - image: {{- if and (get .Values.images "vouchProxy") .Values.images.vouchProxy }} {{ .Values.images.vouchProxy }} {{- else }} quay.io/vouch/vouch-proxy:0.41.0 {{- end }}
         name: vouch-proxy
         envFrom:
         - configMapRef:
@@ -131,7 +131,7 @@ spec:
         ports:
         - containerPort: 9090
           name: vouch-proxy
-      - image: {{- if and (get .Values.images "redis") .Values.images.redis }} {{ .Values.images.redis }} {{- else }} redis:6.2.13 {{- end }}
+      - image: {{- if and (get .Values.images "redis") .Values.images.redis }} {{ .Values.images.redis }} {{- else }} redis:7.4.2 {{- end }}
         name: redis
         ports:
         - containerPort: 6379
