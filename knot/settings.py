@@ -58,6 +58,7 @@ except:
 
 INSTALLED_APPS = [
     'dashboard.apps.DashboardConfig',
+    'daphne',
     'crispy_forms',
     'crispy_bootstrap4',
     'impersonate',
@@ -69,7 +70,6 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'channels',
 ]
 
 MIDDLEWARE = [
@@ -189,6 +189,7 @@ AUTHENTICATION_BACKENDS = ['django.contrib.auth.backends.ModelBackend']
 LOGIN_URL = '/login'
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'
+PKCE_REQUIRED = False
 
 LDAP_SERVER_URL = os.getenv('KNOT_LDAP_SERVER_URL')
 if LDAP_SERVER_URL:
