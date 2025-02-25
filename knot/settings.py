@@ -189,7 +189,6 @@ AUTHENTICATION_BACKENDS = ['django.contrib.auth.backends.ModelBackend']
 LOGIN_URL = '/login'
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'
-PKCE_REQUIRED = False
 
 LDAP_SERVER_URL = os.getenv('KNOT_LDAP_SERVER_URL')
 if LDAP_SERVER_URL:
@@ -223,6 +222,7 @@ if os.path.exists(OIDC_RSA_PRIVATE_KEY_FILE):
         OIDC_RSA_PRIVATE_KEY = f.read()
 
     OAUTH2_PROVIDER = {
+        "PKCE_REQUIRED": False,
         "OIDC_ENABLED": True,
         "OIDC_RSA_PRIVATE_KEY": OIDC_RSA_PRIVATE_KEY,
         "OAUTH2_VALIDATOR_CLASS": "dashboard.oauth_validators.CustomOAuth2Validator",

@@ -39,7 +39,8 @@ class ServiceTemplateManager(object):
 
     @property
     def repo_base_url(self):
-        return '%s/chartrepo' % settings.HARBOR_URL.rstrip('/') if settings.HARBOR_URL else None
+        harbor_url = urlparse(settings.HARBOR_URL)
+        return 'oci://%s' % harbor_url.hostname if settings.HARBOR_URL else None
 
     def get_template(self, name):
         return next((chart for chart in self.list() if chart['name'] == name), None)

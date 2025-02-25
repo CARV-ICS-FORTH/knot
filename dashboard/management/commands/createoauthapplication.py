@@ -14,7 +14,7 @@
 
 from django.core.management.base import BaseCommand
 from oauth2_provider.models import Application
-from oauth2_provider.generators import generate_client_id, generate_client_secret
+from oauth2_provider.generators import generate_client_secret
 
 from ...models import User
 from ...utils.kubernetes import KubernetesClient
@@ -64,7 +64,7 @@ class Command(BaseCommand):
         recreate_secret = True if secret is None or secret.data is None else False
         parameters = {}
         if recreate_secret:
-            parameters = {'client_id': generate_client_id(),
+            parameters = {'client_id': name,
                           'client_secret': generate_client_secret()}
             # The application needs to be recreated with the new client information.
             recreate_application = True
