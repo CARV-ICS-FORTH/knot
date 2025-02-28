@@ -1,5 +1,0 @@
-apiVersion: v2
-name: s3-remote
-description: Dataset for remote S3 endpoint
-type: application
-version: 1.0.0

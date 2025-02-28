@@ -22,7 +22,6 @@ from crispy_forms.layout import Layout, Submit
 
 from .models import User
 from .services import ServiceTemplateManager
-from .datasets import DatasetTemplateManager
 
 
 validate_image_name = RegexValidator(r'^[0-9a-z\-\.]*$', 'Only alphanumeric characters, dash, and period are allowed.')
@@ -100,26 +99,6 @@ class ShowServiceForm(CreateServiceForm):
         super().__init__(*args, **kwargs)
         for name, field in self.fields.items():
             field.disabled = True
-
-class AddDatasetForm(forms.Form):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-        template_manager = DatasetTemplateManager(None)
-        try:
-            templates = sorted(template_manager.list(),
-                               key=lambda x: x['name'],
-                               reverse=False)
-        except:
-            templates = []
-        self.fields['name'] = forms.ChoiceField(label='Dataset to add',
-                                                choices=[(t['name'], '%s: %s' % (t['name'], t['description'])) for t in templates])
-
-class CreateDatasetForm(CreateServiceForm):
-    pass
-
-class ShowDatasetForm(ShowServiceForm):
-    pass
 
 class AddFolderForm(forms.Form):
     name = forms.CharField(label='Name for the new folder', min_length=1, max_length=255, initial='New Folder')

@@ -51,10 +51,6 @@ spec:
         - name: KNOT_DISABLED_SERVICES_FILE
           value: /etc/knot/disabled_services
         {{- end }}
-        {{- if .Values.knot.disabledDatasets }}
-        - name: KNOT_DISABLED_DATASETS_FILE
-          value: /etc/knot/disabled_datasets
-        {{- end }}
         {{- if .Values.knot.serviceURLPrefixes }}
         - name: KNOT_SERVICE_URL_PREFIXES_FILE
           value: /etc/knot/service_url_prefixes
@@ -69,11 +65,6 @@ spec:
         - name: {{ .Release.Name }}-files-config
           mountPath: /etc/knot/disabled_services
           subPath: disabled_services
-        {{- end }}
-        {{- if .Values.knot.disabledDatasets }}
-        - name: {{ .Release.Name }}-files-config
-          mountPath: /etc/knot/disabled_datasets
-          subPath: disabled_datasets
         {{- end }}
         {{- if .Values.knot.serviceURLPrefixes }}
         - name: {{ .Release.Name }}-files-config

@@ -786,7 +786,6 @@ releases:
       certificateSecretName: ssl-certificate
       certificateSecretKey: ca.crt
       {{- end }}
-      datasetsAvailable: {{ .Values.knot | get "datasetsAvailable" "" | quote }}
       {{- if .Values.storage.filesVolume.hostPath }}
       filesURL: file://{{ .Values.storage.filesVolume.hostPath }}
       {{- else }}

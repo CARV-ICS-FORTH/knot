@@ -47,19 +47,6 @@ The templates screen is accessed by selecting "Templates" from the menu on the l
 
 New templates are added in Harbor. The template structure is described in the [Service templates](technical-notes.md#service-templates) chapter.
 
-Datasets screen
----------------
-
-> 📝 *Dataset management is an optional Knot feature that may not be enabled in your deployment.*
-
-The datasets screen is accessed by selecting "Datasets" from the menu on the left. Use the "Actions" button to download a dataset's values or delete a dataset from the list of configured datasets.
-
-Datasets are mounted in containers under `/mnt/datasets/<name>`.
-
-To add a new dataset, click on the respective button on the right. Choose one of the available dataset types from the list and click "Add".
-
-The next screen is where you can define the dataset configuration. You can optionally change the dataset name to one that is easier to remember (if a name is already taken, Knot will append random characters). Besides the name, each dataset type has different configuration options. When done, click "Add" again, and you will be taken back to the datasets list, which should contain your new dataset.
-
 Files screen
 ------------
 

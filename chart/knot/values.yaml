@@ -54,8 +54,6 @@ knot:
   certificateSecretName:
   # The key in the secret holding the self-signed certificate for the ingress.
   certificateSecretKey:
-  # Set to anything to enable dataset management.
-  datasetsAvailable:
   # REQUIRED: The base URL for the private and shared file domains.
   filesURL:
   # The size for the files persistent volume.
@@ -65,8 +63,6 @@ knot:
 
   # List of services to disable on deployment.
   disabledServices:
-  # List of datasets to disable on deployment.
-  disabledDatasets:
   # List of predefined URL prefixes for services.
   serviceURLPrefixes:
 

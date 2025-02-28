@@ -43,13 +43,6 @@
           </a>
         </li>
         {% endif %}
-        {% if datasets_available %}
-        <li class="nav-item">
-          <a class="nav-link {% if title == 'Datasets' %}active{% endif %}" href="{% url 'datasets' %}">
-            <i class="fa fa-cloud" aria-hidden="true"></i> Datasets
-          </a>
-        </li>
-        {% endif %}
         <li class="nav-item">
           <a class="nav-link {% if title == 'Files' %}active{% endif %}" href="{% url 'files' %}">
             <i class="fa fa-folder" aria-hidden="true"></i> Files

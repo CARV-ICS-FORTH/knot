@@ -21,7 +21,6 @@ from django.contrib import messages
 from django.dispatch import receiver
 from django.conf import settings
 from urllib.parse import urlparse
-from dataclasses import dataclass
 from jinja2 import Template
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
@@ -90,12 +89,6 @@ subjects:
   namespace: {{ argo_namespace }}
 '''
 
-@dataclass
-class Dataset:
-    volume_name: str
-    url: str
-    mount_dir: str
-
 class User(AuthUser):
     class Meta:
         proxy = True
@@ -129,32 +122,6 @@ class User(AuthUser):
             return {'private': PrivateNFSDomain(settings.FILES_URL, settings.FILES_MOUNT_DIR, self),
                     'shared': SharedNFSDomain(settings.FILES_URL, settings.FILES_MOUNT_DIR, self)}
         raise ValueError('Unsupported URL for files')
-
-    @property
-    def dataset_volumes(self):
-        datasets = {}
-        kubernetes_client = KubernetesClient()
-        try:
-            for dataset in kubernetes_client.list_crds(group='com.ie.ibm.hpsys', version='v1alpha1', namespace=self.namespace, plural='datasets'):
-                try:
-                    # Hidden datasets are included in file domains.
-                    if 'knot-hidden' in dataset['metadata']['labels'].keys():
-                        continue
-                except:
-                    pass
-                try:
-                    dataset_type = dataset['spec']['local']['type']
-                    if dataset_type in ('COS', 'H3', 'ARCHIVE'):
-                        dataset_name = dataset['metadata']['name']
-                        datasets[dataset_name] = Dataset(dataset_name, 'dataset://%s' % dataset_name, '/mnt/datasets/%s' % dataset_name)
-                    else:
-                        continue
-                except:
-                    continue
-        except:
-            pass
-
-        return datasets
 
     @property
     def local_data(self):

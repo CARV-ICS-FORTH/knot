@@ -48,12 +48,10 @@ Some of the variables set above are required. The table below lists all availabl
 | `knot.ingressURL`               | &check;  | The ingress URL used.                                                                         |                                    |
 | `knot.certificateSecretName`    |          | The name of the secret containing the self-signed certificate for the ingress.                |                                    |
 | `knot.certificateSecretKey`     |          | The key in the secret holding the self-signed certificate for the ingress.                    |                                    |
-| `knot.datasetsAvailable`        |          | Set to anything to enable dataset management.                                                 |                                    |
 | `knot.filesURL`                 | &check;  | The base URL for the private and shared file domains.                                         |                                    |
 | `knot.filesSize`                |          | The size for the files persistent volume.                                                     | `1Pi`                              |
 | `knot.allowedHostPathDirs`      |          | Other host paths to allow attaching to containers (separate with `:`).                        |                                    |
 | `knot.disabledServices`         |          | List of services to disable on deployment.                                                    |                                    |
-| `knot.disabledDatasets`         |          | List of datasets to disable on deployment.                                                    |                                    |
 | `knot.serviceURLPrefixes`       |          | List of predefined URL prefixes for services.                                                 |                                    |
 | `knot.developmentURL`           |          | If enabled, forward requests to another dashboard instance.                                   |                                    |
 | `knot.jupyterHubURL`            |          | JupyterHub URL for integration with the notebook frontend.                                    |                                    |

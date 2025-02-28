@@ -1,5 +1,0 @@
-apiVersion: v2
-name: archive
-description: Dataset for remote archive
-type: application
-version: 1.0.0

@@ -301,32 +301,20 @@ DOCUMENTATION_URL = os.getenv('KNOT_DOCUMENTATION_URL')
 ISSUES_URL = os.getenv('KNOT_ISSUES_URL')
 
 
-# Datasets
-
-DATASETS_AVAILABLE = True if os.getenv('KNOT_DATASETS_AVAILABLE', '') else False
-
-
 # Local directories allowed to be mounted in containers (in addition to file domains)
 
 ALLOWED_HOSTPATH_DIRS = [d.strip() for d in os.getenv('KNOT_ALLOWED_HOSTPATH_DIRS', '').split(':') if d.strip()]
 
 
-# Service and dataset templates
+# Service templates
 
 SERVICES_REPO_DIR = os.path.join(BASE_DIR, 'repo', 'services')
-DATASETS_REPO_DIR = os.path.join(BASE_DIR, 'repo', 'datasets')
 
 DISABLED_SERVICES = []
 DISABLED_SERVICES_FILE = os.getenv('KNOT_DISABLED_SERVICES_FILE')
 if DISABLED_SERVICES_FILE and os.path.isfile(DISABLED_SERVICES_FILE):
     with open(DISABLED_SERVICES_FILE) as f:
         DISABLED_SERVICES = [line.strip() for line in f if line.strip()]
-
-DISABLED_DATASETS = []
-DISABLED_DATASETS_FILE = os.getenv('KNOT_DISABLED_DATASETS_FILE')
-if DISABLED_DATASETS_FILE and os.path.isfile(DISABLED_DATASETS_FILE):
-    with open(DISABLED_DATASETS_FILE) as f:
-        DISABLED_DATASETS = [line.strip() for line in f if line.strip()]
 
 
 # Preconfigured service URL prefixes
