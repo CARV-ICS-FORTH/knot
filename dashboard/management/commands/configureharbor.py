@@ -15,10 +15,11 @@
 import sys
 
 from django.core.management.base import BaseCommand
-from oauth2_provider.models import Application
 from time import sleep
 
 from ...models import User
+from ...utils.kubernetes import KubernetesClient
+from ...utils.base64 import base64_decode
 from ...utils.harbor import HarborClient
 
 
@@ -27,10 +28,14 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         super().add_arguments(parser)
-        parser.add_argument('--oauth-application-name',
-                            dest='oauth_application_name',
+        parser.add_argument('--secret-name',
+                            dest='secret_name',
                             required=True,
-                            help='The name of the OAuth application.')
+                            help='The name of the Kubernetes secret to store the OAuth secrets in.')
+        parser.add_argument('--secret-namespace',
+                            dest='secret_namespace',
+                            required=True,
+                            help='The namespace of the Kubernetes secret.')
         parser.add_argument('--harbor-url',
                             dest='harbor_url',
                             required=True,
@@ -50,7 +55,8 @@ class Command(BaseCommand):
                             help='Retries.')
 
     def handle(self, *args, **options):
-        oauth_application_name = options.get('oauth_application_name')
+        secret_name = options.get('secret_name')
+        secret_namespace = options.get('secret_namespace')
         harbor_url = options.get('harbor_url')
         harbor_admin_password = options.get('harbor_admin_password')
         ingress_url = options.get('ingress_url')
@@ -62,17 +68,19 @@ class Command(BaseCommand):
             print('Skipping configuration of Harbor: No "admin" user found.')
             return
 
-        try:
-            application = Application.objects.get(name=oauth_application_name, user=user)
-        except Application.DoesNotExist:
-            print('Skipping configuration of Harbor: No OAuth application found.')
-            return
+        kubernetes_client = KubernetesClient()
+        secret = next((s for s in kubernetes_client.list_secrets(secret_namespace) if s.metadata.name == secret_name), None)
+        if secret is None or secret.data is None:
+            print('Failed to configure Harbor: Secret not found or empty.')
+            sys.exit(1)
+        client_id = base64_decode(secret.data.get('client-id')).decode()
+        client_secret = base64_decode(secret.data.get('client-secret')).decode()
 
         harbor_client = HarborClient(harbor_url, harbor_admin_password)
         result = None
         while not result and retries > 0:
             retries -= 1
-            result = harbor_client.configure(application.client_id, application.client_secret, '%s/oauth' % ingress_url.rstrip('/'))
+            result = harbor_client.configure(client_id, client_secret, '%s/oauth' % ingress_url.rstrip('/'))
             if not result and retries > 0:
                 print('Failed to configure Harbor. Retrying in 10 seconds... (retries: %d)' % retries)
                 sleep(10)

@@ -45,7 +45,10 @@ def get_impersonated_user(scope):
     request.session = scope['session']
     request.path = scope['path']
 
-    impersonate_middleware = ImpersonateMiddleware()
+    def get_response(*args, **kwargs):
+        pass
+
+    impersonate_middleware = ImpersonateMiddleware(get_response)
     impersonate_middleware.process_request(request)
     if request.impersonator:
         return request.user

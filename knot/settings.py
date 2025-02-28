@@ -58,7 +58,9 @@ except:
 
 INSTALLED_APPS = [
     'dashboard.apps.DashboardConfig',
+    'daphne',
     'crispy_forms',
+    'crispy_bootstrap4',
     'impersonate',
     'chunked_upload',
     'oauth2_provider',
@@ -68,7 +70,6 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'channels',
 ]
 
 MIDDLEWARE = [
@@ -221,6 +222,7 @@ if os.path.exists(OIDC_RSA_PRIVATE_KEY_FILE):
         OIDC_RSA_PRIVATE_KEY = f.read()
 
     OAUTH2_PROVIDER = {
+        "PKCE_REQUIRED": False,
         "OIDC_ENABLED": True,
         "OIDC_RSA_PRIVATE_KEY": OIDC_RSA_PRIVATE_KEY,
         "OAUTH2_VALIDATOR_CLASS": "dashboard.oauth_validators.CustomOAuth2Validator",

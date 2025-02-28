@@ -24,7 +24,7 @@ if [[ -n $KNOT_ARGO_WORKFLOWS_URL && -n $KNOT_ARGO_WORKFLOWS_NAMESPACE ]]; then
 fi
 if [[ -n $KNOT_HARBOR_URL && -n $KNOT_HARBOR_NAMESPACE && -n $KNOT_HARBOR_ADMIN_PASSWORD ]]; then
     python manage.py createoauthapplication --name harbor --redirect-uri $KNOT_HARBOR_URL/c/oidc/callback --secret-name knot-oauth-harbor --secret-namespace $KNOT_HARBOR_NAMESPACE
-    python manage.py configureharbor --oauth-application-name harbor --harbor-url $KNOT_HARBOR_URL --harbor-admin-password `printf "%q" $KNOT_HARBOR_ADMIN_PASSWORD` --ingress-url $KNOT_INGRESS_URL || exit 1
+    python manage.py configureharbor --secret-name knot-oauth-harbor --secret-namespace $KNOT_HARBOR_NAMESPACE --harbor-url $KNOT_HARBOR_URL --harbor-admin-password `printf "%q" $KNOT_HARBOR_ADMIN_PASSWORD` --ingress-url $KNOT_INGRESS_URL || exit 1
 
     # Upload service charts
     package_charts () {
@@ -38,11 +38,11 @@ if [[ -n $KNOT_HARBOR_URL && -n $KNOT_HARBOR_NAMESPACE && -n $KNOT_HARBOR_ADMIN_
 
     upload_charts () {
         for chart in `ls *.tgz`; do
-            helm cm-push $chart library
+            helm push $chart oci://$(basename $KNOT_HARBOR_URL)/library
         done
     }
 
-    helm repo add --username=admin --password="$KNOT_HARBOR_ADMIN_PASSWORD" library $KNOT_HARBOR_URL/chartrepo/library
+    echo -n "$KNOT_HARBOR_ADMIN_PASSWORD" | helm registry login --username=admin --password-stdin $(basename $KNOT_HARBOR_URL)
     (mkdir -p repo/services-build && cd repo/services-build && package_charts && upload_charts)
 fi
 if [[ -n $KNOT_GRAFANA_URL && -n $KNOT_GRAFANA_NAMESPACE ]]; then

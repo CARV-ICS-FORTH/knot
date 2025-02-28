@@ -33,13 +33,14 @@ class ServiceTemplateManager(object):
                       'local': HelmLocalRepoClient('local', settings.SERVICES_REPO_DIR)}
         del(self.repos['local']) # Comment out to work on local charts.
         if self.repo_base_url:
-            self.repos['shared'] = HelmRemoteRepoClient('library', '%s/%s' % (self.repo_base_url, 'library'), repo_password=settings.HARBOR_ADMIN_PASSWORD)
+            self.repos['shared'] = HelmRemoteRepoClient('library', self.repo_base_url, repo_password=settings.HARBOR_ADMIN_PASSWORD)
             if self.user.username != 'admin':
-                self.repos['private'] = HelmRemoteRepoClient(self.user.namespace, '%s/%s' % (self.repo_base_url, self.user.username), repo_password=settings.HARBOR_ADMIN_PASSWORD)
+                self.repos['private'] = HelmRemoteRepoClient(self.user.username, self.repo_base_url, repo_password=settings.HARBOR_ADMIN_PASSWORD)
 
     @property
     def repo_base_url(self):
-        return '%s/chartrepo' % settings.HARBOR_URL.rstrip('/') if settings.HARBOR_URL else None
+        harbor_url = urlparse(settings.HARBOR_URL)
+        return 'oci://%s' % harbor_url.hostname if settings.HARBOR_URL else None
 
     def get_template(self, name):
         return next((chart for chart in self.list() if chart['name'] == name), None)
