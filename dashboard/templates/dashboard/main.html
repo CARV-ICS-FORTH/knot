@@ -99,6 +99,8 @@
               <a class="dropdown-item text-secondary" href="{% url 'messages' %}">Messages</a>
               {% if not user.is_staff and not user.impersonator.is_staff and teams %}<a class="dropdown-item text-secondary" data-toggle="modal" data-target="#teamsModal">Change profile</a>{% endif %}
               {% if not user.is_impersonate %}<a class="dropdown-item text-secondary" href="{% url 'change_password' %}?next={{ request.path }}">Change password</a>{% endif %}
+              {% if user.is_staff %}<a class="dropdown-item text-secondary" href="/admin" target="_blank">Database interface</a>
+              {% endif %}
               {% if issues_url %}<a class="dropdown-item text-secondary" href="{{ issues_url }}" target="_blank">Report an issue</a>{% endif %}
               <a class="dropdown-item text-secondary" href="{% if documentation_url %}{{ documentation_url }}{% else %}{% static 'docs/index.html' %}{% endif %}" target="_blank">Documentation</a>
               <a class="dropdown-item text-secondary" href="{% url 'logout' %}">Logout</a>
