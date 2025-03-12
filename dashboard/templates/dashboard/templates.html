@@ -3,72 +3,47 @@
 {% load crispy_forms_tags %}
 
 {% block main %}
-<div class="row">
-  <div class="col-md-2 order-md-2">
-    {% if harbor_url %}
-    <button type="button" class="d-block btn btn-success mb-2 w-100" onclick="window.open('{{ harbor_url }}/harbor/projects', '_blank').focus();"><i class="fa fa-download" aria-hidden="true"></i> Add template</button>
-    {% endif %}
-  </div>
-
-  <div class="col-md-10 order-md-1">
-    <nav aria-label="breadcrumb">
-      <ol class="breadcrumb">
-        {% for breadcrumb in trail %}
-        {% if breadcrumb.url %}
-        <li class="breadcrumb-item"><a href="{{ breadcrumb.url }}">{{ breadcrumb.name|safe }}</a></li>
+<table class="table table-hover">
+  <thead>
+    <tr>
+      <th scope="col"></th>
+      {% with 'name description version private' as list %}
+      {% for item in list.split %}
+      <th scope="col" class="text-nowrap">
+        {% if sort_by == item and order == 'asc' %}
+        <a class="text-dark" href="{{ request.path }}?sort_by={{ item }}&amp;order=desc">{{ item|title }}</a>
         {% else %}
-        <li class="breadcrumb-item active">{{ breadcrumb.name|safe }}</li>
+        <a class="text-dark" href="{{ request.path }}?sort_by={{ item }}&amp;order=asc">{{ item|title }}</a>
         {% endif %}
-        {% empty %}
-        &nbsp;
-        {% endfor %}
-      </ol>
-    </nav>
-
-    <table class="table table-hover">
-      <thead>
-        <tr>
-          <th scope="col"></th>
-          {% with 'name description version private' as list %}
-          {% for item in list.split %}
-          <th scope="col">
-            {% if sort_by == item and order == 'asc' %}
-            <a class="text-dark" href="{{ request.path }}?sort_by={{ item }}&amp;order=desc">{{ item|title }}</a>
-            {% else %}
-            <a class="text-dark" href="{{ request.path }}?sort_by={{ item }}&amp;order=asc">{{ item|title }}</a>
-            {% endif %}
-            {% if sort_by == item %}
-            <i class="fa fa-caret-{% if order == 'asc' %}up{% else %}down{% endif %}" aria-hidden="true"></i>
-            {% endif %}
-          </th>
-          {% endfor %}
-          {% endwith %}
-          <th scope="col" style="width: 140px;"></th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for item in contents %}
-        <tr>
-          <th scope="row" class="align-middle"><i class="fa fa-map" aria-hidden="true"></i></th>
-          <td class="align-middle">{{ item.name }}</td>
-          <td class="align-middle">{{ item.description }}</td>
-          <td class="align-middle">{{ item.version }}</td>
-          <td class="align-middle">{% if item.private %}<i class="fa fa-check" aria-hidden="true"></i>{% endif %}</td>
-          <td class="align-middle py-0">
-            <div class="btn-group">
-              <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="dropdownActionsButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                <i class="fa fa-wrench" aria-hidden="true"></i> Actions
-              </button>
-              <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownActionsButton">
-                <a class="dropdown-item btn-sm text-secondary" href="{% url 'service_create' item.name %}?next=templates"><i class="fa fa-magic" aria-hidden="true"></i> Create</a></a>
-              </div>
-            </div>
-          </td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-
-  </div>
-</div>
+        {% if sort_by == item %}
+        <i class="bi bi-caret-{% if order == 'asc' %}up{% else %}down{% endif %}"></i>
+        {% endif %}
+      </th>
+      {% endfor %}
+      {% endwith %}
+      <th scope="col" style="width: 140px;"></th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for item in contents %}
+    <tr>
+      <th scope="row" class="align-middle"><i class="bi bi-map"></i></th>
+      <td class="align-middle">{{ item.name }}</td>
+      <td class="align-middle">{{ item.description }}</td>
+      <td class="align-middle">{{ item.version }}</td>
+      <td class="align-middle">{% if item.private %}<i class="bi bi-check"></i>{% endif %}</td>
+      <td class="align-middle py-0">
+        <div class="dropdown">
+          <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button"data-bs-toggle="dropdown" aria-expanded="false">
+            <i class="bi bi-tools"></i> Actions
+          </button>
+          <div class="dropdown-menu">
+            <a class="dropdown-item btn-sm text-secondary" href="{% url 'service_create' item.name %}?next=templates"><i class="bi bi-magic"></i> Create</a></a>
+          </div>
+        </div>
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
 {% endblock %}

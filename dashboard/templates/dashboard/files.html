@@ -23,198 +23,184 @@
 {% endblock %}
 
 {% block toolbar %}
-<div class="btn-group mr-2" role="group" aria-label="File domains">
+<div class="btn-group me-2" role="group" aria-label="File domains">
   <a class="btn btn-outline-secondary {% if domain == 'private' %}active{% endif %}" role="button" href="{% url 'files' 'private' %}">
-    <i class="fa fa-folder-open" aria-hidden="true"></i> Private
+    <i class="bi bi-folder2-open"></i> Private
   </a>
   <a class="btn btn-outline-secondary {% if domain == 'shared' %}active{% endif %}" role="button" href="{% url 'files' 'shared' %}">
-    <i class="fa fa-group" aria-hidden="true"></i> Shared
+    <i class="bi bi-people"></i> Shared
   </a>
+</div>
+
+<button type="button" class="btn btn-success me-2" data-bs-toggle="modal" data-bs-target="#newFolderModal"><i class="bi bi-folder-plus"></i> New folder</button>
+
+<button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addFilesModal"><i class="bi bi-download"></i> Add files</button>
+
+<div class="modal fade" id="newFolderModal" tabindex="-1" role="dialog" aria-labelledby="newFolderModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="newFolderModalLabel">New folder</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form method="post">
+        <div class="modal-body">
+          {% csrf_token %}
+          {{ add_folder_form|crispy }}
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          <input type="submit" class="btn btn-success" name="action" value="Create" />
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="addFilesModal" tabindex="-1" role="dialog" aria-labelledby="addFilesModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="addFilesModalLabel">Add files</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form method="post" enctype="multipart/form-data">
+        <div class="modal-body">
+          {% csrf_token %}
+          <button type="button" class="btn btn-success fileinput-button">
+            <i class="glyphicon glyphicon-plus"></i>
+            <span>Add files...</span>
+            <input id="fileupload" type="file" name="file" multiple />
+          </button>
+          <span id="files-status"></span>
+          <div class="progress mt-2">
+            <div id="files-progress" class="progress-bar bg-secondary" role="progressbar"></div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          <button type="button" class="btn btn-success confirm-upload">Add</button>
+        </div>
+      </form>
+    </div>
+  </div>
 </div>
 {% endblock %}
 
 {% block main %}
-<div class="row">
-  <div class="col-md-2 order-md-2">
-    <button type="button" class="d-block btn btn-success mb-2 w-100" data-toggle="modal" data-target="#newFolderModal"><i class="fa fa-folder" aria-hidden="true"></i> New folder</button>
-    <button type="button" class="d-block btn btn-success mb-2 w-100" data-toggle="modal" data-target="#addFilesModal"><i class="fa fa-download" aria-hidden="true"></i> Add files</button>
-  </div>
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb p-2 rounded-2">
+    {% for breadcrumb in trail %}
+    {% if breadcrumb.url %}
+    <li class="breadcrumb-item"><a href="{{ breadcrumb.url }}">{{ breadcrumb.name|safe }}</a></li>
+    {% else %}
+    <li class="breadcrumb-item active">{{ breadcrumb.name|safe }}</li>
+    {% endif %}
+    {% empty %}
+    &nbsp;
+    {% endfor %}
+  </ol>
+</nav>
 
-  <div class="modal fade" id="newFolderModal" tabindex="-1" role="dialog" aria-labelledby="newFolderModalLabel" aria-hidden="true">
-    <div class="modal-dialog" role="document">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title" id="newFolderModalLabel">New folder</h5>
-          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-            <span aria-hidden="true">&times;</span>
-          </button>
-        </div>
-        <form method="post">
-          <div class="modal-body">
-            {% csrf_token %}
-            {{ add_folder_form|crispy }}
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-            <input type="submit" class="btn btn-success" name="action" value="Create" />
-          </div>
-        </form>
-      </div>
-    </div>
-  </div>
-
-  <div class="modal fade" id="addFilesModal" tabindex="-1" role="dialog" aria-labelledby="addFilesModalLabel" aria-hidden="true">
-    <div class="modal-dialog" role="document">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title" id="addFilesModalLabel">Add files</h5>
-          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-            <span aria-hidden="true">&times;</span>
-          </button>
-        </div>
-        <form method="post" enctype="multipart/form-data">
-          <div class="modal-body">
-            {% csrf_token %}
-            <button type="button" class="btn btn-success fileinput-button">
-              <i class="glyphicon glyphicon-plus"></i>
-              <span>Add files...</span>
-              <input id="fileupload" type="file" name="file" multiple />
-            </button>
-            <span id="files-status"></span>
-            <div class="progress mt-2">
-              <div id="files-progress" class="progress-bar bg-secondary" role="progressbar"></div>
-            </div>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-            <button type="button" class="btn btn-success confirm-upload">Add</button>
-          </div>
-        </form>
-      </div>
-    </div>
-  </div>
-
-  <div class="col-md-10 order-md-1">
-    <nav aria-label="breadcrumb">
-      <ol class="breadcrumb">
-        {% for breadcrumb in trail %}
-        {% if breadcrumb.url %}
-        <li class="breadcrumb-item"><a href="{{ breadcrumb.url }}">{{ breadcrumb.name|safe }}</a></li>
+<table class="table table-hover">
+  <thead>
+    <tr>
+      <th scope="col"></th>
+      {% with 'name modified size' as list %}
+      {% for item in list.split %}
+      <th scope="col" class="text-nowrap">
+        {% if sort_by == item and order == 'asc' %}
+        <a class="text-dark" href="{{ request.path }}?sort_by={{ item }}&amp;order=desc">{{ item|title }}</a>
         {% else %}
-        <li class="breadcrumb-item active">{{ breadcrumb.name|safe }}</li>
+        <a class="text-dark" href="{{ request.path }}?sort_by={{ item }}&amp;order=asc">{{ item|title }}</a>
         {% endif %}
-        {% empty %}
-        &nbsp;
-        {% endfor %}
-      </ol>
-    </nav>
-
-    <table class="table table-hover">
-      <thead>
-        <tr>
-          <th scope="col"></th>
-          {% with 'name modified size' as list %}
-          {% for item in list.split %}
-          <th scope="col">
-            {% if sort_by == item and order == 'asc' %}
-            <a class="text-dark" href="{{ request.path }}?sort_by={{ item }}&amp;order=desc">{{ item|title }}</a>
-            {% else %}
-            <a class="text-dark" href="{{ request.path }}?sort_by={{ item }}&amp;order=asc">{{ item|title }}</a>
-            {% endif %}
-            {% if sort_by == item %}
-            <i class="fa fa-caret-{% if order == 'asc' %}up{% else %}down{% endif %}" aria-hidden="true"></i>
-            {% endif %}
-          </th>
-          {% endfor %}
-          {% endwith %}
-          <th scope="col" style="width: 140px;"></th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for item in contents %}
-        <tr>
-          <th scope="row" class="align-middle">
+        {% if sort_by == item %}
+        <i class="bi bi-caret-{% if order == 'asc' %}up{% else %}down{% endif %}"></i>
+        {% endif %}
+      </th>
+      {% endfor %}
+      {% endwith %}
+      <th scope="col" style="width: 140px;"></th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for item in contents %}
+    <tr>
+      <th scope="row" class="align-middle">
+        {% if item.type == 'dir' %}
+        <i class="bi bi-folder"></i>
+        {% else %}
+        <i class="bi bi-file-earmark"></i>
+        {% endif %}
+      </th>
+      <td class="align-middle"><a class="text-secondary" href="{{ item.url }}">{{ item.name }}</a></td>
+      <td class="align-middle">{% if item.modified %}{{ item.modified|date:'j/n/Y H:i' }}{% endif %}</td>
+      <td class="align-middle">{% if item.type != 'dir' and item.size %}{{ item.size|filesizeformat }}{% endif %}</td>
+      <td class="align-middle py-0">
+        <div class="dropdown">
+          <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+            <i class="bi bi-tools"></i> Actions
+          </button>
+          <div class="dropdown-menu">
             {% if item.type == 'dir' %}
-            <i class="fa fa-folder-o" aria-hidden="true"></i>
-            {% else %}
-            <i class="fa fa-file-text-o" aria-hidden="true"></i>
+            <form method="post">
+              {% csrf_token %}
+              <input type="hidden" name="action" value="Download" />
+              <input type="hidden" name="name" value="{{ item.name }}" />
+              <button type="submit" class="dropdown-item btn btn-sm text-secondary"><i class="bi bi-archive"></i> Download</button>
+            </form>
             {% endif %}
-          </th>
-          <td class="align-middle"><a class="text-secondary" href="{{ item.url }}">{{ item.name }}</a></td>
-          <td class="align-middle">{% if item.modified %}{{ item.modified|date:'j/n/Y H:i' }}{% endif %}</td>
-          <td class="align-middle">{% if item.type != 'dir' and item.size %}{{ item.size|filesizeformat }}{% endif %}</td>
-          <td class="align-middle py-0">
-            <div class="btn-group">
-              <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="dropdownActionsButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                <i class="fa fa-wrench" aria-hidden="true"></i> Actions
-              </button>
-              <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownActionsButton">
-                {% if item.type == 'dir' %}
-                <form method="post">
-                  {% csrf_token %}
-                  <input type="hidden" name="action" value="Download" />
-                  <input type="hidden" name="name" value="{{ item.name }}" />
-                  <button type="submit" class="dropdown-item btn-sm text-secondary"><i class="fa fa-archive" aria-hidden="true"></i> Download</button>
-                </form>
-                {% endif %}
-                <button type="button" class="dropdown-item btn-sm text-secondary confirm-delete" data-toggle="modal" data-target="#deleteModal" id="{{ item.name }}"><i class="fa fa-trash" aria-hidden="true"></i> Delete</button>
-              </div>
-            </div>
-          </td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-
-    <div class="modal fade" id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel" aria-hidden="true">
-      <div class="modal-dialog" role="document">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title" id="deleteModalLabel">Delete</h5>
-            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-              <span aria-hidden="true">&times;</span>
-            </button>
+            <button type="button" class="dropdown-item btn btn-sm text-secondary confirm-delete" data-bs-toggle="modal" data-bs-target="#deleteModal" id="{{ item.name }}"><i class="bi bi-trash3"></i> Delete</button>
           </div>
-          <form method="post">
-            <div class="modal-body">
-              Are you sure you want to delete "<span id="deleteNameText"></span>"? The action will be permanent.
-              {% csrf_token %}
-              <input type="hidden" name="filename" value="" id="deleteNameInput" />
-            </div>
-            <div class="modal-footer">
-              <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-              <input type="submit" class="btn btn-success" name="action" value="Delete" />
-            </div>
-          </form>
         </div>
-      </div>
-    </div>
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
 
-    <div class="modal fade" id="addImageModal" tabindex="-1" role="dialog" aria-labelledby="addImageModalLabel" aria-hidden="true">
-      <div class="modal-dialog" role="document">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title" id="addImageModalLabel">Add image</h5>
-            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-              <span aria-hidden="true">&times;</span>
-            </button>
-          </div>
-          <form method="post">
-            <div class="modal-body">
-              <p>Enter information to add "<span id="imageNameText"></span>" as an image.</p>
-              {% csrf_token %}
-              {{ add_image_from_file_form|crispy }}
-              <input type="hidden" name="filename" value="" id="imageNameInput" />
-            </div>
-            <div class="modal-footer">
-              <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-              <input type="submit" class="btn btn-success" name="action" value="Add image" />
-            </div>
-          </form>
+<div class="modal fade" id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="deleteModalLabel">Delete</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form method="post">
+        <div class="modal-body">
+          Are you sure you want to delete "<span id="deleteNameText"></span>"? The action will be permanent.
+          {% csrf_token %}
+          <input type="hidden" name="filename" value="" id="deleteNameInput" />
         </div>
-      </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          <input type="submit" class="btn btn-success" name="action" value="Delete" />
+        </div>
+      </form>
     </div>
+  </div>
+</div>
 
+<div class="modal fade" id="addImageModal" tabindex="-1" role="dialog" aria-labelledby="addImageModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="addImageModalLabel">Add image</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form method="post">
+        <div class="modal-body">
+          <p>Enter information to add "<span id="imageNameText"></span>" as an image.</p>
+          {% csrf_token %}
+          {{ add_image_from_file_form|crispy }}
+          <input type="hidden" name="filename" value="" id="imageNameInput" />
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          <input type="submit" class="btn btn-success" name="action" value="Add image" />
+        </div>
+      </form>
+    </div>
   </div>
 </div>
 

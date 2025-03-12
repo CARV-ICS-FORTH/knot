@@ -3,27 +3,16 @@
 {% load crispy_forms_tags %}
 
 {% block main %}
-<div class="row">
-  <div class="col-md-2 order-md-2">
-  </div>
-
-  <div class="col-md-10 order-md-1">
-    {% if action %}
-    <form method="post">
-    {% endif %}
-      <div class="modal-body">
-        {% csrf_token %}
-        {{ form|crispy }}
-      </div>
-      <div class="modal-footer">
-        <a class="btn btn-secondary" href="{{ next }}">Cancel</a>
-        {% if action %}
-        <input type="submit" class="btn btn-success" name="action" value="{{ action }}" />
-        {% endif %}
-      </div>
-    {% if action %}
-    </form>
-    {% endif %}
-  </div>
-</div>
+{% if action %}
+<form method="post">
+{% endif %}
+  {% csrf_token %}
+  {{ form|crispy }}
+  <a class="btn btn-secondary me-1" href="{{ next }}">Cancel</a>
+  {% if action %}
+  <input type="submit" class="btn btn-success" name="action" value="{{ action }}" />
+  {% endif %}
+{% if action %}
+</form>
+{% endif %}
 {% endblock %}

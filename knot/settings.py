@@ -60,7 +60,7 @@ INSTALLED_APPS = [
     'dashboard.apps.DashboardConfig',
     'daphne',
     'crispy_forms',
-    'crispy_bootstrap4',
+    'crispy_bootstrap5',
     'impersonate',
     'chunked_upload',
     'oauth2_provider',
@@ -248,7 +248,7 @@ CELERY_CONCURRENCY = 4
 
 # Form styling with crispy-forms
 
-CRISPY_TEMPLATE_PACK = 'bootstrap4'
+CRISPY_TEMPLATE_PACK = 'bootstrap5'
 
 
 # Bootstrap compatible messages

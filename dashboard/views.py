@@ -66,10 +66,6 @@ def services(request):
 
         return redirect('services')
 
-    # There is no hierarchy here.
-    kubernetes_client = KubernetesClient()
-    trail = [{'name': '<i class="fa fa-university" aria-hidden="true"></i> %s' % kubernetes_client.host}]
-
     # Fill in the contents.
     contents = []
     try:
@@ -122,7 +118,6 @@ def services(request):
         task.delete()
 
     return render(request, 'dashboard/services.html', {'title': 'Services',
-                                                       'trail': trail,
                                                        'contents': contents,
                                                        'sort_by': sort_by,
                                                        'order': order,
@@ -231,11 +226,8 @@ def service_upgrade(request, name=''):
 
 @login_required
 def templates(request):
-    # There is no hierarchy here.
-    template_manager = ServiceTemplateManager(request.user)
-    trail = [{'name': '<i class="fa fa-university" aria-hidden="true"></i> %s' % template_manager.repo_base_url}]
-
     # Fill in the contents.
+    template_manager = ServiceTemplateManager(request.user)
     contents = []
     try:
         contents = template_manager.list()
@@ -259,7 +251,6 @@ def templates(request):
                       reverse=True if order == 'desc' else False)
 
     return render(request, 'dashboard/templates.html', {'title': 'Templates',
-                                                        'trail': trail,
                                                         'contents': contents,
                                                         'sort_by': sort_by,
                                                         'order': order})
@@ -345,7 +336,7 @@ def files(request, path='/'):
 
     # This is a directory. Leave a trail of breadcrumbs.
     trail = []
-    trail.append({'name': '<i class="fa fa-hdd-o" aria-hidden="true"></i>',
+    trail.append({'name': '<i class="bi bi-hdd"></i>',
                   'url': reverse('files', args=[domain]) if len(path_components) != 1 else None})
     for i, path_component in enumerate(path_components[1:]):
         trail.append({'name': path_component,

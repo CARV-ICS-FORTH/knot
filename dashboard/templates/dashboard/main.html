@@ -5,107 +5,116 @@
 {% block body %}
 <div class="container-fluid min-vh-100">
   <div class="row min-vh-100">
-    <nav class="col-md-3 d-block">
-      <div class="text-center">
-        <img class="d-block mx-auto my-4" src="{% static 'dashboard/theme/logo.png' %}" alt="">
-      </div>
 
-      <ul class="nav nav-pills flex-column mb-3 mr-auto">
+    <div class="d-flex flex-column flex-shrink-0 p-3 border-end col-md-3 col-lg-2 bg-body-tertiary" >
+      <img class="pb-3 px-3 w-100 d-none d-md-block" src="{% static 'dashboard/theme/logo.png' %}" alt="">
+      <img class="pb-3 px-3 w-50 d-md-none mx-auto" src="{% static 'dashboard/theme/logo.png' %}" alt="">
+
+      <ul class="nav nav-pills flex-column">
         {% includestatic 'dashboard/theme/menu_pre.html' %}
         {% if jupyterhub_url %}
         <li class="nav-item">
-          <a class="nav-link" href="{{ jupyterhub_url }}" target="_blank">
-            <i class="fa fa-file-text" aria-hidden="true"></i> Notebooks
+          <a class="nav-link link-body-emphasis" href="{{ jupyterhub_url }}" target="_blank">
+            <i class="bi bi-file-earmark-text"></i> Notebooks
           </a>
         </li>
         {% endif %}
         {% if argo_workflows_url %}
         <li class="nav-item">
-          <a class="nav-link" href="{{ argo_workflows_url }}/workflows/{{ user.namespace }}" target="_blank">
-            <i class="fa fa-code-fork" aria-hidden="true"></i> Workflows
+          <a class="nav-link link-body-emphasis" href="{{ argo_workflows_url }}/workflows/{{ user.namespace }}" target="_blank">
+            <i class="bi bi-diagram-3"></i> Workflows
           </a>
         </li>
         {% endif %}
         <li class="nav-item">
-          <a class="nav-link {% if title == 'Services' %}active{% endif %}" href="{% url 'services' %}">
-            <i class="fa fa-cogs" aria-hidden="true"></i> Services
+          <a class="nav-link {% if title == 'Services' %}active{% else %}link-body-emphasis{% endif %}" href="{% url 'services' %}">
+            <i class="bi bi-gear"></i> Services
           </a>
         </li>
         <li class="nav-item">
-          <a class="nav-link {% if title == 'Templates' %}active{% endif %}" href="{% url 'templates' %}">
-            <i class="fa fa-map" aria-hidden="true"></i> Templates
+          <a class="nav-link {% if title == 'Templates' %}active{% else %}link-body-emphasis{% endif %}" href="{% url 'templates' %}">
+            <i class="bi bi-map"></i> Templates
           </a>
         </li>
         {% if harbor_url %}
         <li class="nav-item">
-          <a class="nav-link" href="{{ harbor_url }}/harbor/projects" target="_blank">
-            <i class="fa fa-cubes" aria-hidden="true"></i> Images
+          <a class="nav-link link-body-emphasis" href="{{ harbor_url }}/harbor/projects" target="_blank">
+            <i class="bi bi-box-seam"></i> Images
           </a>
         </li>
         {% endif %}
         <li class="nav-item">
-          <a class="nav-link {% if title == 'Files' %}active{% endif %}" href="{% url 'files' %}">
-            <i class="fa fa-folder" aria-hidden="true"></i> Files
+          <a class="nav-link {% if title == 'Files' %}active{% else %}link-body-emphasis{% endif %}" href="{% url 'files' %}">
+            <i class="bi bi-folder"></i> Files
           </a>
         </li>
         {% if grafana_url %}
         <li class="nav-item">
-          <a class="nav-link" href="{{ grafana_url }}" target="_blank">
-            <i class="fa fa-area-chart" aria-hidden="true"></i> Metrics
+          <a class="nav-link link-body-emphasis" href="{{ grafana_url }}" target="_blank">
+            <i class="bi bi-bar-chart-line"></i> Metrics
           </a>
         </li>
         {% endif %}
         {% if user.is_staff %}
         <li class="nav-item">
-          <a class="nav-link {% if title == 'Users' %}active{% endif %}" href="{% url 'users' %}">
-            <i class="fa fa-user" aria-hidden="true"></i> Users
+          <a class="nav-link {% if title == 'Users' %}active{% else %}link-body-emphasis{% endif %}" href="{% url 'users' %}">
+            <i class="bi bi-person"></i> Users
           </a>
         </li>
         <li class="nav-item">
-          <a class="nav-link {% if title == 'Teams' %}active{% endif %}" href="{% url 'teams' %}">
-            <i class="fa fa-users" aria-hidden="true"></i> Teams
+          <a class="nav-link {% if title == 'Teams' %}active{% else %}link-body-emphasis{% endif %}" href="{% url 'teams' %}">
+            <i class="bi bi-people"></i> Teams
           </a>
         </li>
         {% endif %}
         {% includestatic 'dashboard/theme/menu_post.html' %}
       </ul>
-    </nav>
 
-    <main role="main" class="col-md-9 ml-sm-auto pt-3 px-4">
-      {% for message in messages %}
-      <div class="alert {{ message.tags }} alert-dismissible" role="alert">
-        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
-        </button>
-        {{ message }}
+      <hr>
+
+      <ul class="nav nav-pills flex-column">
+        <li>
+          <div class="dropdown">
+            <a class="nav-link {% if user.is_impersonate %}bg-secondary link-light{% else %}link-body-emphasis{% endif %} align-middle text-decoration-none dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="bi {% if user.is_impersonate %}{% if user.impersonator.is_staff %}bi-incognito{% else %}bi-people-fill{% endif %}{% else %}bi-person-fill{% endif %}"></i>
+                {{ user.username }}
+            </a>
+            <ul class="dropdown-menu">
+              <li><a class="dropdown-item text-secondary" data-bs-toggle="modal" data-bs-target="#aboutModal"><i class="bi bi-info-lg"></i> About</a></li>
+              {% if user.is_impersonate and user.impersonator.is_staff %}<li><a class="dropdown-item text-secondary" href="{% url 'impersonate-stop' %}"><i class="bi bi-person-walking"></i> Stop impersonating</a></li>{% endif %}
+              <li><a class="dropdown-item text-secondary" href="{% url 'messages' %}"><i class="bi bi-chat-left-text"></i> Messages</a></li>
+              {% if not user.is_staff and not user.impersonator.is_staff and teams %}<li><a class="dropdown-item text-secondary" data-bs-toggle="modal" data-bs-target="#teamsModal"><i class="bi bi-person-vcard"></i> Change profile</a></li>{% endif %}
+              {% if not user.is_impersonate %}<li><a class="dropdown-item text-secondary" href="{% url 'change_password' %}?next={{ request.path }}"><i class="bi bi-lock"></i> Change password</a></li>{% endif %}
+              {% if user.is_staff %}<li><a class="dropdown-item text-secondary" href="/admin" target="_blank"><i class="bi bi-database"></i> Database interface</a></li>
+              {% endif %}
+              {% if issues_url %}<li><a class="dropdown-item text-secondary" href="{{ issues_url }}" target="_blank"><i class="bi bi-megaphone"></i> Report an issue</a></li>{% endif %}
+              <li><a class="dropdown-item text-secondary" href="{% if documentation_url %}{{ documentation_url }}{% else %}{% static 'docs/index.html' %}{% endif %}" target="_blank"><i class="bi bi-book"></i> Documentation</a></li>
+              <li><hr class="dropdown-divider"></li>
+              <li><a class="dropdown-item text-secondary" href="{% url 'logout' %}"><i class="bi bi-door-open"></i> Logout</a></li>
+            </ul>
+          </div>
+        </li>
+      </ul>
+    </div>
+
+    <main class="col-md-9 col-lg-10 ms-sm-auto px-md-4">
+      <div class="pt-3">
+        {% for message in messages %}
+        <div class="alert {{ message.tags }} alert-dismissible" role="alert">
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+          {{ message }}
+        </div>
+        {% endfor %}
+
+        {% block messages %}
+        {% endblock %}
       </div>
-      {% endfor %}
-
-      {% block messages %}
-      {% endblock %}
 
       <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-2 mb-3 border-bottom">
         <h1 class="h2">{{ title }}</h1>
         <div class="btn-toolbar mb-2 mb-md-0">
           {% block toolbar %}
           {% endblock %}
-          <div class="btn-group">
-            <button class="btn {% if user.is_impersonate %}btn-dark{% else %}btn-outline-secondary{% endif %} dropdown-toggle" type="button" id="dropdownUserButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-              <i class="fa {% if user.is_impersonate %}{% if user.impersonator.is_staff %}fa-user-secret{% else %}fa-users{% endif %}{% else %}fa-user{% endif %}" aria-hidden="true"></i> {{ user.username }}
-            </button>
-            <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownUserButton">
-              <a class="dropdown-item text-secondary" data-toggle="modal" data-target="#aboutModal">About</a>
-              {% if user.is_impersonate and user.impersonator.is_staff %}<a class="dropdown-item text-secondary" href="{% url 'impersonate-stop' %}">Stop impersonating</a>{% endif %}
-              <a class="dropdown-item text-secondary" href="{% url 'messages' %}">Messages</a>
-              {% if not user.is_staff and not user.impersonator.is_staff and teams %}<a class="dropdown-item text-secondary" data-toggle="modal" data-target="#teamsModal">Change profile</a>{% endif %}
-              {% if not user.is_impersonate %}<a class="dropdown-item text-secondary" href="{% url 'change_password' %}?next={{ request.path }}">Change password</a>{% endif %}
-              {% if user.is_staff %}<a class="dropdown-item text-secondary" href="/admin" target="_blank">Database interface</a>
-              {% endif %}
-              {% if issues_url %}<a class="dropdown-item text-secondary" href="{{ issues_url }}" target="_blank">Report an issue</a>{% endif %}
-              <a class="dropdown-item text-secondary" href="{% if documentation_url %}{{ documentation_url }}{% else %}{% static 'docs/index.html' %}{% endif %}" target="_blank">Documentation</a>
-              <a class="dropdown-item text-secondary" href="{% url 'logout' %}">Logout</a>
-            </div>
-          </div>
         </div>
       </div>
 
@@ -114,15 +123,13 @@
           <div class="modal-content">
             <div class="modal-header">
               <h5 class="modal-title" id="aboutModalLabel">About</h5>
-              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                <span aria-hidden="true">&times;</span>
-              </button>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
               This installation is running <a class="text-secondary" href="https://github.com/CARV-ICS-FORTH/knot" target="_blank">Knot</a> version {{ version }}.
             </div>
             <div class="modal-footer">
-              <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
             </div>
           </div>
         </div>
@@ -133,9 +140,7 @@
           <div class="modal-content">
             <div class="modal-header">
               <h5 class="modal-title" id="teamsModalLabel">Change profile</h5>
-              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                <span aria-hidden="true">&times;</span>
-              </button>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
               <table class="table table-hover">
@@ -143,7 +148,7 @@
                 <tbody>
                   {% for item in teams %}
                   <tr>
-                    <th scope="row" class="align-middle text-center"><i class="fa {% if item.profile.is_team %}fa-users{% else %}fa-user{% endif %}" aria-hidden="true"></i></th>
+                    <th scope="row" class="align-middle text-center"><i class="bi {% if item.profile.is_team %}bi-people{% else %}bi-person{% endif %}" aria-hidden="true"></i></th>
                     <td class="align-middle w-100"><a class="text-secondary" href="{% if item.profile.is_team %}{% url 'impersonate-start' item.id %}{% else %}{% url 'impersonate-stop' %}{% endif %}">{{ item.username }}</a></td>
                   </tr>
                   {% endfor %}
@@ -151,7 +156,7 @@
               </table>
             </div>
             <div class="modal-footer">
-              <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
             </div>
           </div>
         </div>
