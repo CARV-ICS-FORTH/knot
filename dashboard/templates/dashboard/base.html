@@ -1,26 +1,19 @@
 {% load static %}
 
 <!doctype html>
-<html lang="en">
+<html lang="en" data-bs-theme="light">
   <head>
-    <!-- Required meta tags -->
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="icon" href="data:;base64,=">
 
-    <!-- Bootstrap CSS -->
     <link href="{% static 'dashboard/assets/css/bootstrap.min.css' %}" rel="stylesheet">
-
-    <!-- Font Awesome CSS -->
-    <link href="{% static 'dashboard/assets/css/font-awesome.min.css' %}" rel="stylesheet">
-
+    <link href="{% static 'dashboard/assets/css/bootstrap-icons.min.css' %}" rel="stylesheet">
     <link href="{% static 'dashboard/theme/style.css' %}" rel="stylesheet">
     {% block style %}
     {% endblock %}
 
-    <!-- Optional JavaScript -->
-    <!-- jQuery first, then Bootstrap JS with Popper.js -->
-    <script src="{% static 'dashboard/assets/js/jquery-3.4.1.min.js' %}"></script>
+    <script src="{% static 'dashboard/assets/js/jquery-3.7.1.min.js' %}"></script>
     <script src="{% static 'dashboard/assets/js/bootstrap.bundle.min.js' %}"></script>
     {% block script %}
     {% endblock %}

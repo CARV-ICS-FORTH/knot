@@ -4,9 +4,6 @@ metadata:
   name: {{ include "ubuntu.fullname" . }}
   labels:
     {{- include "ubuntu.labels" . | nindent 4 }}
-    {{- if .Values.knot.enabled }}
-    knot-no-datasets: "true"
-    {{- end }}
 spec:
   replicas: 1
   selector:

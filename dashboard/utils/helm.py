@@ -84,51 +84,15 @@ class HelmRemoteRepoClient(object):
     def __init__(self, repo_name, repo_url, repo_username='admin', repo_password=''):
         self._repo_name = repo_name
         self._repo_url = repo_url
-        self._repo_auth = HTTPBasicAuth(repo_username, repo_password) if repo_password else None
+        self._repo_username = repo_username
+        self._repo_password = repo_password
 
-    def _request(self, method, url, **kwargs):
-        kwargs.setdefault('verify', False if os.environ.get('VIRTUAL_ENV') else True) # XXX Do not verify if running in virtual environment.
-        kwargs.setdefault('timeout', 30)
-        response = requests.request(method, url, **kwargs)
-        response.raise_for_status()
-        return response
-
-    def _get(self, path, params={}):
-        response = self._request('get', '%s/%s' % (self._repo_url, path.lstrip('/')), auth=self._repo_auth, params=params)
-        return YAML(typ='safe').load(response.text)
-
-    def _local_repo_list(self):
-        command = 'helm repo list -o yaml'
-        try:
-            result = subprocess.check_output(command, shell=True)
-            return YAML(typ='safe').load(result)
-        except:
-            return []
-
-    def _local_repo_add(self):
-        command = 'helm repo add %s --username=%s --password=%s %s %s' % ('--insecure-skip-tls-verify' if os.environ.get('VIRTUAL_ENV') else '', # XXX Do not verify if running in virtual environment.
-                                                                          self._repo_auth.username,
-                                                                          shlex.quote(self._repo_auth.password),
-                                                                          self._repo_name,
-                                                                          self._repo_url)
-        subprocess.check_output(command, shell=True)
-
-    def _local_repo_update(self):
-        command = 'helm repo update %s' % self._repo_name
-        subprocess.check_output(command, shell=True)
-
-    def list(self, latest_only=True):
-        result = self._get('index.yaml')
-        if not latest_only:
-            return result['entries']
-        return {name: max(versions, key=lambda x: version.parse(x['version'])) for name, versions in result['entries'].items()}
+    def list(self):
+        from .registry import RegistryClient
+        return RegistryClient(self._repo_url, self._repo_name, self._repo_username, self._repo_password).list()
 
     def values(self, name):
-        if not next((repo for repo in self._local_repo_list() if repo['name'] == self._repo_name), None):
-            self._local_repo_add()
-        self._local_repo_update()
-
-        chart_name = '%s/%s' % (self._repo_name, name)
+        chart_name = '%s/%s/%s' % (self._repo_url, self._repo_name, name)
         command = 'helm show values %s %s' % ('--insecure-skip-tls-verify' if os.environ.get('VIRTUAL_ENV') else '', # XXX Do not verify if running in virtual environment.
                                               chart_name)
         result = subprocess.check_output(command, shell=True)

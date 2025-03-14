@@ -8,7 +8,7 @@ jobs:
   docs:
     name: Publish docs
     runs-on: ubuntu-latest
-    container: python:3.7.9-slim
+    container: python:3.12.9-slim
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
@@ -18,7 +18,7 @@ jobs:
           apt-get install -y git
       - name: Build docs
         run: |
-          pip install mkdocs==1.5.3 mkdocs-include-markdown-plugin==4.0.4
+          pip install mkdocs==1.6.1 mkdocs-include-markdown-plugin==7.1.4
           mkdocs build
       - name: Push docs to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3

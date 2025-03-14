@@ -38,7 +38,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = os.getenv('DJANGO_SECRET', '%ad&%4*!xpf*$wd3^t56+#ode4=@y^ju_t+j9f+20ajsta^gog')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True if os.getenv('DJANGO_DEBUG', '1') else False
+DEBUG = False if os.getenv('DJANGO_DEBUG', '1') == '0' else True
 
 ALLOWED_HOSTS = ['*']
 
@@ -58,7 +58,9 @@ except:
 
 INSTALLED_APPS = [
     'dashboard.apps.DashboardConfig',
+    'daphne',
     'crispy_forms',
+    'crispy_bootstrap5',
     'impersonate',
     'chunked_upload',
     'oauth2_provider',
@@ -68,7 +70,6 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'channels',
 ]
 
 MIDDLEWARE = [
@@ -221,6 +222,7 @@ if os.path.exists(OIDC_RSA_PRIVATE_KEY_FILE):
         OIDC_RSA_PRIVATE_KEY = f.read()
 
     OAUTH2_PROVIDER = {
+        "PKCE_REQUIRED": False,
         "OIDC_ENABLED": True,
         "OIDC_RSA_PRIVATE_KEY": OIDC_RSA_PRIVATE_KEY,
         "OAUTH2_VALIDATOR_CLASS": "dashboard.oauth_validators.CustomOAuth2Validator",
@@ -246,7 +248,7 @@ CELERY_CONCURRENCY = 4
 
 # Form styling with crispy-forms
 
-CRISPY_TEMPLATE_PACK = 'bootstrap4'
+CRISPY_TEMPLATE_PACK = 'bootstrap5'
 
 
 # Bootstrap compatible messages
@@ -299,32 +301,20 @@ DOCUMENTATION_URL = os.getenv('KNOT_DOCUMENTATION_URL')
 ISSUES_URL = os.getenv('KNOT_ISSUES_URL')
 
 
-# Datasets
-
-DATASETS_AVAILABLE = True if os.getenv('KNOT_DATASETS_AVAILABLE', '') else False
-
-
 # Local directories allowed to be mounted in containers (in addition to file domains)
 
 ALLOWED_HOSTPATH_DIRS = [d.strip() for d in os.getenv('KNOT_ALLOWED_HOSTPATH_DIRS', '').split(':') if d.strip()]
 
 
-# Service and dataset templates
+# Service templates
 
 SERVICES_REPO_DIR = os.path.join(BASE_DIR, 'repo', 'services')
-DATASETS_REPO_DIR = os.path.join(BASE_DIR, 'repo', 'datasets')
 
 DISABLED_SERVICES = []
 DISABLED_SERVICES_FILE = os.getenv('KNOT_DISABLED_SERVICES_FILE')
 if DISABLED_SERVICES_FILE and os.path.isfile(DISABLED_SERVICES_FILE):
     with open(DISABLED_SERVICES_FILE) as f:
         DISABLED_SERVICES = [line.strip() for line in f if line.strip()]
-
-DISABLED_DATASETS = []
-DISABLED_DATASETS_FILE = os.getenv('KNOT_DISABLED_DATASETS_FILE')
-if DISABLED_DATASETS_FILE and os.path.isfile(DISABLED_DATASETS_FILE):
-    with open(DISABLED_DATASETS_FILE) as f:
-        DISABLED_DATASETS = [line.strip() for line in f if line.strip()]
 
 
 # Preconfigured service URL prefixes

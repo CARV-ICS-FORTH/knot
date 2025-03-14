@@ -71,7 +71,6 @@ data:
   KNOT_DOCUMENTATION_URL: {{- if .Values.knot.documentationURL }} {{ .Values.knot.documentationURL | quote }} {{- else }} "" {{- end }}
   KNOT_ISSUES_URL: {{- if .Values.knot.issuesURL }} {{ .Values.knot.issuesURL | quote }} {{- else }} "" {{- end }}
   KNOT_INGRESS_URL: {{ $ingressURL | quote }}
-  KNOT_DATASETS_AVAILABLE: {{- if .Values.knot.datasetsAvailable }} {{ .Values.knot.datasetsAvailable | quote }} {{- else }} "" {{- end }}
   KNOT_FILES_URL: {{- if .Values.knot.filesURL }} {{ .Values.knot.filesURL | quote }} {{- else }} "" {{- end }}
   KNOT_ALLOWED_HOSTPATH_DIRS: {{- if .Values.knot.allowedHostPathDirs }} {{ .Values.knot.allowedHostPathDirs | quote }} {{- else }} "" {{- end }}
   KNOT_JUPYTERHUB_URL: {{- if .Values.knot.jupyterHubURL }} {{ .Values.knot.jupyterHubURL | quote }} {{- else }} "" {{- end }}
@@ -95,10 +94,6 @@ metadata:
 data:
   disabled_services: |
     {{- range $val := .Values.knot.disabledServices }}
-    {{ $val }}
-    {{- end }}
-  disabled_datasets: |
-    {{- range $val := .Values.knot.disabledDatasets }}
     {{ $val }}
     {{- end }}
   service_url_prefixes: |

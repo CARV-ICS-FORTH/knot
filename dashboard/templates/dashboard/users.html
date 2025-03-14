@@ -16,129 +16,117 @@
 {% endblock %}
 
 {% block main %}
-<div class="row">
-  <div class="col-md-2 order-md-2">
-  </div>
-
-  <div class="col-md-10 order-md-1">
-    <table class="table table-hover">
-      <thead>
-        <tr>
-          <th scope="col"></th>
-          {% with 'username email active admin' as list %}
-          {% for item in list.split %}
-          <th scope="col">
-            {% if sort_by == item and order == 'asc' %}
-            <a class="text-dark" href="{{ request.path }}?sort_by={{ item }}&amp;order=desc">{{ item|title }}</a>
+<table class="table table-hover">
+  <thead>
+    <tr>
+      <th scope="col"></th>
+      {% with 'username email active admin' as list %}
+      {% for item in list.split %}
+      <th scope="col" class="text-nowrap">
+        {% if sort_by == item and order == 'asc' %}
+        <a class="text-dark" href="{{ request.path }}?sort_by={{ item }}&amp;order=desc">{{ item|title }}</a>
+        {% else %}
+        <a class="text-dark" href="{{ request.path }}?sort_by={{ item }}&amp;order=asc">{{ item|title }}</a>
+        {% endif %}
+        {% if sort_by == item %}
+        <i class="bi bi-caret-{% if order == 'asc' %}up{% else %}down{% endif %}"></i>
+        {% endif %}
+      </th>
+      {% endfor %}
+      {% endwith %}
+      <th scope="col" style="width: 140px;"></th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for item in contents %}
+    <tr>
+      <th scope="row" class="align-middle"><i class="bi bi-person"></i></th>
+      <td class="align-middle">{{ item.username }}</td>
+      <td class="align-middle">{{ item.email }}</td>
+      <td class="align-middle">{% if item.active %}<i class="bi bi-check"></i>{% endif %}</td>
+      <td class="align-middle">{% if item.admin %}<i class="bi bi-check"></i>{% endif %}</td>
+      <td class="align-middle py-0">
+        {% if item.actions %}
+        <div class="dropdown">
+          <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+            <i class="bi bi-tools"></i> Actions
+          </button>
+          <div class="dropdown-menu">
+            {% if item.active and user.is_staff %}<a href="{% url 'impersonate-start' item.id %}" class="dropdown-item btn btn-sm text-secondary"><i class="bi bi-incognito"></i> Impersonate</a>{% endif %}
+            <form method="post">
+              {% csrf_token %}
+              <input type="hidden" name="username" value="{{ item.username }}" />
+              {% if item.active %}
+              <input type="hidden" name="action" value="Deactivate" />
+              <button type="submit" class="dropdown-item btn btn-sm text-secondary"><i class="bi bi-person-slash"></i> Deactivate</button>
+              {% else %}
+              <input type="hidden" name="action" value="Activate" />
+              <button type="submit" class="dropdown-item btn btn-sm text-secondary"><i class="bi bi-person-check"></i> Activate</button>
+              {% endif %}
+            </form>
+            {% if item.admin %}
+            <form method="post">
+              {% csrf_token %}
+              <input type="hidden" name="username" value="{{ item.username }}" />
+              <input type="hidden" name="action" value="Demote" />
+              <button type="submit" class="dropdown-item btn btn-sm text-secondary"><i class="bi bi-person-down"></i> Demote</button>
+            </form>
             {% else %}
-            <a class="text-dark" href="{{ request.path }}?sort_by={{ item }}&amp;order=asc">{{ item|title }}</a>
+            <button type="button" class="dropdown-item btn btn-sm text-secondary confirm-promote" data-bs-toggle="modal" data-bs-target="#promoteModal" id="{{ item.username }}"><i class="bi bi-person-up"></i> Promote</button>
             {% endif %}
-            {% if sort_by == item %}
-            <i class="fa fa-caret-{% if order == 'asc' %}up{% else %}down{% endif %}" aria-hidden="true"></i>
-            {% endif %}
-          </th>
-          {% endfor %}
-          {% endwith %}
-          <th scope="col" style="width: 140px;"></th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for item in contents %}
-        <tr>
-          <th scope="row" class="align-middle"><i class="fa fa-user" aria-hidden="true"></i></th>
-          <td class="align-middle">{{ item.username }}</td>
-          <td class="align-middle">{{ item.email }}</td>
-          <td class="align-middle">{% if item.active %}<i class="fa fa-check" aria-hidden="true"></i>{% endif %}</td>
-          <td class="align-middle">{% if item.admin %}<i class="fa fa-check" aria-hidden="true"></i>{% endif %}</td>
-          <td class="align-middle py-0">
-            {% if item.actions %}
-            <div class="btn-group">
-              <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="dropdownActionsButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                <i class="fa fa-wrench" aria-hidden="true"></i> Actions
-              </button>
-              <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownActionsButton">
-                {% if item.active and user.is_staff %}<a href="{% url 'impersonate-start' item.id %}" class="dropdown-item btn btn-sm text-secondary"><i class="fa fa-user-secret" aria-hidden="true"></i> Impersonate</a>{% endif %}
-                <form method="post">
-                  {% csrf_token %}
-                  <input type="hidden" name="username" value="{{ item.username }}" />
-                  {% if item.active %}
-                  <input type="hidden" name="action" value="Deactivate" />
-                  <button type="submit" class="dropdown-item btn-sm text-secondary"><i class="fa fa-user-times" aria-hidden="true"></i> Deactivate</button>
-                  {% else %}
-                  <input type="hidden" name="action" value="Activate" />
-                  <button type="submit" class="dropdown-item btn-sm text-secondary"><i class="fa fa-user-plus" aria-hidden="true"></i> Activate</button>
-                  {% endif %}
-                </form>
-                {% if item.admin %}
-                <form method="post">
-                  {% csrf_token %}
-                  <input type="hidden" name="username" value="{{ item.username }}" />
-                  <input type="hidden" name="action" value="Demote" />
-                  <button type="submit" class="dropdown-item btn-sm text-secondary"><i class="fa fa-lock" aria-hidden="true"></i> Demote</button>
-                </form>
-                {% else %}
-                <button type="button" class="dropdown-item btn-sm text-secondary confirm-promote" data-toggle="modal" data-target="#promoteModal" id="{{ item.username }}"><i class="fa fa-unlock-alt" aria-hidden="true"></i> Promote</button>
-                {% endif %}
-                <a href="{% url 'user_edit' item.username %}" class="dropdown-item btn btn-sm text-secondary"><i class="fa fa-edit" aria-hidden="true"></i> Edit</a>
-                <a href="{% url 'user_change_password' item.username %}" class="dropdown-item btn btn-sm text-secondary"><i class="fa fa-wrench" aria-hidden="true"></i> Change password</a>
-                <button type="button" class="dropdown-item btn-sm text-secondary confirm-delete" data-toggle="modal" data-target="#deleteModal" id="{{ item.username }}"><i class="fa fa-trash" aria-hidden="true"></i> Delete</button>
-              </div>
-            </div>
-            {% endif %}
-          </td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-
-    <div class="modal fade" id="promoteModal" tabindex="-1" role="dialog" aria-labelledby="promoteModalLabel" aria-hidden="true">
-      <div class="modal-dialog" role="document">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title" id="promoteModalLabel">Promote</h5>
-            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-              <span aria-hidden="true">&times;</span>
-            </button>
+            <a href="{% url 'user_edit' item.username %}" class="dropdown-item btn btn-sm text-secondary"><i class="bi bi-pencil"></i> Edit</a>
+            <a href="{% url 'user_change_password' item.username %}" class="dropdown-item btn btn-sm text-secondary"><i class="bi bi-lock"></i> Change password</a>
+            <button type="button" class="dropdown-item btn btn-sm text-secondary confirm-delete" data-bs-toggle="modal" data-bs-target="#deleteModal" id="{{ item.username }}"><i class="bi bi-trash3"></i> Delete</button>
           </div>
-          <form method="post">
-            <div class="modal-body">
-              Are you sure you want to promote "<span id="promoteNameText"></span>" to an admin?
-              {% csrf_token %}
-              <input type="hidden" name="username" value="" id="promoteNameInput" />
-            </div>
-            <div class="modal-footer">
-              <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-              <input type="submit" class="btn btn-success" name="action" value="Promote" />
-            </div>
-          </form>
         </div>
-      </div>
-    </div>
+        {% endif %}
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
 
-    <div class="modal fade" id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel" aria-hidden="true">
-      <div class="modal-dialog" role="document">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title" id="deleteModalLabel">Delete</h5>
-            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-              <span aria-hidden="true">&times;</span>
-            </button>
-          </div>
-          <form method="post">
-            <div class="modal-body">
-              Are you sure you want to delete "<span id="deleteNameText"></span>"? The action will be permanent.
-              {% csrf_token %}
-              <input type="hidden" name="username" value="" id="deleteNameInput" />
-            </div>
-            <div class="modal-footer">
-              <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-              <input type="submit" class="btn btn-success" name="action" value="Delete" />
-            </div>
-          </form>
+<div class="modal fade" id="promoteModal" tabindex="-1" role="dialog" aria-labelledby="promoteModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="promoteModalLabel">Promote</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form method="post">
+        <div class="modal-body">
+          Are you sure you want to promote "<span id="promoteNameText"></span>" to an admin?
+          {% csrf_token %}
+          <input type="hidden" name="username" value="" id="promoteNameInput" />
         </div>
-      </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          <input type="submit" class="btn btn-success" name="action" value="Promote" />
+        </div>
+      </form>
     </div>
+  </div>
+</div>
 
+<div class="modal fade" id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="deleteModalLabel">Delete</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form method="post">
+        <div class="modal-body">
+          Are you sure you want to delete "<span id="deleteNameText"></span>"? The action will be permanent.
+          {% csrf_token %}
+          <input type="hidden" name="username" value="" id="deleteNameInput" />
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          <input type="submit" class="btn btn-success" name="action" value="Delete" />
+        </div>
+      </form>
+    </div>
   </div>
 </div>
 {% endblock %}

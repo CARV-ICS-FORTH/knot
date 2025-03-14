@@ -126,7 +126,7 @@ class KubernetesClient(object):
         if namespace:
             command += ' -n %s' % namespace
         # if os.system(command) != 0:
-        #     raise SystemError('Can not delete service file')
+        #     raise SystemError('Can not delete secret')
         os.system(command)
 
     def update_secret(self, namespace, name, literals):
@@ -137,7 +137,7 @@ class KubernetesClient(object):
         for literal in literals:
             command += ' --from-literal=\'%s\'' % literal
         # if os.system(command) != 0:
-        #     raise SystemError('Can not delete service file')
+        #     raise SystemError('Can not create secret')
         os.system(command)
 
     def update_registry_secret(self, namespace, registry_url, email):

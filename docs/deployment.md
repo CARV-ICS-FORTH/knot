@@ -37,7 +37,7 @@ Another option is to directly use local storage via `--state-values-set storage.
 
 ## Bare metal setup
 
-The following [script](install-ubuntu.sh) installs Kubernetes and then Knot on a fresh Ubuntu 22.04 machine.
+The following [script](install-ubuntu.sh) installs Kubernetes and then Knot on a fresh Ubuntu 24.04 machine.
 ```bash
 {% include "install-ubuntu.sh" %}
 ```

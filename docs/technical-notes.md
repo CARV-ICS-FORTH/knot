@@ -19,11 +19,6 @@ For the first domain Knot creates a subfolder for each user, named after the cor
 
 To attach these data folders to service and application containers, Knot creates Persistent Volumes and associated Persistent Volume Claims for each user, and provides a Kubernetes mutating admission webhook which intercepts all calls to create pods or deployments and injects the appropriate volumes to respective configurations before they are applied. The Knot service itself also has the same data folders mounted in order to present their contents via the dashboard.
 
-Remote datasets
----------------
-
-In addition to the "private" and "shared" data domains, Knot optionally interfaces with [Datashim](https://github.com/datashim-io/datashim) to mount internal or external S3 and H3 buckets to running containers. Knot provides the frontend to configure datasets and then attaches the produced Persistent Volume Claims to deployed pods. Datasets are mounted in containers at `/mnt/datasets/<name>`.
-
 Service templates
 -----------------
 
@@ -71,7 +66,7 @@ knot:
       - "2.0"
 ```
 
-Knot will show all services to the user, except those marked with the label `knot-hidden`. Upon deployment, Knot will attach local storage folders to all pods, as well as remote datasets (except on pods labelled with `knot-no-datasets`). Authentication directives are added to all ingress resources (except on those labelled with `knot-no-auth`).
+Knot will show all services to the user, except those marked with the label `knot-hidden`. Upon deployment, Knot will attach local storage folders to all pods. Authentication directives are added to all ingress resources (except on those labelled with `knot-no-auth`).
 
 User namespaces
 ---------------

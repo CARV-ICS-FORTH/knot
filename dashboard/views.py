@@ -27,9 +27,8 @@ from celery.result import AsyncResult
 from packaging import version
 
 from .models import User, Profile, Membership, Message, Task
-from .forms import SignUpForm, EditUserForm, AddServiceForm, CreateServiceForm, ShowServiceForm, AddDatasetForm, CreateDatasetForm, ShowDatasetForm, AddFolderForm, AddImageFromFileForm, CreateTeamForm, EditTeamForm
+from .forms import SignUpForm, EditUserForm, AddServiceForm, CreateServiceForm, ShowServiceForm, AddFolderForm, AddImageFromFileForm, CreateTeamForm, EditTeamForm
 from .services import ServiceTemplateManager, ServiceManager
-from .datasets import DatasetTemplateManager, DatasetManager
 from .utils.kubernetes import KubernetesClient
 from .tasks import create_service_task
 
@@ -66,10 +65,6 @@ def services(request):
             Message.add(request, 'error', 'Invalid action.')
 
         return redirect('services')
-
-    # There is no hierarchy here.
-    kubernetes_client = KubernetesClient()
-    trail = [{'name': '<i class="fa fa-university" aria-hidden="true"></i> %s' % kubernetes_client.host}]
 
     # Fill in the contents.
     contents = []
@@ -123,7 +118,6 @@ def services(request):
         task.delete()
 
     return render(request, 'dashboard/services.html', {'title': 'Services',
-                                                       'trail': trail,
                                                        'contents': contents,
                                                        'sort_by': sort_by,
                                                        'order': order,
@@ -232,11 +226,8 @@ def service_upgrade(request, name=''):
 
 @login_required
 def templates(request):
-    # There is no hierarchy here.
-    template_manager = ServiceTemplateManager(request.user)
-    trail = [{'name': '<i class="fa fa-university" aria-hidden="true"></i> %s' % template_manager.repo_base_url}]
-
     # Fill in the contents.
+    template_manager = ServiceTemplateManager(request.user)
     contents = []
     try:
         contents = template_manager.list()
@@ -260,143 +251,9 @@ def templates(request):
                       reverse=True if order == 'desc' else False)
 
     return render(request, 'dashboard/templates.html', {'title': 'Templates',
-                                                        'trail': trail,
                                                         'contents': contents,
                                                         'sort_by': sort_by,
                                                         'order': order})
-
-@login_required
-def datasets(request):
-    if not settings.DATASETS_AVAILABLE:
-        return redirect('dashboard')
-
-    dataset_manager = DatasetManager(request.user)
-
-    # Handle changes.
-    if request.method == 'POST':
-        if 'action' not in request.POST:
-            Message.add(request, 'error', 'Invalid action.')
-        elif request.POST['action'] == 'Add':
-            form = AddDatasetForm(request.POST)
-            if form.is_valid():
-                name = form.cleaned_data['name']
-                return redirect('dataset_add', name)
-            else:
-                Message.add(request, 'error', 'Failed to add dataset. Probably invalid dataset name.')
-        elif request.POST['action'] == 'Delete':
-            name = request.POST.get('name', None)
-            if name:
-                try:
-                    dataset_manager.delete(name)
-                except Exception as e:
-                    Message.add(request, 'error', 'Can not delete dataset "%s": %s' % (name, str(e)))
-                else:
-                    Message.add(request, 'success', 'Dataset "%s" deleted.' % name)
-        else:
-            Message.add(request, 'error', 'Invalid action.')
-
-        return redirect('datasets')
-
-    # There is no hierarchy here.
-    kubernetes_client = KubernetesClient()
-    trail = [{'name': '<i class="fa fa-university" aria-hidden="true"></i> %s' % kubernetes_client.host}]
-
-    # Fill in the contents.
-    contents = []
-    try:
-        for dataset in dataset_manager.list():
-            try:
-                dataset_type = dataset['type']
-                if dataset_type == 'COS':
-                    dataset_type = 'S3'
-                    endpoint = '%s/%s' % (dataset['endpoint'], dataset['bucket'])
-                elif dataset_type == 'H3':
-                    endpoint = '%s/%s' % (dataset['storageUri'], dataset['bucket'])
-                elif dataset_type == 'ARCHIVE':
-                    endpoint = dataset['url']
-                contents.append({'name': dataset['name'],
-                                 'type': dataset_type,
-                                 'endpoint': endpoint})
-            except:
-                pass
-    except:
-        Message.add(request, 'error', 'Can not connect to Kubernetes.')
-
-    # Sort them up.
-    sort_by = request.GET.get('sort_by')
-    if sort_by and sort_by in ('name', 'type', 'endpoint'):
-        request.session['datasets_sort_by'] = sort_by
-    else:
-        sort_by = request.session.get('datasets_sort_by', 'name')
-    order = request.GET.get('order')
-    if order and order in ('asc', 'desc'):
-        request.session['datasets_order'] = order
-    else:
-        order = request.session.get('datasets_order', 'asc')
-
-    contents = sorted(contents,
-                      key=lambda x: x[sort_by],
-                      reverse=True if order == 'desc' else False)
-
-    return render(request, 'dashboard/datasets.html', {'title': 'Datasets',
-                                                       'trail': trail,
-                                                       'contents': contents,
-                                                       'sort_by': sort_by,
-                                                       'order': order,
-                                                       'add_dataset_form': AddDatasetForm()})
-
-@login_required
-def dataset_info(request, name=''):
-    next_view = request.GET.get('next', 'datasets')
-
-    # Validate given dataset name.
-    dataset_manager = DatasetManager(request.user)
-    try:
-        variables = dataset_manager.variables(name)
-    except KeyError:
-        Message.add(request, 'error', 'Invalid dataset.')
-        return redirect('datasets')
-
-    form = ShowDatasetForm(variables=variables)
-    return render(request, 'dashboard/form.html', {'title': 'Dataset Values',
-                                                   'form': form,
-                                                   'action': None,
-                                                   'next': reverse(next_view)})
-
-@login_required
-def dataset_add(request, name=''):
-    next_view = request.GET.get('next', 'datasets')
-
-    # Validate given template name.
-    dataset_manager = DatasetTemplateManager(request.user)
-    try:
-        chart_name, variables = dataset_manager.variables(name)
-    except KeyError:
-        Message.add(request, 'error', 'Invalid template.')
-        return redirect('datasets')
-
-    # Handle changes.
-    if request.method == 'POST':
-        form = CreateDatasetForm(request.POST, variables=variables)
-        if form.is_valid():
-            data = request.POST.dict()
-
-            dataset_manager = DatasetManager(request.user)
-            try:
-                dataset_name = dataset_manager.create(chart_name, variables, data, set_local_data=False)
-            except Exception as e:
-                Message.add(request, 'error', 'Can not create dataset: %s' % str(e))
-            else:
-                Message.add(request, 'success', 'Dataset "%s" created.' % dataset_name)
-
-            return redirect('datasets')
-    else:
-        form = CreateDatasetForm(variables=variables)
-
-    return render(request, 'dashboard/form.html', {'title': 'Add Dataset',
-                                                   'form': form,
-                                                   'action': 'Add',
-                                                   'next': reverse(next_view)})
 
 @login_required
 def files(request, path='/'):
@@ -479,7 +336,7 @@ def files(request, path='/'):
 
     # This is a directory. Leave a trail of breadcrumbs.
     trail = []
-    trail.append({'name': '<i class="fa fa-hdd-o" aria-hidden="true"></i>',
+    trail.append({'name': '<i class="bi bi-hdd"></i>',
                   'url': reverse('files', args=[domain]) if len(path_components) != 1 else None})
     for i, path_component in enumerate(path_components[1:]):
         trail.append({'name': path_component,

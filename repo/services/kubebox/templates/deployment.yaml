@@ -4,9 +4,6 @@ metadata:
   name: {{ include "kubebox.fullname" . }}
   labels:
     {{- include "kubebox.labels" . | nindent 4 }}
-    {{- if .Values.knot.enabled }}
-    knot-no-datasets: "true"
-    {{- end }}
 spec:
   replicas: 1
   selector:

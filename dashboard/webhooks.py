@@ -49,7 +49,6 @@ def pod_mutate(request):
         return HttpResponseBadRequest()
 
     inject_volumes([service], user.file_domains)
-    inject_volumes([service], user.dataset_volumes, is_datasets=True)
     inject_variables([service], user)
     patch = jsonpatch.JsonPatch.from_diff(request_service, service)
     encoded_patch = base64.b64encode(patch.to_string().encode('utf-8')).decode('utf-8')

@@ -15,8 +15,8 @@
 from urllib.parse import urlparse
 
 
-def inject_volumes(yaml_data, file_domains, is_datasets=False):
-    def add_volumes_to_spec(spec, no_datasets):
+def inject_volumes(yaml_data, file_domains):
+    def add_volumes_to_spec(spec):
         # Add volumes.
         if 'volumes' not in spec:
             spec['volumes'] = []
@@ -39,31 +39,18 @@ def inject_volumes(yaml_data, file_domains, is_datasets=False):
                                                   'mountPath': file_domain.mount_dir})
 
     for part in yaml_data:
-        no_datasets = False
         try:
             if part['kind'] == 'Deployment':
                 spec = part['spec']['template']['spec']
-                try:
-                    if 'knot-no-datasets' in part['spec']['template']['metadata']['labels'].keys():
-                        no_datasets = True
-                except:
-                    pass
             elif part['kind'] == 'Pod':
                 spec = part['spec']
-                try:
-                    if 'knot-no-datasets' in part['metadata']['labels'].keys():
-                        no_datasets = True
-                except:
-                    pass
             else:
                 continue
         except:
             continue
         if not spec or 'containers' not in spec:
             continue
-        if no_datasets and is_datasets:
-            continue
-        add_volumes_to_spec(spec, no_datasets)
+        add_volumes_to_spec(spec)
 
 def inject_variables(yaml_data, user):
     def add_variables_to_spec(spec):

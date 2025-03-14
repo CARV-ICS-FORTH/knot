@@ -58,7 +58,7 @@ repositories:
 {{- end }}
 - name: bedag
   url: https://bedag.github.io/helm-charts
-{{- if and .Values.ingress.createSelfsignedCertificate (or .Values.argo.enabled .Values.harbor.enabled) }}
+{{- if and .Values.ingress.createSelfsignedCertificate }}
 - name: emberstack
   url: https://emberstack.github.io/helm-charts
 {{- end }}
@@ -92,7 +92,7 @@ releases:
   namespace: csi-nfs
   createNamespace: true
   chart: csi-driver-nfs/csi-driver-nfs
-  version: v4.1.0
+  version: v4.7.0
   values:
   - controller:
       dnsPolicy: ClusterFirstWithHostNet
@@ -260,21 +260,24 @@ releases:
   namespace: cert-manager
   createNamespace: true
   chart: cert-manager/cert-manager
-  version: 1.13.0
+  version: 1.17.1
   values:
-  - installCRDs: true
+  - crds:
+      enabled: true
 {{- if not .Values.ingress.skip }}
 - name: ingress
   namespace: ingress-nginx
   createNamespace: true
   chart: ingress-nginx/ingress-nginx
-  version: 4.8.0
+  version: 4.12.0
   values:
   - controller:
       watchIngressWithoutClass: true
       ingressClassResource:
         default: true
       allowSnippetAnnotations: true
+      config:
+        annotations-risk-level: Critical
       service:
         {{- if eq .Values.ingress.service.type "NodePort" }}
         type: NodePort
@@ -299,7 +302,7 @@ releases:
   namespace: reflector
   createNamespace: true
   chart: emberstack/reflector
-  version: 7.1.203
+  version: 9.0.313
 - name: ingress-cert
   namespace: ingress-nginx
   createNamespace: true
@@ -343,7 +346,7 @@ releases:
   namespace: jupyterhub
   createNamespace: true
   chart: jupyterhub/jupyterhub
-  version: 3.0.3
+  version: 4.1.0
   values:
   - hub:
       config:
@@ -495,10 +498,8 @@ releases:
   namespace: argo
   createNamespace: true
   chart: argo/argo-workflows
-  version: 0.33.3
+  version: 0.45.8
   values:
-  - controller:
-      containerRuntimeExecutor: k8sapi
   - server:
       extraArgs:
       - "--auth-mode=sso"
@@ -570,7 +571,7 @@ releases:
   namespace: harbor
   createNamespace: true
   chart: harbor/harbor
-  version: 1.11.0
+  version: 1.16.2
   values:
   - expose:
       type: ingress
@@ -587,9 +588,6 @@ releases:
         registry:
           existingClaim: harbor-state-pvc
           subPath: registry
-        chartmuseum:
-          existingClaim: harbor-state-pvc
-          subPath: chartmuseum
         jobservice:
           existingClaim: harbor-state-pvc
           subPath: jobservice
@@ -621,9 +619,6 @@ releases:
       controller:
         image:
           repository: ghcr.io/octohelm/harbor/harbor-registryctl
-  - chartmuseum:
-      image:
-        repository: ghcr.io/octohelm/harbor/chartmuseum-photon
   - database:
       internal:
         image:
@@ -637,8 +632,6 @@ releases:
         repository: ghcr.io/octohelm/harbor/harbor-exporter
   {{- end }}
   - trivy:
-      enabled: false
-  - notary:
       enabled: false
 - name: harbor-state-pvc
   namespace: harbor
@@ -702,7 +695,7 @@ releases:
   namespace: monitoring
   createNamespace: true
   chart: prometheus-community/kube-prometheus-stack
-  version: 51.2.0
+  version: 69.4.1
   values:
   - alertmanager:
       enabled: false
@@ -713,7 +706,10 @@ releases:
           "nginx.ingress.kubernetes.io/force-ssl-redirect": "true"
         hosts:
         - grafana.{{ .Values.ingress.host }}
+      assertNoLeakedSecrets: false
       "grafana.ini":
+        security:
+          disable_initial_admin_creation: true
         auth:
           oauth_auto_login: true
           disable_login_form: true
@@ -835,7 +831,6 @@ releases:
       certificateSecretName: ssl-certificate
       certificateSecretKey: ca.crt
       {{- end }}
-      datasetsAvailable: {{ .Values.knot | get "datasetsAvailable" "" | quote }}
       {{- if .Values.storage.filesVolume.hostPath }}
       filesURL: file://{{ .Values.storage.filesVolume.hostPath }}
       {{- else }}

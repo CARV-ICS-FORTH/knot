@@ -2,32 +2,39 @@
 {% load static %}
 {% load crispy_forms_tags %}
 
+{% block style %}
+<style type="text/css">
+  form input[type="text"] {
+    margin-bottom: -2px;
+    border-bottom-right-radius: 0;
+    border-bottom-left-radius: 0;
+  }
+
+  form input[type="password"] {
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+  }
+</style>
+{% endblock %}
+
 {% block body %}
 <div class="container">
-  <div class="text-center">
-    <img class="d-block mx-auto mt-5 mb-5" src="{% static 'dashboard/theme/logo.png' %}" alt="">
-  </div>
-
   <div class="row">
-    <div class="col-6 offset-3">
-      <div class="mb-3">
-        {% if form.non_field_errors %}
-        {% for error in form.non_field_errors %}
-        <div class="alert alert-warning small" role="alert">{{ error|escape }}</div>
-        {% endfor %}
-        {% endif %}
-        <form method="post">
-          {% csrf_token %}
-          <div class="form-group">
-            <input type="text" name="username" class="form-control" placeholder="Username">
-          </div>
-          <div class="form-group">
-            <input type="password" name="password" class="form-control" placeholder="Password">
-          </div>
-          <button type="submit" class="btn btn-success btn-block">Login</button>
-        </form>
-      </div>
-      <p><a class="btn btn-success btn-block" href="{% url 'signup' %}">Sign up</a></p>
+    <div class="col-md-6 offset-md-3">
+      <img class="my-5 pb-3 px-3 w-100" src="{% static 'dashboard/theme/logo.png' %}" alt="">
+
+      {% if form.non_field_errors %}
+      {% for error in form.non_field_errors %}
+      <div class="alert alert-warning small" role="alert">{{ error|escape }}</div>
+      {% endfor %}
+      {% endif %}
+      <form method="post">
+        {% csrf_token %}
+        <input type="text" name="username" class="form-control" placeholder="Username">
+        <input type="password" name="password" class="form-control" placeholder="Password">
+        <button type="submit" class="btn btn-success w-100 mt-3">Login</button>
+      </form>
+      <a class="btn btn-secondary w-100 my-3" href="{% url 'signup' %}">Sign up</a>
     </div>
   </div>
 </div>

@@ -11,107 +11,98 @@
 </script>
 {% endblock %}
 
+{% block toolbar %}
+<button type="button" class="d-block btn btn-success mb-2 w-100" data-bs-toggle="modal" data-bs-target="#newTeamModal"><i class="bi bi-magic"></i> New team</button>
+
+<div class="modal fade" id="newTeamModal" tabindex="-1" role="dialog" aria-labelledby="newTeamModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="newTeamModalLabel">New team</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form method="post">
+        <div class="modal-body">
+          {% csrf_token %}
+          {{ create_team_form|crispy }}
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          <input type="submit" class="btn btn-success" name="action" value="Create" />
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
 {% block main %}
-<div class="row">
-  <div class="col-md-2 order-md-2">
-    <button type="button" class="d-block btn btn-success mb-2 w-100" data-toggle="modal" data-target="#newTeamModal"><i class="fa fa-magic" aria-hidden="true"></i> New team</button>
-  </div>
-
-  <div class="modal fade" id="newTeamModal" tabindex="-1" role="dialog" aria-labelledby="newTeamModalLabel" aria-hidden="true">
-    <div class="modal-dialog" role="document">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title" id="newTeamModalLabel">New team</h5>
-          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-            <span aria-hidden="true">&times;</span>
+<table class="table table-hover">
+  <thead>
+    <tr>
+      <th scope="col"></th>
+      {% with 'name description members' as list %}
+      {% for item in list.split %}
+      <th scope="col" class="text-nowrap">
+        {% if sort_by == item and order == 'asc' %}
+        <a class="text-dark" href="{{ request.path }}?sort_by={{ item }}&amp;order=desc">{{ item|title }}</a>
+        {% else %}
+        <a class="text-dark" href="{{ request.path }}?sort_by={{ item }}&amp;order=asc">{{ item|title }}</a>
+        {% endif %}
+        {% if sort_by == item %}
+        <i class="bi bi-caret-{% if order == 'asc' %}up{% else %}down{% endif %}"></i>
+        {% endif %}
+      </th>
+      {% endfor %}
+      {% endwith %}
+      <th scope="col" style="width: 140px;"></th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for item in contents %}
+    <tr>
+      <th scope="row" class="align-middle"><i class="bi bi-people"></i></th>
+      <td class="align-middle">{{ item.name }}</td>
+      <td class="align-middle">{{ item.description }}</td>
+      <td class="align-middle">{{ item.members }}</td>
+      <td class="align-middle py-0">
+        {% if item.actions %}
+        <div class="dropdown">
+          <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+            <i class="bi bi-tools"></i> Actions
           </button>
+          <div class="dropdown-menu">
+            <a href="{% url 'team_edit' item.name %}" class="dropdown-item btn btn-sm text-secondary"><i class="bi bi-pencil"></i> Edit</a>
+            {% if user.is_staff %}<a href="{% url 'impersonate-start' item.id %}" class="dropdown-item btn btn-sm text-secondary"><i class="bi bi-incognito"></i> Impersonate</a>{% endif %}
+            <button type="button" class="dropdown-item btn btn-sm text-secondary confirm-delete" data-bs-toggle="modal" data-bs-target="#deleteModal" id="{{ item.name }}"><i class="bi bi-trash3"></i> Delete</button>
+          </div>
         </div>
-        <form method="post">
-          <div class="modal-body">
-            {% csrf_token %}
-            {{ create_team_form|crispy }}
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-            <input type="submit" class="btn btn-success" name="action" value="Create" />
-          </div>
-        </form>
+        {% endif %}
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<div class="modal fade" id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="deleteModalLabel">Delete</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
-    </div>
-  </div>
-
-  <div class="col-md-10 order-md-1">
-    <table class="table table-hover">
-      <thead>
-        <tr>
-          <th scope="col"></th>
-          {% with 'name description members' as list %}
-          {% for item in list.split %}
-          <th scope="col">
-            {% if sort_by == item and order == 'asc' %}
-            <a class="text-dark" href="{{ request.path }}?sort_by={{ item }}&amp;order=desc">{{ item|title }}</a>
-            {% else %}
-            <a class="text-dark" href="{{ request.path }}?sort_by={{ item }}&amp;order=asc">{{ item|title }}</a>
-            {% endif %}
-            {% if sort_by == item %}
-            <i class="fa fa-caret-{% if order == 'asc' %}up{% else %}down{% endif %}" aria-hidden="true"></i>
-            {% endif %}
-          </th>
-          {% endfor %}
-          {% endwith %}
-          <th scope="col" style="width: 140px;"></th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for item in contents %}
-        <tr>
-          <th scope="row" class="align-middle"><i class="fa fa-users" aria-hidden="true"></i></th>
-          <td class="align-middle">{{ item.name }}</td>
-          <td class="align-middle">{{ item.description }}</td>
-          <td class="align-middle">{{ item.members }}</td>
-          <td class="align-middle py-0">
-            {% if item.actions %}
-            <div class="btn-group">
-              <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="dropdownActionsButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                <i class="fa fa-wrench" aria-hidden="true"></i> Actions
-              </button>
-              <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownActionsButton">
-                <a href="{% url 'team_edit' item.name %}" class="dropdown-item btn btn-sm text-secondary"><i class="fa fa-edit" aria-hidden="true"></i> Edit</a>
-                {% if user.is_staff %}<a href="{% url 'impersonate-start' item.id %}" class="dropdown-item btn btn-sm text-secondary"><i class="fa fa-user-secret" aria-hidden="true"></i> Impersonate</a>{% endif %}
-                <button type="button" class="dropdown-item btn-sm text-secondary confirm-delete" data-toggle="modal" data-target="#deleteModal" id="{{ item.name }}"><i class="fa fa-trash" aria-hidden="true"></i> Delete</button>
-              </div>
-            </div>
-            {% endif %}
-          </td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-
-    <div class="modal fade" id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel" aria-hidden="true">
-      <div class="modal-dialog" role="document">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title" id="deleteModalLabel">Delete</h5>
-            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-              <span aria-hidden="true">&times;</span>
-            </button>
-          </div>
-          <form method="post">
-            <div class="modal-body">
-              Are you sure you want to delete "<span id="deleteNameText"></span>"? The action will be permanent.
-              {% csrf_token %}
-              <input type="hidden" name="name" value="" id="deleteNameInput" />
-            </div>
-            <div class="modal-footer">
-              <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-              <input type="submit" class="btn btn-success" name="action" value="Delete" />
-            </div>
-          </form>
+      <form method="post">
+        <div class="modal-body">
+          Are you sure you want to delete "<span id="deleteNameText"></span>"? The action will be permanent.
+          {% csrf_token %}
+          <input type="hidden" name="name" value="" id="deleteNameInput" />
         </div>
-      </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          <input type="submit" class="btn btn-success" name="action" value="Delete" />
+        </div>
+      </form>
     </div>
-
   </div>
 </div>
 {% endblock %}

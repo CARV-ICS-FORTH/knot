@@ -4,24 +4,29 @@
 
 {% block body %}
 <div class="container">
-  <div class="text-center">
-    <img class="d-block mx-auto mt-5 mb-4" src="{% static 'dashboard/theme/logo.png' %}" alt="">
-    {% if message %}<p class="lead">{{ message|safe }}</p>{% endif %}
-  </div>
-
-  {% if form %}
   <div class="row">
-    <div class="col-md-8 offset-md-2">
-      <h4 class="mb-3">Sign up</h4>
-      {% crispy form %}
+    <div class="col-md-6 offset-md-3">
+      <img class="my-5 pb-3 px-3 w-100" src="{% static 'dashboard/theme/logo.png' %}" alt="">
+      {% if message %}{{ message|safe }}{% endif %}
+
+      {% if form %}
+      <div class="pb-2 mb-3 border-bottom">
+        <h1 class="h2">Sign up</h1>
+      </div>
+
+      <form method="post">
+        {% csrf_token %}
+        {{ form|crispy }}
+        <input type="submit" class="btn btn-success w-100" name="action" value="Submit" />
+      </form>
+      {% endif %}
+
+      <footer class="my-5 pt-5 text-muted text-center text-small">
+        <ul class="list-inline">
+          <li class="list-inline-item">Go <a class="text-muted" href="{{ next }}">back</a></li>
+        </ul>
+      </footer>
     </div>
   </div>
-  {% endif %}
-
-  <footer class="my-5 pt-5 text-muted text-center text-small">
-    <ul class="list-inline">
-      <li class="list-inline-item">Go <a class="text-muted" href="{{ next }}">back</a></li>
-    </ul>
-  </footer>
 </div>
 {% endblock %}

@@ -12,7 +12,7 @@ Check out the [documentation](https://carv-ics-forth.github.io/knot/docs/) (also
 
 ## Deployment
 
-To deploy Knot you need a typical Kubernetes installation, [Helm](https://helm.sh), the [Helm diff plugin](https://github.com/databus23/helm-diff), and [Helmfile](https://github.com/roboll/helmfile) installed. We develop, test, and run Knot on Kubernetes 1.27.x.
+To deploy Knot you need a typical Kubernetes installation, [Helm](https://helm.sh), the [Helm diff plugin](https://github.com/databus23/helm-diff), and [Helmfile](https://github.com/roboll/helmfile) installed. We develop, test, and run Knot on Kubernetes 1.31.x.
 
 For quickly trying out Knot, apply the the latest Knot `helmfile.yaml` with:
 ```bash
@@ -28,7 +28,7 @@ Deployment options are discussed in the [deployment chapter](https://carv-ics-fo
 
 ## Development
 
-To develop Knot in a local Kubernetes environment, like the one provided by [Docker Desktop](https://www.docker.com/products/docker-desktop) for macOS (tested with [versions >= 4.21.x](https://docs.docker.com/docker-for-mac/release-notes/) which use Kubernetes 1.27.x), first create and populate the Python virtual environment with:
+To develop Knot in a local Kubernetes environment, like the one provided by [Docker Desktop](https://www.docker.com/products/docker-desktop) for macOS (tested with [versions >= 4.38.x](https://docs.docker.com/docker-for-mac/release-notes/) which use Kubernetes 1.31.x), first create and populate the Python virtual environment with:
 ```bash
 make prepare-develop
 ```

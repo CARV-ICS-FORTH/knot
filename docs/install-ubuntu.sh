@@ -1,84 +1,80 @@
 #!/bin/bash
 
+# Install Kubernetes and Knot on Ubuntu 24.04 LTS
+
 # Disable swap
 sed -e '/swap/ s/^#*/#/' -i /etc/fstab
 swapoff -a
 
-# Install Docker (https://docs.docker.com/engine/install/ubuntu/)
-apt-get update
-apt-get install -y ca-certificates curl gnupg
-curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
-echo \
-  "deb [arch="$(dpkg --print-architecture)" signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
-  "$(. /etc/os-release && echo "$VERSION_CODENAME")" stable" | \
-  sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
-apt-get update
-apt-get install -y docker-ce docker-ce-cli containerd.io
-apt-mark hold docker-ce docker-ce-cli containerd.io
-
-# Configure Docker
-mkdir -p /etc/docker
-cat <<EOF | sudo tee /etc/docker/daemon.json
-{
-  "exec-opts": ["native.cgroupdriver=systemd"],
-  "log-driver": "json-file",
-  "log-opts": {
-    "max-size": "100m"
-  },
-  "storage-driver": "overlay2"
-}
+# Load modules
+cat <<EOF | tee /etc/modules-load.d/k8s.conf
+br_netfilter
 EOF
-systemctl enable docker
-systemctl daemon-reload
-systemctl restart docker
+modprobe br_netfilter
 
-# Install cri-dockerd (https://github.com/Mirantis/cri-dockerd)
-CRI_DOCKERD_VERSION="0.3.4"
-curl -LO https://github.com/Mirantis/cri-dockerd/releases/download/v${CRI_DOCKERD_VERSION}/cri-dockerd-${CRI_DOCKERD_VERSION}.$(dpkg --print-architecture).tgz
-tar -zxvf cri-dockerd-${CRI_DOCKERD_VERSION}.$(dpkg --print-architecture).tgz
-cp cri-dockerd/cri-dockerd /usr/local/bin/
-rm -rf cri-dockerd-${CRI_DOCKERD_VERSION}.$(dpkg --print-architecture).tgz cri-dockerd
-curl -Lo /etc/systemd/system/cri-docker.service https://raw.githubusercontent.com/Mirantis/cri-dockerd/v${CRI_DOCKERD_VERSION}/packaging/systemd/cri-docker.service
-curl -Lo /etc/systemd/system/cri-docker.socket https://raw.githubusercontent.com/Mirantis/cri-dockerd/v${CRI_DOCKERD_VERSION}/packaging/systemd/cri-docker.socket
-sed -i -e 's,/usr/bin/cri-dockerd,/usr/local/bin/cri-dockerd,' /etc/systemd/system/cri-docker.service
-sed -i -e '/^ExecStart=/ s/$/ --pod-infra-container-image registry.k8s.io\/pause:3.9/' /etc/systemd/system/cri-docker.service
-systemctl daemon-reload
-systemctl enable --now cri-docker.socket
+# Prepare for the container runtime (https://kubernetes.io/docs/setup/production-environment/container-runtimes/)
+cat <<EOF | tee /etc/sysctl.d/k8s.conf
+net.ipv4.ip_forward = 1
+EOF
+sysctl --system
+
+# Install containerd (https://docs.docker.com/engine/install/ubuntu/)
+apt-get update
+apt-get install ca-certificates curl
+install -m 0755 -d /etc/apt/keyrings
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
+chmod a+r /etc/apt/keyrings/docker.asc
+echo \
+  "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu \
+  $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
+  tee /etc/apt/sources.list.d/docker.list > /dev/null
+apt-get update
+apt-get install containerd.io
+apt-mark hold containerd.io
+
+# Configure containerd (enable CRI integration plugin, set cgroup driver to systemd)
+mv /etc/containerd/config.toml /etc/containerd/config.toml.default
+containerd config default \
+  | sed 's/SystemdCgroup = false/SystemdCgroup = true/' \
+  | sed 's/pause\:3.8/pause\:3.10/' \
+  | tee /etc/containerd/config.toml
+systemctl restart containerd
 
 # Install kubeadm (https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/install-kubeadm/)
-KUBERNETES_VERSION="1.28"
+KUBERNETES_VERSION="1.31"
 apt-get update
-apt-get install -y apt-transport-https ca-certificates curl
+apt-get install -y apt-transport-https ca-certificates curl gpg
 curl -fsSL https://pkgs.k8s.io/core:/stable:/v${KUBERNETES_VERSION}/deb/Release.key | gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
-echo "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v${KUBERNETES_VERSION}/deb/ /" | sudo tee /etc/apt/sources.list.d/kubernetes.list
+echo "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v${KUBERNETES_VERSION}/deb/ /" | tee /etc/apt/sources.list.d/kubernetes.list
 apt-get update
 apt-get install -y kubelet kubeadm kubectl
 apt-mark hold kubelet kubeadm kubectl
 
 # Initialize Kubernetes (https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/create-cluster-kubeadm/)
-kubeadm init --pod-network-cidr=10.244.0.0/16 --cri-socket unix:///var/run/cri-dockerd.sock
+kubeadm init --pod-network-cidr=10.244.0.0/16
 mkdir -p $HOME/.kube
 cp /etc/kubernetes/admin.conf $HOME/.kube/config
 kubectl taint nodes --all node-role.kubernetes.io/control-plane-
 
 # Install a Pod network add-on
-FLANNEL_VERSION="0.22.3"
+FLANNEL_VERSION="0.26.5"
 kubectl apply -f https://github.com/flannel-io/flannel/releases/download/v${FLANNEL_VERSION}/kube-flannel.yml
 
 # Download and install Helm (https://helm.sh)
-HELM_VERSION="3.12.3"
+HELM_VERSION="3.17.2"
 curl -LO https://get.helm.sh/helm-v${HELM_VERSION}-linux-$(dpkg --print-architecture).tar.gz
 tar -zxvf helm-v${HELM_VERSION}-linux-$(dpkg --print-architecture).tar.gz
 cp linux-$(dpkg --print-architecture)/helm /usr/local/bin/
 rm -rf helm-v${HELM_VERSION}-linux-$(dpkg --print-architecture).tar.gz linux-$(dpkg --print-architecture)
+apt-get install -y git
 helm plugin install https://github.com/databus23/helm-diff
 
 # Download and install Helmfile (https://github.com/roboll/helmfile)
-HELMFILE_VERSION="0.144.0"
-curl -LO https://github.com/roboll/helmfile/releases/download/v${HELMFILE_VERSION}/helmfile_linux_$(dpkg --print-architecture)
-cp helmfile_linux_$(dpkg --print-architecture) /usr/local/bin/helmfile
-chmod +x /usr/local/bin/helmfile
-rm -f helmfile_linux_$(dpkg --print-architecture)
+HELMFILE_VERSION="0.171.0"
+curl -LO https://github.com/helmfile/helmfile/releases/download/v${HELMFILE_VERSION}/helmfile_${HELMFILE_VERSION}_linux_$(dpkg --print-architecture).tar.gz
+tar zxvf helmfile_${HELMFILE_VERSION}_linux_$(dpkg --print-architecture).tar.gz helmfile
+cp helmfile /usr/local/bin/
+rm -f helmfile_${HELMFILE_VERSION}_linux_$(dpkg --print-architecture).tar.gz helmfile
 
 # Install Knot
 IP_ADDRESS=`ip -o route get 1 | sed -n 's/.*src \([0-9.]\+\).*/\1/p'`
