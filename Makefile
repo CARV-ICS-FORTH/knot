@@ -59,6 +59,7 @@ delete-namespaces:
 	kubectl delete namespace knot || true
 	kubectl delete namespace nfs || true
 	kubectl delete namespace csi-nfs || true
+	kubectl delete namespace opencost || true
 	kubectl delete namespace monitoring || true
 	kubectl delete namespace harbor || true
 	kubectl delete namespace argo || true
@@ -90,6 +91,8 @@ develop: check-ip-address
 	export KNOT_HARBOR_ADMIN_PASSWORD="$(HARBOR_ADMIN_PASSWORD)"; \
 	export KNOT_GRAFANA_URL="https://grafana.$(INGRESS_URL)"; \
 	export KNOT_GRAFANA_NAMESPACE="monitoring"; \
+	export KNOT_OPENCOST_URL="https://opencost.$(INGRESS_URL)"; \
+	export KNOT_OPENCOST_NAMESPACE="opencost"; \
 	kubectl port-forward -n knot deployment/knot 6379:6379 & \
 	celery -A knot worker -l info & \
 	./manage.py migrate && \

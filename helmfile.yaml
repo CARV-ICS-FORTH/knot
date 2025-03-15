@@ -36,7 +36,7 @@ environments:
         enabled: true
         clientSecret: eYLaIV2NtZHhR7M9zh1ouLl4LpuwwpcrYBspXbS2gTCm61Hn01ghmZf7iBxxk5r3SdPHnlg6Ovm6IKK4CmJKNl8gnkvxjmOt7YOxZJR0BJH8DPHnA9Nh6pHpmESM8mfE
     - opencost:
-        enabled: false
+        enabled: true
         cpuCost: 0.5
         ramCost: 1
     - knot:

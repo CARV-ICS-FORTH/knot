@@ -27,6 +27,8 @@ Selecting "Images" from the menu on the left will redirect you to Harbor. Click 
 
 Selecting "Metrics" from the menu on the left will redirect you to Grafana. Click on the search icon on the top-left of the screen to get a list of preconfigured metric dashboards.
 
+Selecting "Cost" from the menu on the left will redirect you to OpenCost for cost monitoring.
+
 Services screen
 ---------------
 

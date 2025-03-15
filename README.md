@@ -6,7 +6,14 @@ Knot is a complete environment for doing actual work on [Kubernetes](https://kub
 
 ![Knot services screen](https://github.com/CARV-ICS-FORTH/knot/raw/master/docs/images/services-screen.png)
 
-The Knot installation includes [JupyterHub](https://jupyter.org/hub), [Argo Workflows](https://argoproj.github.io/workflows), [Harbor](https://goharbor.io), and [Grafana](https://grafana.com)/[Prometheus](https://prometheus.io), all accessible through the dashboard. Behind the scenes, other popular tools are automatically installed to help with the integration, such as [cert-manager](https://cert-manager.io), the [NGINX Ingress Controller](https://kubernetes.github.io/ingress-nginx/), [Vouch Proxy](https://github.com/vouch/vouch-proxy), and the [NFS CSI Driver](https://github.com/kubernetes-csi/csi-driver-nfs). Knot also uses [Helm](https://helm.sh) charts internally for implementing service templates.
+The Knot installation includes:
+* [JupyterHub](https://jupyter.org/hub)
+* [Argo Workflows](https://argoproj.github.io/workflows)
+* [Harbor](https://goharbor.io)
+* [Grafana](https://grafana.com)/[Prometheus](https://prometheus.io)
+* [OpenCost](https://opencost.io)
+
+All above services are accessible through the dashboard using single sign-on. Behind the scenes, other popular tools are automatically installed to help with the integration, such as [cert-manager](https://cert-manager.io), the [NGINX Ingress Controller](https://kubernetes.github.io/ingress-nginx/), [Vouch Proxy](https://github.com/vouch/vouch-proxy), and the [NFS CSI Driver](https://github.com/kubernetes-csi/csi-driver-nfs). Knot also uses [Helm](https://helm.sh) charts internally for implementing service templates.
 
 Check out the [documentation](https://carv-ics-forth.github.io/knot/docs/) (also available in the Knot dashboard under "Documentation" at the user menu), which includes installation instructions, a user guide, and technical notes on how Knot works internally. The Knot dashboard is written in [Python](https://www.python.org) using [Django](https://www.djangoproject.com).
 
