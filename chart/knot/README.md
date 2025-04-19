@@ -64,6 +64,8 @@ Some of the variables set above are required. The table below lists all availabl
 | `knot.harborAdminPassword`      |          | Harbor admin password for fetching CLI secrets.                                               |                                    |
 | `knot.grafanaURL`               |          | Grafana URL for integration with the metrics frontend.                                        |                                    |
 | `knot.grafanaNamespace`         |          | Grafana namespace for integration.                                                            |                                    |
+| `knot.openCostURL`              |          | OpenCost URL for integration with the cost monitoring frontend.                               |                                    |
+| `knot.openCostNamespace`        |          | OpenCost namespace for integration.                                                            |                                    |
 
 Set `knot.filesURL` to:
 * `file://<path>`, if using a node-wide, shared mountpoint for files.

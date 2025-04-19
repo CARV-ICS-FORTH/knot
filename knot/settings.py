@@ -73,6 +73,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    # 'request_logging.middleware.LoggingMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -86,6 +87,24 @@ MIDDLEWARE = [
     'dashboard.middleware.ProxyUserMiddleware',
     'knot.middleware.AddLogUserHeaderMiddleware',
 ]
+
+# Use with django-request-logging package and LoggingMiddleware to debug the OIDC workflow
+# LOGGING = {
+#     'version': 1,
+#     'disable_existing_loggers': False,
+#     'handlers': {
+#         'console': {
+#             'class': 'logging.StreamHandler',
+#         },
+#     },
+#     'loggers': {
+#         'django.request': {
+#             'handlers': ['console'],
+#             'level': 'DEBUG',
+#             'propagate': False,
+#         },
+#     },
+# }
 
 ROOT_URLCONF = 'knot.urls'
 
@@ -230,6 +249,7 @@ if os.path.exists(OIDC_RSA_PRIVATE_KEY_FILE):
             "openid": "OpenID Connect scope",
             "profile": "User profile",
             "email": "User email",
+            "groups": "User groups",
         },
     }
 
@@ -356,3 +376,8 @@ HARBOR_ADMIN_PASSWORD = os.getenv('KNOT_HARBOR_ADMIN_PASSWORD')
 # Grafana integration
 
 GRAFANA_URL = os.getenv('KNOT_GRAFANA_URL')
+
+
+# OpenCost integration
+
+OPENCOST_URL = os.getenv('KNOT_OPENCOST_URL')

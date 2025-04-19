@@ -18,6 +18,9 @@ from .models import User
 
 
 class CustomOAuth2Validator(OAuth2Validator):
+    oidc_claim_scope = OAuth2Validator.oidc_claim_scope
+    oidc_claim_scope.update({'groups': 'groups'})
+
     def get_additional_claims(self, request):
         user = User.objects.get(pk=request.user.pk)
 
@@ -27,5 +30,14 @@ class CustomOAuth2Validator(OAuth2Validator):
                   'name': user.get_full_name(),
                   'given_name': user.first_name,
                   'family_name': user.last_name}
+        if user.is_staff:
+            claims.update({'groups': ['admin']})
+        # claims.update({('knot_%s' % key): value for key, value in user.local_data.items()})
+        return claims
+
+    def get_userinfo_claims(self, request):
+        claims = super().get_userinfo_claims(request)
+
+        user = User.objects.get(pk=request.user.pk)
         claims.update({('knot_%s' % key): value for key, value in user.local_data.items()})
         return claims

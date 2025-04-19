@@ -92,3 +92,8 @@ knot:
   grafanaURL:
   # Grafana namespace for integration.
   grafanaNamespace:
+
+  # OpenCost URL for integration with the cost monitoring frontend.
+  openCostURL:
+  # OpenCost namespace for integration.
+  openCostNamespace:

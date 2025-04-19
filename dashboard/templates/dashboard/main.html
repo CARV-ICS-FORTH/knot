@@ -56,6 +56,13 @@
         </li>
         {% endif %}
         {% if user.is_staff %}
+        {% if opencost_url %}
+        <li class="nav-item">
+          <a class="nav-link link-body-emphasis" href="{{ opencost_url }}" target="_blank">
+            <i class="bi bi-wallet2"></i> Cost
+          </a>
+        </li>
+        {% endif %}
         <li class="nav-item">
           <a class="nav-link {% if title == 'Users' %}active{% else %}link-body-emphasis{% endif %}" href="{% url 'users' %}">
             <i class="bi bi-person"></i> Users
