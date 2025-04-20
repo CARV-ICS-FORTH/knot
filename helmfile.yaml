@@ -32,6 +32,9 @@ environments:
         adminPassword: Harbor12345
         secretKey: 4sdcg3urQQd00vHU
         clientSecret: rgRQVzfZnoU9WAOqfni5hyC0bXZHjKPyLKOCUVfmBBWbVdaMRQfuep7lPKDjef5bZDxYc4OpiVjGMpXuRye872ATHejjMRKvfPAOA482uh2SjpwmIKUBigBZaVKFkYF3
+    - gitea:
+        enabled: true
+        clientSecret: 0PFDCS49YBjQJguHXQOkiSKpdMzoYDdtRReNscHcwJSyG2yAkJwXp8c7x7RBpvf3kkZqnwXb8N3bkMBhOD9o9R2r6FOww0tqhO5qGV186kPomAKpL1KwyuG9ModEc5GM
     - grafana:
         enabled: true
         clientSecret: eYLaIV2NtZHhR7M9zh1ouLl4LpuwwpcrYBspXbS2gTCm61Hn01ghmZf7iBxxk5r3SdPHnlg6Ovm6IKK4CmJKNl8gnkvxjmOt7YOxZJR0BJH8DPHnA9Nh6pHpmESM8mfE
@@ -73,6 +76,10 @@ repositories:
 {{- if .Values.harbor.enabled }}
 - name: harbor
   url: https://helm.goharbor.io
+{{- end }}
+{{- if .Values.gitea.enabled }}
+- name: gitea
+  url: https://dl.gitea.com/charts/
 {{- end }}
 {{- if .Values.grafana.enabled }}
 - name: prometheus-community
@@ -327,9 +334,9 @@ releases:
         secretTemplate:
           annotations:
             "reflector.v1.k8s.emberstack.com/reflection-allowed": "true"
-            "reflector.v1.k8s.emberstack.com/reflection-allowed-namespaces": "knot,argo,harbor"
+            "reflector.v1.k8s.emberstack.com/reflection-allowed-namespaces": "knot,argo,harbor,gitea"
             "reflector.v1.k8s.emberstack.com/reflection-auto-enabled": "true"
-            "reflector.v1.k8s.emberstack.com/reflection-auto-namespaces": "knot,argo,harbor"
+            "reflector.v1.k8s.emberstack.com/reflection-auto-namespaces": "knot,argo,harbor,gitea"
         duration: 87600h
         commonName: {{ .Values.ingress.host }}
         dnsNames:
@@ -690,6 +697,149 @@ releases:
         client-id: {{ "harbor" | b64enc }}
         client-secret: {{ .Values.harbor.clientSecret | b64enc }}
 {{- end }}
+{{- if .Values.gitea.enabled }}
+- name: gitea
+  namespace: gitea
+  createNamespace: true
+  chart: gitea-charts/gitea
+  version: 11.0.1
+  values:
+  - redis:
+      enabled: true
+      master:
+        persistence:
+          enabled: true
+          existingClaim: gitea-state-pvc
+          subPath: redis
+  - redis-cluster:
+      enabled: false
+  - postgresql:
+      enabled: true
+      primary:
+        persistence:
+          enabled: true
+          existingClaim: gitea-state-pvc
+          subPath: database
+  - postgresql-ha:
+      enabled: false
+  - persistence:
+      enabled: true
+      create: false
+      claimName: gitea-state-pvc
+      subPath: code
+  - ingress:
+      enabled: true
+      hosts:
+      - host: gitea.{{ .Values.ingress.host }}
+        paths:
+        - path: /
+          pathType: Prefix
+      annotations:
+        "nginx.ingress.kubernetes.io/force-ssl-redirect": "true"
+  {{- if .Values.ingress.createSelfsignedCertificate }}
+  - extraVolumes:
+    - name: ssl-certificate-volume
+      secret:
+        secretName: ssl-certificate
+  - extraContainerVolumeMounts:
+    - name: ssl-certificate-volume
+      mountPath: /etc/ssl/certs/{{ .Values.ingress.host }}.crt
+      subPath: ca.crt
+  - extraInitVolumeMounts:
+    - name: ssl-certificate-volume
+      mountPath: /etc/ssl/certs/{{ .Values.ingress.host }}.crt
+      subPath: ca.crt
+  {{- end }}
+  - gitea:
+      config:
+        server:
+          DOMAIN: gitea.{{ .Values.ingress.host }}
+          ROOT_URL: https://gitea.{{ .Values.ingress.host }}
+          DISABLE_SSH: true
+        service:
+          DISABLE_REGISTRATION: true
+          ENABLE_BASIC_AUTHENTICATION: true
+          ENABLE_PASSWORD_SIGNIN_FORM: false
+          ENABLE_PASSKEY_AUTHENTICATION: false
+        database:
+          DB_TYPE: postgres
+        indexer:
+          ISSUE_INDEXER_TYPE: bleve
+          REPO_INDEXER_ENABLED: true
+        admin:
+          DEFAULT_EMAIL_NOTIFICATIONS: disabled
+          USER_DISABLED_FEATURES: "deletion,manage_ssh_keys,manage_gpg_keys,manage_mfa,change_username,change_full_name"
+          EXTERNAL_USER_DISABLE_FEATURES: "deletion,manage_ssh_keys,manage_gpg_keys,manage_mfa,change_username,change_full_name"
+        security:
+          REVERSE_PROXY_TRUSTED_PROXIES: "*"
+        oauth2_client:
+          OPENID_CONNECT_SCOPES: "openid profile email"
+          ENABLE_AUTO_REGISTRATION: true
+          USERNAME: preferred_username
+          ACCOUNT_LINKING: auto
+      oauth:
+        - name: "knot"
+          provider: "openidConnect"
+          key: "gitea"
+          secret: "{{ .Values.gitea.clientSecret }}"
+          autoDiscoverUrl: "https://{{ .Values.ingress.host }}/oauth/.well-known/openid-configuration"
+- name: gitea-state-pvc
+  namespace: gitea
+  createNamespace: true
+  chart: bedag/raw
+  version: 2.0.0
+  {{- if not .Values.storage.stateVolume.hostPath }}
+  needs:
+  - nfs/nfs-server-state
+  {{- end }}
+  values:
+  - resources:
+    - apiVersion: v1
+      kind: PersistentVolumeClaim
+      metadata:
+        name: gitea-state-pvc
+      spec:
+        {{- if not .Values.storage.stateVolume.hostPath }}
+        storageClassName: nfs-state
+        {{- else }}
+        storageClassName: ""
+        volumeName: gitea-state-pv
+        {{- end }}
+        accessModes:
+          - ReadWriteMany
+        resources:
+          requests:
+            storage: 10Gi
+    {{- if .Values.storage.stateVolume.hostPath }}
+    - apiVersion: v1
+      kind: PersistentVolume
+      metadata:
+        name: gitea-state-pv
+      spec:
+        accessModes:
+          - ReadWriteMany
+        capacity:
+          storage: 10Gi
+        persistentVolumeReclaimPolicy: Retain
+        hostPath:
+          path: {{ .Values.storage.stateVolume.hostPath }}/gitea
+    {{- end }}
+- name: gitea-oauth-secret
+  namespace: gitea
+  createNamespace: true
+  chart: bedag/raw
+  version: 2.0.0
+  values:
+  - resources:
+    - apiVersion: v1
+      kind: Secret
+      metadata:
+        name: knot-oauth-gitea
+      type: Opaque
+      data:
+        client-id: {{ "gitea" | b64enc }}
+        client-secret: {{ .Values.gitea.clientSecret | b64enc }}
+{{- end }}
 {{- if .Values.grafana.enabled }}
 - name: monitoring
   namespace: monitoring
@@ -864,6 +1014,10 @@ releases:
       harborURL: https://harbor.{{ .Values.ingress.host }}
       harborNamespace: harbor
       harborAdminPassword: {{ .Values.harbor.adminPassword }}
+      {{- end }}
+      {{- if .Values.gitea.enabled }}
+      giteaURL: https://gitea.{{ .Values.ingress.host }}
+      giteaNamespace: gitea
       {{- end }}
       {{- if .Values.grafana.enabled }}
       grafanaURL: https://grafana.{{ .Values.ingress.host }}

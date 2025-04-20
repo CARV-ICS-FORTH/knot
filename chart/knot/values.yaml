@@ -88,6 +88,11 @@ knot:
   # Harbor admin password for fetching CLI secrets.
   harborAdminPassword:
 
+  # Gitea URL for integration with the code repository frontend.
+  giteaURL:
+  # Gitea namespace for integration.
+  giteaNamespace:
+
   # Grafana URL for integration with the metrics frontend.
   grafanaURL:
   # Grafana namespace for integration.

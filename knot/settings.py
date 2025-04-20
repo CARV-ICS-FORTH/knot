@@ -373,6 +373,11 @@ HARBOR_NAMESPACE = os.getenv('KNOT_HARBOR_NAMESPACE')
 HARBOR_ADMIN_PASSWORD = os.getenv('KNOT_HARBOR_ADMIN_PASSWORD')
 
 
+# Gitea integration
+
+GITEA_URL = os.getenv('KNOT_GITEA_URL')
+
+
 # Grafana integration
 
 GRAFANA_URL = os.getenv('KNOT_GRAFANA_URL')

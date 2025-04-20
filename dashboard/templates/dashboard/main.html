@@ -43,6 +43,13 @@
           </a>
         </li>
         {% endif %}
+        {% if gitea_url %}
+        <li class="nav-item">
+          <a class="nav-link link-body-emphasis" href="{{ gitea_url }}/user/oauth2/knot" target="_blank">
+            <i class="bi bi-code-slash"></i> Code
+          </a>
+        </li>
+        {% endif %}
         <li class="nav-item">
           <a class="nav-link {% if title == 'Files' %}active{% else %}link-body-emphasis{% endif %}" href="{% url 'files' %}">
             <i class="bi bi-folder"></i> Files

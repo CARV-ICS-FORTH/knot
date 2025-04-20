@@ -38,7 +38,7 @@ DEPLOY_TARGETS=deploy-sync deploy-destroy
 TEST_TARGETS=test-sync test-destroy
 
 $(DEPLOY_TARGETS): check-ip-address
-	mkdir -p state state/harbor
+	mkdir -p state state/harbor state/gitea
 	mkdir -p files
 	export KNOT_HOST="$(INGRESS_URL)"; \
 	helmfile \
@@ -61,6 +61,7 @@ delete-namespaces:
 	kubectl delete namespace csi-nfs || true
 	kubectl delete namespace opencost || true
 	kubectl delete namespace monitoring || true
+	kubectl delete namespace gitea || true
 	kubectl delete namespace harbor || true
 	kubectl delete namespace argo || true
 	kubectl delete namespace reflector || true
@@ -89,6 +90,8 @@ develop: check-ip-address
 	export KNOT_HARBOR_URL="https://harbor.$(INGRESS_URL)"; \
 	export KNOT_HARBOR_NAMESPACE="harbor"; \
 	export KNOT_HARBOR_ADMIN_PASSWORD="$(HARBOR_ADMIN_PASSWORD)"; \
+	export KNOT_GITEA_URL="https://gitea.$(INGRESS_URL)"; \
+	export KNOT_GITEA_NAMESPACE="gitea"; \
 	export KNOT_GRAFANA_URL="https://grafana.$(INGRESS_URL)"; \
 	export KNOT_GRAFANA_NAMESPACE="monitoring"; \
 	export KNOT_OPENCOST_URL="https://opencost.$(INGRESS_URL)"; \

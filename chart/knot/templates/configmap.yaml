@@ -81,6 +81,8 @@ data:
   KNOT_HARBOR_URL: {{- if .Values.knot.harborURL }} {{ .Values.knot.harborURL | quote }} {{- else }} "" {{- end }}
   KNOT_HARBOR_NAMESPACE: {{- if .Values.knot.harborNamespace }} {{ .Values.knot.harborNamespace | quote }} {{- else }} "" {{- end }}
   KNOT_HARBOR_ADMIN_PASSWORD: {{- if .Values.knot.harborAdminPassword }} {{ .Values.knot.harborAdminPassword | quote }} {{- else }} "" {{- end }}
+  KNOT_GITEA_URL: {{- if .Values.knot.giteaURL }} {{ .Values.knot.giteaURL | quote }} {{- else }} "" {{- end }}
+  KNOT_GITEA_NAMESPACE: {{- if .Values.knot.giteaNamespace }} {{ .Values.knot.giteaNamespace | quote }} {{- else }} "" {{- end }}
   KNOT_GRAFANA_URL: {{- if .Values.knot.grafanaURL }} {{ .Values.knot.grafanaURL | quote }} {{- else }} "" {{- end }}
   KNOT_GRAFANA_NAMESPACE: {{- if .Values.knot.grafanaNamespace }} {{ .Values.knot.grafanaNamespace | quote }} {{- else }} "" {{- end }}
   KNOT_OPENCOST_URL: {{- if .Values.knot.openCostURL }} {{ .Values.knot.openCostURL | quote }} {{- else }} "" {{- end }}

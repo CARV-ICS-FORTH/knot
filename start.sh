@@ -45,6 +45,9 @@ if [[ -n $KNOT_HARBOR_URL && -n $KNOT_HARBOR_NAMESPACE && -n $KNOT_HARBOR_ADMIN_
     echo -n "$KNOT_HARBOR_ADMIN_PASSWORD" | helm registry login --username=admin --password-stdin $(basename $KNOT_HARBOR_URL)
     (mkdir -p repo/services-build && cd repo/services-build && package_charts && upload_charts)
 fi
+if [[ -n $KNOT_GITEA_URL && -n $KNOT_GITEA_NAMESPACE ]]; then
+    python manage.py createoauthapplication --name gitea --redirect-uri $KNOT_GITEA_URL/user/oauth2/knot/callback --secret-name knot-oauth-gitea --secret-namespace $KNOT_GITEA_NAMESPACE
+fi
 if [[ -n $KNOT_GRAFANA_URL && -n $KNOT_GRAFANA_NAMESPACE ]]; then
     python manage.py createoauthapplication --name grafana --redirect-uri $KNOT_GRAFANA_URL/login/generic_oauth --secret-name knot-oauth-grafana --secret-namespace $KNOT_GRAFANA_NAMESPACE
 fi

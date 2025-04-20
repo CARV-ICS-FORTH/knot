@@ -25,6 +25,7 @@ def settings(request):
             'jupyterhub_url': django_settings.JUPYTERHUB_URL,
             'argo_workflows_url': django_settings.ARGO_WORKFLOWS_URL,
             'harbor_url': django_settings.HARBOR_URL,
+            'gitea_url': django_settings.GITEA_URL,
             'grafana_url': django_settings.GRAFANA_URL,
             'opencost_url': django_settings.OPENCOST_URL}
 

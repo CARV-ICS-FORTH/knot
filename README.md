@@ -10,6 +10,7 @@ The Knot installation includes:
 * [JupyterHub](https://jupyter.org/hub)
 * [Argo Workflows](https://argoproj.github.io/workflows)
 * [Harbor](https://goharbor.io)
+* [Gitea](https://gitea.com)
 * [Grafana](https://grafana.com)/[Prometheus](https://prometheus.io)
 * [OpenCost](https://opencost.io)
 
