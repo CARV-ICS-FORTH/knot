@@ -102,7 +102,7 @@ develop: check-ip-address
 	./manage.py runserver 0.0.0.0:8000
 
 container:
-	docker build -f Dockerfile --build-arg TARGETARCH=amd64 --build-arg KUBECTL_VERSION=$(KUBECTL_VERSION) -t $(KNOT_IMAGE_TAG) .
+	docker build -f Dockerfile --build-arg TARGETARCH=arm64 --build-arg KUBECTL_VERSION=$(KUBECTL_VERSION) -t $(KNOT_IMAGE_TAG) .
 
 container-push:
 	docker buildx build --platform linux/amd64,linux/arm64 --push -f Dockerfile --build-arg KUBECTL_VERSION=$(KUBECTL_VERSION) -t $(KNOT_IMAGE_TAG) .

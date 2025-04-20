@@ -39,7 +39,8 @@ WORKDIR /app
 
 COPY --from=ldap-build /tmp/*.whl /tmp/
 RUN pip install /tmp/*.whl
-RUN pip install -r requirements.txt && \
+RUN pip install --upgrade pip && \
+    pip install -r requirements.txt && \
     python manage.py collectstatic && \
     mkdocs build -d static/docs
 
