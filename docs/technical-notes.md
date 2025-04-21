@@ -94,3 +94,15 @@ Single sign-on service
 Knot implements an OAuth 2.0/OIDC provider, which allows third-party services to request verification of users' identities via standard protocols. In the OIDC response, Knot also sets extra data that may be useful to connected services (all environment variables mentioned in [Service templates](#service-templates), but in lowercase, i.e. `knot_private_dir`).
 
 Note that OAuth 2.0/OIDC provides only authentication information and it is up to the connecting service to define what users are authorized to do, based on their identities (i.e., username, email, etc.). In addition to the integration with Vouch Proxy for authenticating users to services started by the dashboard, Knot also acts as an identity provider to [JupyterHub](https://jupyter.org/hub), [Argo Workflows](https://argoproj.github.io/workflows), [Harbor](https://goharbor.io), [Gitea](https://gitea.com), and other services that may be installed side-by-side to the dashboard. For compatible services, Knot also configures user authorization to resources. For example, in Argo Workflows, Knot sets the appropriate role bindings so that users will only be allowed to access workflows in their respective Knot-defined namespaces.
+
+Interface customization
+-----------------------
+
+The default theme used for the interface is stored in the `theme` folder within the admin file domain (available via Knot's web-based file browser and mounted at `/files/admin` for admin users). The theme is initialized to default values on startup if the `theme` folder does not exist.
+
+The theme consists of the following files, which can be customized to change the look and feel of the interface:
+
+- `logo.png`: The logo shown at the login screen and at the top-left of the menu.
+- `style.css`: Custom CSS styling for various interface elements.
+- `menu_pre.html`: Inserted verbatim at the top of the menu (included by `dashboard/templates/dashboard/main.html`).
+- `menu_post.html`: Inserted verbatim at the bottom of the menu (included by `dashboard/templates/dashboard/main.html`).

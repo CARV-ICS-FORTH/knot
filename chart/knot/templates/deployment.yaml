@@ -35,9 +35,10 @@ spec:
         - name: {{ .Release.Name }}-webhook-secret
           mountPath: /etc/ssl/keys
           readOnly: true
-        {{- if or .Values.knot.logsVolumeClaim .Values.knot.logsHostPath }}
-        - name: {{ .Release.Name }}-logs-volume
+        {{- if .Values.knot.storeHTTPLogs }}
+        - name: {{ .Release.Name }}-files-volume
           mountPath: /var/log/nginx
+          subPath: admin/logs
         {{- end }}
       - image: {{- if and (get .Values.images "knot") .Values.images.knot }} {{ .Values.images.knot }} {{- else }} carvicsforth/knot:v{{ .Chart.Version }} {{- end }}
         name: dashboard
@@ -70,10 +71,6 @@ spec:
         - name: {{ .Release.Name }}-files-config
           mountPath: /etc/knot/service_url_prefixes
           subPath: service_url_prefixes
-        {{- end }}
-        {{- if or .Values.knot.themeVolumeClaim .Values.knot.themeHostPath }}
-        - name: {{ .Release.Name }}-theme-volume
-          mountPath: /app/dashboard/static/dashboard/theme
         {{- end }}
         - name: {{ .Release.Name }}-state-volume
           mountPath: /db
@@ -143,24 +140,6 @@ spec:
         configMap:
           name: {{ .Release.Name }}-webhook
           defaultMode: 0644
-      {{- if .Values.knot.themeVolumeClaim }}
-      - name: {{ .Release.Name }}-theme-volume
-        persistentVolumeClaim:
-          claimName: {{ .Values.knot.themeVolumeClaim }}
-      {{- else if .Values.knot.themeHostPath }}
-      - name: {{ .Release.Name }}-theme-volume
-        persistentVolumeClaim:
-          claimName: {{ .Release.Name }}-theme-pvc
-      {{- end }}
-      {{- if .Values.knot.logsVolumeClaim }}
-      - name: {{ .Release.Name }}-logs-volume
-        persistentVolumeClaim:
-          claimName: {{ .Values.knot.logsVolumeClaim }}
-      {{- else if .Values.knot.logsHostPath }}
-      - name: {{ .Release.Name }}-logs-volume
-        persistentVolumeClaim:
-          claimName: {{ .Release.Name }}-logs-pvc
-      {{- end }}
       - name: {{ .Release.Name }}-state-volume
         persistentVolumeClaim:
           claimName: {{- if .Values.knot.stateVolumeClaim }} {{ .Values.knot.stateVolumeClaim }} {{- else }} {{ .Release.Name }}-state-pvc {{- end }}
