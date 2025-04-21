@@ -1,4 +1,4 @@
-folder: /private/html # Folder to serve
+folder: /files/private/html # Folder to serve
 
 knot:
   enabled: true

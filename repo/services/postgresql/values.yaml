@@ -3,4 +3,4 @@ password: postgres # Password for postgres user
 
 knot:
   enabled: true
-  privateDir: /private
+  privateDir: /files/private

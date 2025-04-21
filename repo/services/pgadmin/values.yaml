@@ -4,4 +4,4 @@ password: SuperSecret # PGAdmin password to login
 knot:
   enabled: true
   hostname: pgadmin.example.com
-  privateDir: /private
+  privateDir: /files/private

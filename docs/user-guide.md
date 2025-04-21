@@ -19,7 +19,7 @@ Once the account is activated by an administrator, login using your username and
 Notebooks, workflows, images, code, and metrics buttons
 -------------------------------------------------------
 
-Selecting "Notebooks" from the menu on the left will redirect you to JupyterHub. JupyterHub will automatically launch a new server instance for you, if one is not already running. Your notebooks are saved in `/private/notebooks`, so you can also access them as files from the dashboard. You can stop your server instance by clicking on the "Control Panel" button on the top-right of the screen.
+Selecting "Notebooks" from the menu on the left will redirect you to JupyterHub. JupyterHub will automatically launch a new server instance for you, if one is not already running. Your notebooks are saved in `/files/private/notebooks`, so you can also access them as files from the dashboard. You can stop your server instance by clicking on the "Control Panel" button on the top-right of the screen.
 
 Selecting "Workflows" from the menu on the left will redirect you to Argo Workflows. The first time you open up the Argo interface, it will ask you to login. Just click on the "Login" button, as single sign-on is already set up. You should then be redirected to your workflows page, with the namespace set to `knot-<username>`.
 
@@ -28,8 +28,6 @@ Selecting "Images" from the menu on the left will redirect you to Harbor. Click 
 Selecting "Code" from the menu on the left will redirect you to Gitea for managing local git registries.
 
 Selecting "Metrics" from the menu on the left will redirect you to Grafana. Click on the search icon on the top-left of the screen to get a list of preconfigured metric dashboards.
-
-Selecting "Cost" from the menu on the left will redirect you to OpenCost for cost monitoring.
 
 Services screen
 ---------------
@@ -58,7 +56,7 @@ The files screen is accessed by selecting "Files" from the menu on the left. Cha
 
 Select a folder to navigate into that path (the current path is shown above the list), or a file to download it. Use the "Actions" button to download a folder as an archive or delete an object.
 
-Files are mounted in containers under `/private` and `/shared` respectively.
+Files are mounted in containers under `/files/private` and `/files/shared` respectively.
 
 ![](images/files-screen.png)
 
@@ -71,8 +69,12 @@ Administration
 
 > 📝 *The information in this section applies only to administrators.*
 
-The "admin" user has access to an additional screen named "Users".
+The "admin" user has access to additional menu items: "Cost", "Users", and "Teams".
 
-The users screen is accessed by selecting "Users" from the menu on the left. Each user can be "active", meaning with access to the dashboard and services. Each user can also be promoted to an administrator. The respective actions are available in the menu presented when using the "Actions" button. An administrator can edit a user's email, change a user's password, impersonate, and delete a user.
+Selecting "Cost" from the menu on the left will redirect you to OpenCost for cost monitoring.
+
+Selecting "Users" from the menu on the left will take you to the users screen. Each user can be "active", meaning with access to the dashboard and services. Each user can also be promoted to an administrator. The respective actions are available in the menu presented when using the "Actions" button. An administrator can edit a user's email, change a user's password, impersonate, and delete a user.
 
 When impersonating another user, the whole interface changes to what the user sees and the user icon at the top-right of the screen darkens to signify "impersonation mode". The user menu provides the option to stop impersonating and return to the original user's view.
+
+Selecting "Teams" from the menu on the left will take you to the teams screen, where you can create new teams and manage the existing ones.

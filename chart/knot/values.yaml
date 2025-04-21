@@ -54,7 +54,7 @@ knot:
   certificateSecretName:
   # The key in the secret holding the self-signed certificate for the ingress.
   certificateSecretKey:
-  # REQUIRED: The base URL for the private and shared file domains.
+  # REQUIRED: The base URL for the private, shared, and admin file domains.
   filesURL:
   # The size for the files persistent volume.
   filesSize: 1Pi

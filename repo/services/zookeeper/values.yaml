@@ -3,4 +3,4 @@ servers: 3 # Set to an odd number from 3 and above
 knot:
   enabled: true
   hostname: zookeeper.example.com
-  privateDir: /private
+  privateDir: /files/private

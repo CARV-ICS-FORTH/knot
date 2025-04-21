@@ -156,7 +156,7 @@ class FileDomain(object):
     @property
     def mount_dir(self):
         ''' Where to mount the domain. '''
-        return '/%s' % self.name
+        return '/files/%s' % self.name
 
     @property
     def user_dir(self):
@@ -196,6 +196,18 @@ class FileDomainShared(FileDomain):
     def user_dir(self):
         return os.path.join(self._mount_dir, 'shared')
 
+class FileDomainAdmin(FileDomain):
+    def delete_user_dir(self):
+        pass
+
+    @property
+    def name(self):
+        return 'admin'
+
+    @property
+    def user_dir(self):
+        return os.path.join(self._mount_dir, 'admin')
+
 class HostpathVolumeMixin(object):
     def create_volume(self):
         # Create persistent volume and claim.
@@ -225,3 +237,8 @@ class SharedFileDomain(FileDomainShared, HostpathVolumeMixin):
     @property
     def url(self):
         return 'file://%s' % os.path.join(self._url.path, 'shared')
+
+class AdminFileDomain(FileDomainAdmin, HostpathVolumeMixin):
+    @property
+    def url(self):
+        return 'file://%s' % os.path.join(self._url.path, 'admin')

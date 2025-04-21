@@ -48,7 +48,7 @@ Some of the variables set above are required. The table below lists all availabl
 | `knot.ingressURL`               | &check;  | The ingress URL used.                                                                         |                                    |
 | `knot.certificateSecretName`    |          | The name of the secret containing the self-signed certificate for the ingress.                |                                    |
 | `knot.certificateSecretKey`     |          | The key in the secret holding the self-signed certificate for the ingress.                    |                                    |
-| `knot.filesURL`                 | &check;  | The base URL for the private and shared file domains.                                         |                                    |
+| `knot.filesURL`                 | &check;  | The base URL for the private, shared, and admin file domains.                                 |                                    |
 | `knot.filesSize`                |          | The size for the files persistent volume.                                                     | `1Pi`                              |
 | `knot.allowedHostPathDirs`      |          | Other host paths to allow attaching to containers (separate with `:`).                        |                                    |
 | `knot.disabledServices`         |          | List of services to disable on deployment.                                                    |                                    |
@@ -73,7 +73,7 @@ Set `knot.filesURL` to:
 * `file://<path>`, if using a node-wide, shared mountpoint for files.
 * `nfs://<server>/<path>`, if using an NFS server for files.
 
-The Knot dashboard will create `private/<username>`, `shared`, and `uploads` folders within.
+The Knot dashboard will create `private/<username>`, `shared`, `admin`, and `uploads` folders within.
 
 The state volume is used to store the internal database. You can either use an existing peristent storage claim with `knot.stateVolumeClaim`, or set `knot.stateHostPath` to automatically create one (this must accessible by all nodes).
 

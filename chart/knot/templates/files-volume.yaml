@@ -1,4 +1,4 @@
-{{- $filesURL := (required "You must set knot.filesURL to the base URL for the private and shared file domains" .Values.knot.filesURL) | urlParse }}
+{{- $filesURL := (required "You must set knot.filesURL to the base URL for the private, shared, and admin file domains" .Values.knot.filesURL) | urlParse }}
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:

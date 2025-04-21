@@ -6,12 +6,12 @@ Storage management
 
 In a cluster environment, it is common for each user to have a "home folder", usually mounted over NFS, Lustre, Gluster, etc. Knot tries to apply this notion in a containerized environment: Given a cluster-wide shared folder, this folder is also mounted inside containers as well. Thus, when running a notebook server (like JupyterHub), user data is available in the containerized environment at a well-known path - as it would be in a bare-metal cluster node. This, in addition to the web-based file browser provided by Knot, facilitates easy data management for applications, both for providing inputs and collecting outputs.
 
-In Knot, there are two such folders/data domains:
+In Knot, there are two such folders/data domains for all users (and an additional for admins used for customizing service templates and the interface theme, as mentioned in the following paragraphs):
 
-- Private: User data that is private to the user. Mounted in containers under `/private`.
-- Shared: Data that is shared among all users. Mounted in containers under `/shared`.
+- Private: User data that is private to the user. Mounted in containers under `/files/private`.
+- Shared: Data that is shared among all users. Mounted in containers under `/files/shared`.
 
-For the first domain Knot creates a subfolder for each user, named after the corresponding username and only allows access within that subfolder (like a "home folder"). This is hidden to the user, meaning that `/private` is the user subfolder itself. Users cannot go up a level and check other users' names and files.
+For the first domain Knot creates a subfolder for each user, named after the corresponding username and only allows access within that subfolder (like a "home folder"). This is hidden to the user, meaning that `/files/private` is the user subfolder itself. Users cannot go up a level and check other users' names and files.
 
 ![](images/service-layout.png)
 

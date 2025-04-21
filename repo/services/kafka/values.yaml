@@ -4,4 +4,4 @@ zookeeper: zookeeper # ZooKeeper service name
 knot:
   enabled: true
   hostname: kafka.example.com
-  privateDir: /private
+  privateDir: /files/private

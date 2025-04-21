@@ -17,7 +17,7 @@ import os
 from urllib.parse import urlparse
 from jinja2 import Template
 
-from .file import FileDomainPrivate, FileDomainShared
+from .file import FileDomainPrivate, FileDomainShared, FileDomainAdmin
 from ..kubernetes import KubernetesClient
 
 
@@ -86,3 +86,8 @@ class SharedNFSDomain(FileDomainShared, NFSVolumeMixin):
     @property
     def url(self):
         return 'nfs://%s%s' % (self._url.hostname, os.path.join(self._url.path, 'shared'))
+
+class AdminNFSDomain(FileDomainAdmin, NFSVolumeMixin):
+    @property
+    def url(self):
+        return 'nfs://%s%s' % (self._url.hostname, os.path.join(self._url.path, 'admin'))

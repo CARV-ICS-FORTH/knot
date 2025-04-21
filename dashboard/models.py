@@ -27,8 +27,8 @@ from asgiref.sync import async_to_sync
 from impersonate.signals import session_begin
 
 from .utils.kubernetes import KubernetesClient
-from .utils.file_domains.file import PrivateFileDomain, SharedFileDomain
-from .utils.file_domains.nfs import PrivateNFSDomain, SharedNFSDomain
+from .utils.file_domains.file import PrivateFileDomain, SharedFileDomain, AdminFileDomain
+from .utils.file_domains.nfs import PrivateNFSDomain, SharedNFSDomain, AdminNFSDomain
 from .utils.harbor import HarborClient
 
 
@@ -116,11 +116,17 @@ class User(AuthUser):
     def file_domains(self):
         files_url = urlparse(settings.FILES_URL)
         if files_url.scheme == 'file':
-            return {'private': PrivateFileDomain(settings.FILES_URL, settings.FILES_MOUNT_DIR, self),
-                    'shared': SharedFileDomain(settings.FILES_URL, settings.FILES_MOUNT_DIR, self)}
+            domains = {'private': PrivateFileDomain(settings.FILES_URL, settings.FILES_MOUNT_DIR, self),
+                       'shared': SharedFileDomain(settings.FILES_URL, settings.FILES_MOUNT_DIR, self)}
+            if self.is_staff:
+                domains.update({'admin': AdminFileDomain(settings.FILES_URL, settings.FILES_MOUNT_DIR, self)})
+            return domains
         if files_url.scheme == 'nfs':
-            return {'private': PrivateNFSDomain(settings.FILES_URL, settings.FILES_MOUNT_DIR, self),
-                    'shared': SharedNFSDomain(settings.FILES_URL, settings.FILES_MOUNT_DIR, self)}
+            domains = {'private': PrivateNFSDomain(settings.FILES_URL, settings.FILES_MOUNT_DIR, self),
+                       'shared': SharedNFSDomain(settings.FILES_URL, settings.FILES_MOUNT_DIR, self)}
+            if self.is_staff:
+                domains.update({'admin': AdminNFSDomain(settings.FILES_URL, settings.FILES_MOUNT_DIR, self)})
+            return domains
         raise ValueError('Unsupported URL for files')
 
     @property
