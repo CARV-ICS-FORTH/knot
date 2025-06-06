@@ -5,7 +5,6 @@ django-impersonate==1.9.4
 django-chunked-upload @ git+https://github.com/juliomalegria/django-chunked-upload@master
 django-oauth-toolkit==3.0.1
 django-auth-ldap==5.1.0
-python-dxf==12.1.0
 channels[daphne]==4.2.0
 channels-redis==4.2.1
 celery==5.4.0

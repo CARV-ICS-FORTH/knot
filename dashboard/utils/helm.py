@@ -15,12 +15,9 @@
 import os
 import subprocess
 import requests
-import shlex
 
-from requests.auth import HTTPBasicAuth
 from ruamel.yaml import YAML
 from ruamel.yaml.comments import CommentedMap
-from packaging import version
 
 from .kubernetes import KubernetesClient
 
@@ -79,24 +76,6 @@ class HelmLocalRepoClient(object):
     def values(self, name):
         chart_name = os.path.join(self._repo_path, name)
         return chart_name, self._load_yaml(os.path.join(chart_name, 'values.yaml'))
-
-class HelmRemoteRepoClient(object):
-    def __init__(self, repo_name, repo_url, repo_username='admin', repo_password=''):
-        self._repo_name = repo_name
-        self._repo_url = repo_url
-        self._repo_username = repo_username
-        self._repo_password = repo_password
-
-    def list(self):
-        from .registry import RegistryClient
-        return RegistryClient(self._repo_url, self._repo_name, self._repo_username, self._repo_password).list()
-
-    def values(self, name):
-        chart_name = '%s/%s/%s' % (self._repo_url, self._repo_name, name)
-        command = 'helm show values %s %s' % ('--insecure-skip-tls-verify' if os.environ.get('VIRTUAL_ENV') else '', # XXX Do not verify if running in virtual environment.
-                                              chart_name)
-        result = subprocess.check_output(command, shell=True)
-        return chart_name, YAML().load(result)
 
 class HelmClient(object):
     def __init__(self, kubernetes_client=None):
