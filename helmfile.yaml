@@ -144,7 +144,7 @@ releases:
           spec:
             containers:
             - name: nfs-server-state
-              image: gcr.io/google_containers/volume-nfs:0.8
+              image: ghcr.io/escomputers/volume-nfs:latest
               ports:
                 - name: nfs
                   containerPort: 2049
@@ -229,7 +229,7 @@ releases:
           spec:
             containers:
             - name: nfs-server-files
-              image: gcr.io/google_containers/volume-nfs:0.8
+              image: ghcr.io/escomputers/volume-nfs:latest
               ports:
                 - name: nfs
                   containerPort: 2049
