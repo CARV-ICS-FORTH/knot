@@ -16,15 +16,8 @@ knot:
   # REQUIRED: The host path to use for storing state, when no existing volume claim is set.
   stateHostPath:
 
-  # The volume to store HTTP access and error logs.
-  logsVolumeClaim:
-  # The host path to use for storing logs, when no existing volume claim is set.
-  logsHostPath:
-
-  # If set, use this persistent volume claim for overriding the theme files.
-  themeVolumeClaim:
-  # The host path to use for overriding the theme files, when no existing volume claim is set.
-  themeHostPath:
+  # Store HTTP access and error logs in the admin file domain.
+  storeHTTPLogs: false
 
   # Secret for Django. Use a random string of 50 characters (a default will be generated if empty).
   djangoSecret:
@@ -54,7 +47,7 @@ knot:
   certificateSecretName:
   # The key in the secret holding the self-signed certificate for the ingress.
   certificateSecretKey:
-  # REQUIRED: The base URL for the private and shared file domains.
+  # REQUIRED: The base URL for the private, shared, and admin file domains.
   filesURL:
   # The size for the files persistent volume.
   filesSize: 1Pi

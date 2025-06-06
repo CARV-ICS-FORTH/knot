@@ -1,4 +1,4 @@
-logDir: /private/tf/logs # Log directory
+logDir: /files/private/tf/logs # Log directory
 
 knot:
   enabled: true

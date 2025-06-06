@@ -1,4 +1,4 @@
-folder: /private # Folder to expose
+folder: /files/private # Folder to expose
 
 accessKey: admin
 secretKey: password # Please use a strong secret

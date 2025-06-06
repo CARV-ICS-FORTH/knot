@@ -383,7 +383,7 @@ releases:
           c.JupyterHub.hub_connect_url = "http://hub.jupyterhub.svc:8081"
           c.KubeSpawner.enable_user_namespaces = True
           c.KubeSpawner.user_namespace_template = "knot-{username}"
-          c.KubeSpawner.notebook_dir = "/private/notebooks"
+          c.KubeSpawner.notebook_dir = "/files/private/notebooks"
           c.KubeSpawner.args = ["--allow-root"]
       networkPolicy:
         enabled: false
@@ -415,7 +415,7 @@ releases:
       extraEnv:
         GRANT_SUDO: "yes"
         NOTEBOOK_ARGS: "--allow-root"
-        CONDA_ENVS_PATH: "/private/conda"
+        CONDA_ENVS_PATH: "/files/private/conda"
       uid: 0
       storage:
         type: none
@@ -980,6 +980,7 @@ releases:
       redis:
       kubectl:
   - knot:
+      storeHTTPLogs: {{ .Values.knot | get "storeHTTPLogs" false }}
       djangoSecret: {{ .Values.knot | get "djangoSecret" "" | quote }}
       djangoDebug: {{ .Values.knot | get "djangoDebug" "0" | quote }}
       htpasswdExportDir: {{ .Values.knot | get "htpasswdExportDir" "" | quote }}

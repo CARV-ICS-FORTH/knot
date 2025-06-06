@@ -1,4 +1,4 @@
-folder: /private # Folder to browse
+folder: /files/private # Folder to browse
 
 knot:
   enabled: true

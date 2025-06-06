@@ -52,6 +52,12 @@ if [[ -n $KNOT_GRAFANA_URL && -n $KNOT_GRAFANA_NAMESPACE ]]; then
     python manage.py createoauthapplication --name grafana --redirect-uri $KNOT_GRAFANA_URL/login/generic_oauth --secret-name knot-oauth-grafana --secret-namespace $KNOT_GRAFANA_NAMESPACE
 fi
 
+if [ ! -d "$KNOT_FILES_MOUNT_DIR"/admin/theme ]; then
+    cp -r static/dashboard/theme "$KNOT_FILES_MOUNT_DIR"/admin/
+fi
+rm -rf static/dashboard/theme
+ln -s "$KNOT_FILES_MOUNT_DIR"/admin/theme static/dashboard/theme
+
 gunicorn -w 4 -t $TIMEOUT -b 0.0.0.0:8000 knot.wsgi:application &
 daphne -b 0.0.0.0 -p 8001 knot.asgi:application &
 wait -n

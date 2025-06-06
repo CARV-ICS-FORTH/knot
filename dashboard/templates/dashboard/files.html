@@ -30,6 +30,11 @@
   <a class="btn btn-outline-secondary {% if domain == 'shared' %}active{% endif %}" role="button" href="{% url 'files' 'shared' %}">
     <i class="bi bi-people"></i> Shared
   </a>
+  {% if user.is_staff %}
+  <a class="btn btn-outline-secondary {% if domain == 'admin' %}active{% endif %}" role="button" href="{% url 'files' 'admin' %}">
+    <i class="bi bi-person-gear"></i> Admin
+  </a>
+  {% endif %}
 </div>
 
 <button type="button" class="btn btn-success me-2" data-bs-toggle="modal" data-bs-target="#newFolderModal"><i class="bi bi-folder-plus"></i> New folder</button>

@@ -4,4 +4,4 @@ password: password # Password for RabbitMQ
 knot:
   enabled: true
   hostname: rabbitmq.example.com
-  privateDir: /private
+  privateDir: /files/private
