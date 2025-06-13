@@ -38,6 +38,7 @@ data:
             proxy_read_timeout  {{ .Values.knot.timeout }};
             proxy_request_buffering off;
             proxy_buffering     off;
+            proxy_cache         off;
         }
 
         location /ws/ {
@@ -117,6 +118,7 @@ data:
   VOUCH_COOKIE_DOMAIN: {{ (split ":" ($ingressURL | urlParse).host)._0 }}
   VOUCH_COOKIE_SECURE: "false"
   VOUCH_HEADERS_CLAIMS: "preferred_username,groups"
+  VOUCH_JWT_MAXAGE: "1"
   OAUTH_PROVIDER: oidc
   OAUTH_AUTH_URL: {{ $ingressURL }}/oauth/authorize/
   OAUTH_TOKEN_URL: http://127.0.0.1/oauth/token/
