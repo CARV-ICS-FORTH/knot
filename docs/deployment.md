@@ -12,7 +12,7 @@ helmfile -f git::https://github.com/CARV-ICS-FORTH/knot.git@helmfile.yaml sync
 
 You can apply a specific version by adding the `ref` option at the end of the URL. As an example:
 ```bash
-helmfile -f git::https://github.com/CARV-ICS-FORTH/knot.git@helmfile.yaml?ref=v4.0.0 sync
+helmfile -f git::https://github.com/CARV-ICS-FORTH/knot.git@helmfile.yaml?ref=v5.0.0 sync
 ```
 
 ## SSL certificate

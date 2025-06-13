@@ -18,7 +18,7 @@ jobs:
           apt-get install -y git
       - name: Build docs
         run: |
-          pip install mkdocs==1.6.1 mkdocs-include-markdown-plugin==7.1.4
+          pip install mkdocs==1.6.1 mkdocs-include-markdown-plugin==7.1.5
           mkdocs build
       - name: Push docs to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3

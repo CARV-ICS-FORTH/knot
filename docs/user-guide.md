@@ -14,16 +14,16 @@ To create an account, select the "Sign up" option on the main screen and fill in
 
 ![](images/sign-up-screen.png)
 
-Once the account is activated by an administrator, login using your username and password. You can change your password when logged in by clicking on the user icon at the top-right of the screen and selecting "Change password" from the menu. The menu also provides options to switch between profiles (if you are a member of one or more teams), view previous messages reported, access this documentation, and logout. If you ever forget your password, please ask an administrator to reset it.
+Once the account is activated by an administrator, login using your username and password. You can change your password when logged in by clicking on the user icon at the bottom-left of the screen and selecting "Change password" from the menu. The menu also provides options to switch between profiles (if you are a member of one or more teams), view previous messages reported, access this documentation, and logout. If you ever forget your password, please ask an administrator to reset it.
 
 Notebooks, workflows, images, code, and metrics buttons
 -------------------------------------------------------
 
-Selecting "Notebooks" from the menu on the left will redirect you to JupyterHub. JupyterHub will automatically launch a new server instance for you, if one is not already running. Your notebooks are saved in `/files/private/notebooks`, so you can also access them as files from the dashboard. You can stop your server instance by clicking on the "Control Panel" button on the top-right of the screen.
+Selecting "Notebooks" from the menu on the left will redirect you to JupyterHub. JupyterHub will automatically launch a new server instance for you, if one is not already running. Your notebooks are saved in `/files/private/notebooks`, so you can also access them as files from the dashboard. You can stop your server instance by selecting the "Hub Control Panel" entry, under the "File" menu.
 
 Selecting "Workflows" from the menu on the left will redirect you to Argo Workflows. The first time you open up the Argo interface, it will ask you to login. Just click on the "Login" button, as single sign-on is already set up. You should then be redirected to your workflows page, with the namespace set to `knot-<username>`.
 
-Selecting "Images" from the menu on the left will redirect you to Harbor. Click on "Login via OIDC provider" for single sign-on with your username. Knot will setup a private project for you named after your username. The "library" project is shared among all users. Each project can be used to store container images or Helm charts (used for Knot templates).
+Selecting "Images" from the menu on the left will redirect you to Harbor. Click on "Login via OIDC provider" for single sign-on with your username. Knot will setup a private project for you named after your username. The "library" project is shared among all users. Each project can be used to store container images.
 
 Selecting "Code" from the menu on the left will redirect you to Gitea for managing local git registries.
 
@@ -47,7 +47,7 @@ The templates screen is accessed by selecting "Templates" from the menu on the l
 
 ![](images/templates-screen.png)
 
-New templates are added in Harbor. The template structure is described in the [Service templates](technical-notes.md#service-templates) chapter.
+New templates are added in the private or shared `services` folder. The template structure is described in the [Service templates](technical-notes.md#service-templates) chapter.
 
 Files screen
 ------------
@@ -78,3 +78,5 @@ Selecting "Users" from the menu on the left will take you to the users screen. E
 When impersonating another user, the whole interface changes to what the user sees and the user icon at the top-right of the screen darkens to signify "impersonation mode". The user menu provides the option to stop impersonating and return to the original user's view.
 
 Selecting "Teams" from the menu on the left will take you to the teams screen, where you can create new teams and manage the existing ones.
+
+Additionally, the "admin" user can access to the "admin" file domain, which hosts the default theme and default set of service templates.

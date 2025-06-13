@@ -1,11 +1,11 @@
 Overview
 ========
 
-Knot is a full-featured software stack for facilitating data science in Kubernetes-based environments, by integrating a web-based environment that includes an extensible set of productivity tools and services. At its core, the Knot dashboard supplies the landing page for users, allowing them to launch notebooks and other services, design workflows, and specify parameters related to execution through a user-friendly interface. Knot aims to make it straightforward for domain experts to interact with resources in the underlying infrastructure without having to understand lower-level mechanisms.
+Knot is a full-featured software stack for facilitating data science on Kubernetes, by integrating a web-based environment that includes an extensible set of productivity tools and services. At its core, the Knot dashboard supplies the landing page for users, allowing them to launch notebooks and other services, design workflows, and specify parameters related to execution through a user-friendly interface. Knot aims to make it straightforward for domain experts to interact with resources in the underlying infrastructure without having to understand lower-level mechanisms.
 
 The Knot dashboard is an interactive, graphical frontend for users to:
 
-- Switch to any of the included integrations with [JupyterHub](https://jupyter.org/hub) (notebook service), [Argo Workflows](https://argoproj.github.io/workflows) (workflow service), [Harbor](https://goharbor.io) (private container image and Knot service template registry), [Gitea](https://gitea.com) (local git repository hosting), [Grafana](https://grafana.com) (metrics service), and [OpenCost](https://opencost.io) (cost monitoring).
+- Switch to any of the included integrations with [JupyterHub](https://jupyter.org/hub) (notebook service), [Argo Workflows](https://argoproj.github.io/workflows) (workflow service), [Harbor](https://goharbor.io) (private container image registry), [Gitea](https://gitea.com) (local git repository hosting), [Grafana](https://grafana.com) (metrics service), and [OpenCost](https://opencost.io) (cost monitoring).
 - Launch private services or applications from customizable templates.
 - Manage files that are automatically attached to service and application containers when launched.
 

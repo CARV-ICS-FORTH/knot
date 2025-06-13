@@ -20,4 +20,4 @@ jsonpatch==1.33
 gunicorn==23.0.0
 whitenoise==6.9.0
 mkdocs==1.6.1
-mkdocs-include-markdown-plugin==7.1.4
+mkdocs-include-markdown-plugin==7.1.5

@@ -17,7 +17,7 @@ For the first domain Knot creates a subfolder for each user, named after the cor
 
 *The dashboard runs as a service in Kubernetes and coordinates the execution of other services in particular namespaces. All provisioned containers of a user share common volumes.*
 
-To attach these data folders to service and application containers, Knot creates Persistent Volumes and associated Persistent Volume Claims for each user, and provides a Kubernetes mutating admission webhook which intercepts all calls to create pods or deployments and injects the appropriate volumes to respective configurations before they are applied. The Knot service itself also has the same data folders mounted in order to present their contents via the dashboard.
+To attach these data folders to service and application containers, Knot creates Persistent Volumes and associated Persistent Volume Claims for each user, and provides a Kubernetes mutating admission webhook which intercepts all calls to create pods or deployments and injects the appropriate volumes to respective configurations before they are applied. The Knot service itself also has the same data folders mounted, in order to present their contents via the dashboard.
 
 Service templates
 -----------------
@@ -41,9 +41,7 @@ Knot-compatible charts may use the following values:
 | `knot.sharedVolume`       | The volume used for the "shared" data domain                                            | ✓
 | `knot.argoWorkflowsUrl`   | The URL of the Argo Worfklows service (set if Argo Workflows is enabled)                | ✓
 | `knot.privateRegistryUrl` | The URL of the "private" container registry (set if Harbor is enabled)                  | ✓
-| `knot.publicRegistryUrl`  | The URL of the "shared" container registry (set if Harbor is enabled)                   | ✓
-| `knot.privateRepoUrl`     | The URL of the "private" Helm chart repository (set if Harbor is enabled)               | ✓
-| `knot.publicRepoUrl`      | The URL of the "shared" Helm chart repository (set if Harbor is enabled)                | ✓
+| `knot.sharedRegistryUrl`  | The URL of the "shared" container registry (set if Harbor is enabled)                   | ✓
 
 As shown in the table, some values are also set inside pods as environment variables (in uppercase snake case, i.e. `KNOT_PRIVATE_DIR`).
 
