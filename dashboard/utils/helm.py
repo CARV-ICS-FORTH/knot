@@ -65,6 +65,8 @@ class HelmLocalRepoClient(object):
 
     def list(self, latest_only=True):
         result = {}
+        if not os.path.isdir(self._repo_path):
+            return result
         for chart_path in [os.path.join(d.path, 'Chart.yaml') for d in os.scandir(self._repo_path) if d.is_dir()]:
             chart_info = self._load_yaml(chart_path)
             if not chart_info:

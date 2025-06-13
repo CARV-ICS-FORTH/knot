@@ -29,7 +29,7 @@ class ServiceTemplateManager(object):
         self.user = user
         # The order of repos in the list determines precedence.
         service_dirs = self.user.service_dirs
-        self.repos = {'admin': HelmLocalRepoClien('admin', service_dirs['admin']),
+        self.repos = {'admin': HelmLocalRepoClient('admin', service_dirs['admin']),
                       'shared': HelmLocalRepoClient('shared', service_dirs['shared']),
                       'private': HelmLocalRepoClient('private', service_dirs['private']),
                       'local': HelmLocalRepoClient('local', settings.SERVICES_REPO_DIR)}

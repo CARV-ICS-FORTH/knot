@@ -131,8 +131,8 @@ class User(AuthUser):
 
     @property
     def service_dirs(self):
-        dirs = {name: os.path.join(domain.user_dir, 'services') for name, domain in self.file_domains.items()}
-        dirs.update({'admin': os.path.join(AdminFileDomain(settings.FILES_URL, settings.FILES_MOUNT_DIR, self.user).user_dir, 'services')}) # Include for all users.
+        dirs = {name: os.path.join(domain.user_dir, 'services') for name, domain in self.file_domains.items() if name != 'admin'}
+        dirs.update({'admin': os.path.join(AdminFileDomain(settings.FILES_URL, settings.FILES_MOUNT_DIR, self).user_dir, 'services')}) # Include for all users.
         return dirs
 
     @property
