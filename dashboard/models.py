@@ -130,6 +130,12 @@ class User(AuthUser):
         raise ValueError('Unsupported URL for files')
 
     @property
+    def service_dirs(self):
+        dirs = {name: os.path.join(domain.user_dir, 'services') for name, domain in self.file_domains.items() if name != 'admin'}
+        dirs.update({'admin': os.path.join(AdminFileDomain(settings.FILES_URL, settings.FILES_MOUNT_DIR, self).user_dir, 'services')}) # Include for all users.
+        return dirs
+
+    @property
     def local_data(self):
         data = {'username': self.username,
                 'namespace': self.namespace,
@@ -142,9 +148,7 @@ class User(AuthUser):
             data.update({'argo_workflows_url': settings.ARGO_WORKFLOWS_URL})
         if settings.HARBOR_URL:
             data.update({'private_registry_url': '%s/%s' % (settings.HARBOR_URL, self.username),
-                         'shared_registry_url': '%s/%s' % (settings.HARBOR_URL, 'library'),
-                         'private_repo_url': '%s/chartrepo/%s' % (settings.HARBOR_URL, self.username),
-                         'shared_repo_url': '%s/chartrepo/%s' % (settings.HARBOR_URL, 'library')})
+                         'shared_registry_url': '%s/%s' % (settings.HARBOR_URL, 'library')})
         return data
 
     def send_update(self, message):

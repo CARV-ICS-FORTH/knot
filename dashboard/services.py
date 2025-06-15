@@ -21,26 +21,19 @@ from urllib.parse import urlparse
 from ruamel.yaml import YAML
 
 from .utils.kubernetes import KubernetesClient
-from .utils.helm import flatten_values, unflatten_values, HelmLocalRepoClient, HelmRemoteRepoClient, HelmClient
+from .utils.helm import flatten_values, unflatten_values, HelmLocalRepoClient, HelmClient
 
 
 class ServiceTemplateManager(object):
     def __init__(self, user):
         self.user = user
         # The order of repos in the list determines precedence.
-        self.repos = {'shared': None,
-                      'private': None,
+        service_dirs = self.user.service_dirs
+        self.repos = {'admin': HelmLocalRepoClient('admin', service_dirs['admin']),
+                      'shared': HelmLocalRepoClient('shared', service_dirs['shared']),
+                      'private': HelmLocalRepoClient('private', service_dirs['private']),
                       'local': HelmLocalRepoClient('local', settings.SERVICES_REPO_DIR)}
         del(self.repos['local']) # Comment out to work on local charts.
-        if self.repo_base_url:
-            self.repos['shared'] = HelmRemoteRepoClient('library', self.repo_base_url, repo_password=settings.HARBOR_ADMIN_PASSWORD)
-            if self.user.username != 'admin':
-                self.repos['private'] = HelmRemoteRepoClient(self.user.username, self.repo_base_url, repo_password=settings.HARBOR_ADMIN_PASSWORD)
-
-    @property
-    def repo_base_url(self):
-        harbor_url = urlparse(settings.HARBOR_URL)
-        return 'oci://%s' % harbor_url.hostname if settings.HARBOR_URL else None
 
     def get_template(self, name):
         return next((chart for chart in self.list() if chart['name'] == name), None)

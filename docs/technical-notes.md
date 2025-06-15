@@ -22,7 +22,7 @@ To attach these data folders to service and application containers, Knot creates
 Service templates
 -----------------
 
-Knot provides a way for users to easily configure and start services, by integrating a service templating mechanism based on [Helm](https://helm.sh). Helm service templates, named "charts", are packaged and placed within an artifact registry, like [Harbor](https://goharbor.io). The list of available services includes global and user-specific charts, which are automatically discovered by Knot.
+Knot provides a way for users to easily configure and start services, by integrating a service templating mechanism based on [Helm](https://helm.sh). A set of bundled Helm service templates, named "charts", are placed within the "admin" file domain under `/files/admin/services`. Users can customize the list of available services by placing new (or overriding) service templates in the `services` folder of the "shared" and "private" file domains.
 
 When deploying a service, the user can specify chart values through the dashboard. Knot will silently set "internal" platform configuration values (in the `knot` namespace), such as the generated hostname assigned to the service, the location of the private container registry, etc.
 
@@ -96,7 +96,7 @@ Note that OAuth 2.0/OIDC provides only authentication information and it is up t
 Interface customization
 -----------------------
 
-The default theme used for the interface is stored in the `theme` folder within the admin file domain (available via Knot's web-based file browser and mounted at `/files/admin` for admin users). The theme is initialized to default values on startup if the `theme` folder does not exist.
+The default theme used for the interface is stored in the `theme` folder within the "admin" file domain (available via Knot's web-based file browser and mounted at `/files/admin` for admin users). The theme is initialized to default values on startup if the `theme` folder does not exist.
 
 The theme consists of the following files, which can be customized to change the look and feel of the interface:
 
