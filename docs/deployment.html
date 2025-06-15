@@ -42,7 +42,7 @@
                 </li>
               </ul>
               <ul class="current">
-                <li class="toctree-l1 current"><a class="reference internal current" href="deployment.html">Deployment</a>
+                <li class="toctree-l1 current"><a class="reference internal current" href="#">Deployment</a>
     <ul class="current">
     <li class="toctree-l2"><a class="reference internal" href="#ssl-certificate">SSL certificate</a>
     </li>
@@ -93,7 +93,7 @@
 helmfile -f git::https://github.com/CARV-ICS-FORTH/knot.git@helmfile.yaml sync
 </code></pre>
 <p>You can apply a specific version by adding the <code>ref</code> option at the end of the URL. As an example:</p>
-<pre><code class="language-bash">helmfile -f git::https://github.com/CARV-ICS-FORTH/knot.git@helmfile.yaml?ref=v4.0.0 sync
+<pre><code class="language-bash">helmfile -f git::https://github.com/CARV-ICS-FORTH/knot.git@helmfile.yaml?ref=v5.0.0 sync
 </code></pre>
 <h2 id="ssl-certificate">SSL certificate</h2>
 <p>By default, the installation issues a self-signed, wildcard certificate for the given <code>KNOT_HOST</code>. You need to make sure that at the DNS level, both the domain name and its wildcard point to your server (i.e., both <code>example.com</code> and <code>*.example.com</code>). If you already know your external IP address, you can use a <a href="http://nip.io">nip.io</a> name (i.e., set <code>KNOT_HOST</code> to <code>&lt;your IP address&gt;.nip.io</code>).</p>
@@ -107,88 +107,84 @@ kubectl create secret tls -n ingress-nginx ssl-certificate --key &lt;key file&gt
 <p>To setup Knot on top of existing PVCs, use <code>--state-values-set storage.stateVolume.existingClaim=&lt;claim name&gt;</code> and <code>--state-values-set storage.filesVolume.existingClaim=&lt;claim name&gt;</code> at the helmfile command line.</p>
 <p>Another option is to directly use local storage via <code>--state-values-set storage.stateVolume.hostPath=&lt;state path&gt;</code> and <code>--state-values-set storage.filesVolume.hostPath=&lt;files path&gt;</code> at the helmfile command line. This is useful for development, single-server setups, or compute clusters, where shared mountpoints are already setup among nodes. Note that direct access to storage may require setting up the appropriate permissions. The respective commands can be found in the Knot's <code>Makefile</code>.</p>
 <h2 id="bare-metal-setup">Bare metal setup</h2>
-<p>The following <a href="install-ubuntu.sh">script</a> installs Kubernetes and then Knot on a fresh Ubuntu 22.04 machine.</p>
+<p>The following <a href="install-ubuntu.sh">script</a> installs Kubernetes and then Knot on a fresh Ubuntu 24.04 machine.</p>
 <pre><code class="language-bash">#!/bin/bash
+
+# Install Kubernetes and Knot on Ubuntu 24.04 LTS
 
 # Disable swap
 sed -e '/swap/ s/^#*/#/' -i /etc/fstab
 swapoff -a
 
-# Install Docker (https://docs.docker.com/engine/install/ubuntu/)
-apt-get update
-apt-get install -y ca-certificates curl gnupg
-curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
-echo \
-  &quot;deb [arch=&quot;$(dpkg --print-architecture)&quot; signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
-  &quot;$(. /etc/os-release &amp;&amp; echo &quot;$VERSION_CODENAME&quot;)&quot; stable&quot; | \
-  sudo tee /etc/apt/sources.list.d/docker.list &gt; /dev/null
-apt-get update
-apt-get install -y docker-ce docker-ce-cli containerd.io
-apt-mark hold docker-ce docker-ce-cli containerd.io
-
-# Configure Docker
-mkdir -p /etc/docker
-cat &lt;&lt;EOF | sudo tee /etc/docker/daemon.json
-{
-  &quot;exec-opts&quot;: [&quot;native.cgroupdriver=systemd&quot;],
-  &quot;log-driver&quot;: &quot;json-file&quot;,
-  &quot;log-opts&quot;: {
-    &quot;max-size&quot;: &quot;100m&quot;
-  },
-  &quot;storage-driver&quot;: &quot;overlay2&quot;
-}
+# Load modules
+cat &lt;&lt;EOF | tee /etc/modules-load.d/k8s.conf
+br_netfilter
 EOF
-systemctl enable docker
-systemctl daemon-reload
-systemctl restart docker
+modprobe br_netfilter
 
-# Install cri-dockerd (https://github.com/Mirantis/cri-dockerd)
-CRI_DOCKERD_VERSION=&quot;0.3.4&quot;
-curl -LO https://github.com/Mirantis/cri-dockerd/releases/download/v${CRI_DOCKERD_VERSION}/cri-dockerd-${CRI_DOCKERD_VERSION}.$(dpkg --print-architecture).tgz
-tar -zxvf cri-dockerd-${CRI_DOCKERD_VERSION}.$(dpkg --print-architecture).tgz
-cp cri-dockerd/cri-dockerd /usr/local/bin/
-rm -rf cri-dockerd-${CRI_DOCKERD_VERSION}.$(dpkg --print-architecture).tgz cri-dockerd
-curl -Lo /etc/systemd/system/cri-docker.service https://raw.githubusercontent.com/Mirantis/cri-dockerd/v${CRI_DOCKERD_VERSION}/packaging/systemd/cri-docker.service
-curl -Lo /etc/systemd/system/cri-docker.socket https://raw.githubusercontent.com/Mirantis/cri-dockerd/v${CRI_DOCKERD_VERSION}/packaging/systemd/cri-docker.socket
-sed -i -e 's,/usr/bin/cri-dockerd,/usr/local/bin/cri-dockerd,' /etc/systemd/system/cri-docker.service
-sed -i -e '/^ExecStart=/ s/$/ --pod-infra-container-image registry.k8s.io\/pause:3.9/' /etc/systemd/system/cri-docker.service
-systemctl daemon-reload
-systemctl enable --now cri-docker.socket
+# Prepare for the container runtime (https://kubernetes.io/docs/setup/production-environment/container-runtimes/)
+cat &lt;&lt;EOF | tee /etc/sysctl.d/k8s.conf
+net.ipv4.ip_forward = 1
+EOF
+sysctl --system
+
+# Install containerd (https://docs.docker.com/engine/install/ubuntu/)
+apt-get update
+apt-get install ca-certificates curl
+install -m 0755 -d /etc/apt/keyrings
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
+chmod a+r /etc/apt/keyrings/docker.asc
+echo \
+  &quot;deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu \
+  $(. /etc/os-release &amp;&amp; echo &quot;$VERSION_CODENAME&quot;) stable&quot; | \
+  tee /etc/apt/sources.list.d/docker.list &gt; /dev/null
+apt-get update
+apt-get install containerd.io
+apt-mark hold containerd.io
+
+# Configure containerd (enable CRI integration plugin, set cgroup driver to systemd)
+mv /etc/containerd/config.toml /etc/containerd/config.toml.default
+containerd config default \
+  | sed 's/SystemdCgroup = false/SystemdCgroup = true/' \
+  | sed 's/pause\:3.8/pause\:3.10/' \
+  | tee /etc/containerd/config.toml
+systemctl restart containerd
 
 # Install kubeadm (https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/install-kubeadm/)
-KUBERNETES_VERSION=&quot;1.28&quot;
+KUBERNETES_VERSION=&quot;1.31&quot;
 apt-get update
-apt-get install -y apt-transport-https ca-certificates curl
+apt-get install -y apt-transport-https ca-certificates curl gpg
 curl -fsSL https://pkgs.k8s.io/core:/stable:/v${KUBERNETES_VERSION}/deb/Release.key | gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
-echo &quot;deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v${KUBERNETES_VERSION}/deb/ /&quot; | sudo tee /etc/apt/sources.list.d/kubernetes.list
+echo &quot;deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v${KUBERNETES_VERSION}/deb/ /&quot; | tee /etc/apt/sources.list.d/kubernetes.list
 apt-get update
 apt-get install -y kubelet kubeadm kubectl
 apt-mark hold kubelet kubeadm kubectl
 
 # Initialize Kubernetes (https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/create-cluster-kubeadm/)
-kubeadm init --pod-network-cidr=10.244.0.0/16 --cri-socket unix:///var/run/cri-dockerd.sock
+kubeadm init --pod-network-cidr=10.244.0.0/16
 mkdir -p $HOME/.kube
 cp /etc/kubernetes/admin.conf $HOME/.kube/config
 kubectl taint nodes --all node-role.kubernetes.io/control-plane-
 
 # Install a Pod network add-on
-FLANNEL_VERSION=&quot;0.22.3&quot;
+FLANNEL_VERSION=&quot;0.26.5&quot;
 kubectl apply -f https://github.com/flannel-io/flannel/releases/download/v${FLANNEL_VERSION}/kube-flannel.yml
 
 # Download and install Helm (https://helm.sh)
-HELM_VERSION=&quot;3.12.3&quot;
+HELM_VERSION=&quot;3.17.2&quot;
 curl -LO https://get.helm.sh/helm-v${HELM_VERSION}-linux-$(dpkg --print-architecture).tar.gz
 tar -zxvf helm-v${HELM_VERSION}-linux-$(dpkg --print-architecture).tar.gz
 cp linux-$(dpkg --print-architecture)/helm /usr/local/bin/
 rm -rf helm-v${HELM_VERSION}-linux-$(dpkg --print-architecture).tar.gz linux-$(dpkg --print-architecture)
+apt-get install -y git
 helm plugin install https://github.com/databus23/helm-diff
 
 # Download and install Helmfile (https://github.com/roboll/helmfile)
-HELMFILE_VERSION=&quot;0.144.0&quot;
-curl -LO https://github.com/roboll/helmfile/releases/download/v${HELMFILE_VERSION}/helmfile_linux_$(dpkg --print-architecture)
-cp helmfile_linux_$(dpkg --print-architecture) /usr/local/bin/helmfile
-chmod +x /usr/local/bin/helmfile
-rm -f helmfile_linux_$(dpkg --print-architecture)
+HELMFILE_VERSION=&quot;0.171.0&quot;
+curl -LO https://github.com/helmfile/helmfile/releases/download/v${HELMFILE_VERSION}/helmfile_${HELMFILE_VERSION}_linux_$(dpkg --print-architecture).tar.gz
+tar zxvf helmfile_${HELMFILE_VERSION}_linux_$(dpkg --print-architecture).tar.gz helmfile
+cp helmfile /usr/local/bin/
+rm -f helmfile_${HELMFILE_VERSION}_linux_$(dpkg --print-architecture).tar.gz helmfile
 
 # Install Knot
 IP_ADDRESS=`ip -o route get 1 | sed -n 's/.*src \([0-9.]\+\).*/\1/p'`
@@ -218,7 +214,7 @@ helmfile -f git::https://github.com/CARV-ICS-FORTH/knot.git@helmfile.yaml \
 
   <div role="contentinfo">
     <!-- Copyright etc -->
-      <p>© 2020-2023, FORTH-ICS</p>
+      <p>© 2020-2025, FORTH-ICS</p>
   </div>
 
   Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.

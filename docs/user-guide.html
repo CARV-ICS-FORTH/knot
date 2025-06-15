@@ -46,17 +46,15 @@
                 </li>
               </ul>
               <ul class="current">
-                <li class="toctree-l1 current"><a class="reference internal current" href="user-guide.html">User guide</a>
+                <li class="toctree-l1 current"><a class="reference internal current" href="#">User guide</a>
     <ul class="current">
     <li class="toctree-l2"><a class="reference internal" href="#sign-up-and-login">Sign up and login</a>
     </li>
-    <li class="toctree-l2"><a class="reference internal" href="#notebooks-workflows-images-and-metrics-buttons">Notebooks, workflows, images, and metrics buttons</a>
+    <li class="toctree-l2"><a class="reference internal" href="#notebooks-workflows-images-code-and-metrics-buttons">Notebooks, workflows, images, code, and metrics buttons</a>
     </li>
     <li class="toctree-l2"><a class="reference internal" href="#services-screen">Services screen</a>
     </li>
     <li class="toctree-l2"><a class="reference internal" href="#templates-screen">Templates screen</a>
-    </li>
-    <li class="toctree-l2"><a class="reference internal" href="#datasets-screen">Datasets screen</a>
     </li>
     <li class="toctree-l2"><a class="reference internal" href="#files-screen">Files screen</a>
     </li>
@@ -100,11 +98,12 @@
 <p><img alt="" src="images/login-screen.png" /></p>
 <p>To create an account, select the "Sign up" option on the main screen and fill in a username, password, and contact email.</p>
 <p><img alt="" src="images/sign-up-screen.png" /></p>
-<p>Once the account is activated by an administrator, login using your username and password. You can change your password when logged in by clicking on the user icon at the top-right of the screen and selecting "Change password" from the menu. The menu also provides options to switch between profiles (if you are a member of one or more teams), view previous messages reported, access this documentation, and logout. If you ever forget your password, please ask an administrator to reset it.</p>
-<h2 id="notebooks-workflows-images-and-metrics-buttons">Notebooks, workflows, images, and metrics buttons</h2>
-<p>Selecting "Notebooks" from the menu on the left will redirect you to JupyterHub. JupyterHub will automatically launch a new server instance for you, if one is not already running. Your notebooks are saved in <code>/private/notebooks</code>, so you can also access them as files from the dashboard. You can stop your server instance by clicking on the "Control Panel" button on the top-right of the screen.</p>
+<p>Once the account is activated by an administrator, login using your username and password. You can change your password when logged in by clicking on the user icon at the bottom-left of the screen and selecting "Change password" from the menu. The menu also provides options to switch between profiles (if you are a member of one or more teams), view previous messages reported, access this documentation, and logout. If you ever forget your password, please ask an administrator to reset it.</p>
+<h2 id="notebooks-workflows-images-code-and-metrics-buttons">Notebooks, workflows, images, code, and metrics buttons</h2>
+<p>Selecting "Notebooks" from the menu on the left will redirect you to JupyterHub. JupyterHub will automatically launch a new server instance for you, if one is not already running. Your notebooks are saved in <code>/files/private/notebooks</code>, so you can also access them as files from the dashboard. You can stop your server instance by selecting the "Hub Control Panel" entry, under the "File" menu.</p>
 <p>Selecting "Workflows" from the menu on the left will redirect you to Argo Workflows. The first time you open up the Argo interface, it will ask you to login. Just click on the "Login" button, as single sign-on is already set up. You should then be redirected to your workflows page, with the namespace set to <code>knot-&lt;username&gt;</code>.</p>
-<p>Selecting "Images" from the menu on the left will redirect you to Harbor. Click on "Login via OIDC provider" for single sign-on with your username. Knot will setup a private project for you named after your username. The "library" project is shared among all users. Each project can be used to store container images or Helm charts (used for Knot templates).</p>
+<p>Selecting "Images" from the menu on the left will redirect you to Harbor. Click on "Login via OIDC provider" for single sign-on with your username. Knot will setup a private project for you named after your username. The "library" project is shared among all users. Each project can be used to store container images.</p>
+<p>Selecting "Code" from the menu on the left will redirect you to Gitea for managing local git registries.</p>
 <p>Selecting "Metrics" from the menu on the left will redirect you to Grafana. Click on the search icon on the top-left of the screen to get a list of preconfigured metric dashboards.</p>
 <h2 id="services-screen">Services screen</h2>
 <p>The services screen is accessed by selecting "Services" from the menu on the left. Clicking on a service name from the list of running services will take you to the service frontend in a new browser tab. Use the "Actions" button to view a service's values, upgrade a service (if a new version of its template exists), or remove it.</p>
@@ -114,19 +113,11 @@
 <h2 id="templates-screen">Templates screen</h2>
 <p>The templates screen is accessed by selecting "Templates" from the menu on the left. Use the "Actions" button to start a service from the list of available service templates.</p>
 <p><img alt="" src="images/templates-screen.png" /></p>
-<p>New templates are added in Harbor. The template structure is described in the <a href="technical-notes.html#service-templates">Service templates</a> chapter.</p>
-<h2 id="datasets-screen">Datasets screen</h2>
-<blockquote>
-<p>📝 <em>Dataset management is an optional Knot feature that may not be enabled in your deployment.</em></p>
-</blockquote>
-<p>The datasets screen is accessed by selecting "Datasets" from the menu on the left. Use the "Actions" button to download a dataset's values or delete a dataset from the list of configured datasets.</p>
-<p>Datasets are mounted in containers under <code>/mnt/datasets/&lt;name&gt;</code>.</p>
-<p>To add a new dataset, click on the respective button on the right. Choose one of the available dataset types from the list and click "Add".</p>
-<p>The next screen is where you can define the dataset configuration. You can optionally change the dataset name to one that is easier to remember (if a name is already taken, Knot will append random characters). Besides the name, each dataset type has different configuration options. When done, click "Add" again, and you will be taken back to the datasets list, which should contain your new dataset.</p>
+<p>New templates are added in the private or shared <code>services</code> folder. The template structure is described in the <a href="technical-notes.html#service-templates">Service templates</a> chapter.</p>
 <h2 id="files-screen">Files screen</h2>
 <p>The files screen is accessed by selecting "Files" from the menu on the left. Change between "private" and "shared" domains by clicking on the corresponding buttons on the upper-right of the screen. The "private" domain contains private user files, while "shared" is common across all users. Any user can add or remove files in "shared".</p>
 <p>Select a folder to navigate into that path (the current path is shown above the list), or a file to download it. Use the "Actions" button to download a folder as an archive or delete an object.</p>
-<p>Files are mounted in containers under <code>/private</code> and <code>/shared</code> respectively.</p>
+<p>Files are mounted in containers under <code>/files/private</code> and <code>/files/shared</code> respectively.</p>
 <p><img alt="" src="images/files-screen.png" /></p>
 <p>To add a new folder or upload file(s) at the current path, click on the respective buttons on the right. Note that you can not overwrite an existing folder or file.</p>
 <blockquote>
@@ -136,9 +127,12 @@
 <blockquote>
 <p>📝 <em>The information in this section applies only to administrators.</em></p>
 </blockquote>
-<p>The "admin" user has access to an additional screen named "Users".</p>
-<p>The users screen is accessed by selecting "Users" from the menu on the left. Each user can be "active", meaning with access to the dashboard and services. Each user can also be promoted to an administrator. The respective actions are available in the menu presented when using the "Actions" button. An administrator can edit a user's email, change a user's password, impersonate, and delete a user.</p>
+<p>The "admin" user has access to additional menu items: "Cost", "Users", and "Teams".</p>
+<p>Selecting "Cost" from the menu on the left will redirect you to OpenCost for cost monitoring.</p>
+<p>Selecting "Users" from the menu on the left will take you to the users screen. Each user can be "active", meaning with access to the dashboard and services. Each user can also be promoted to an administrator. The respective actions are available in the menu presented when using the "Actions" button. An administrator can edit a user's email, change a user's password, impersonate, and delete a user.</p>
 <p>When impersonating another user, the whole interface changes to what the user sees and the user icon at the top-right of the screen darkens to signify "impersonation mode". The user menu provides the option to stop impersonating and return to the original user's view.</p>
+<p>Selecting "Teams" from the menu on the left will take you to the teams screen, where you can create new teams and manage the existing ones.</p>
+<p>Additionally, the "admin" user can access to the "admin" file domain, which hosts the default theme and default set of service templates.</p>
               
             </div>
           </div><footer>
@@ -151,7 +145,7 @@
 
   <div role="contentinfo">
     <!-- Copyright etc -->
-      <p>© 2020-2023, FORTH-ICS</p>
+      <p>© 2020-2025, FORTH-ICS</p>
   </div>
 
   Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.

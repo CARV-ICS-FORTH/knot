@@ -38,7 +38,7 @@
 
       <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <ul class="current">
-                <li class="toctree-l1 current"><a class="reference internal current" href="index.html">Overview</a>
+                <li class="toctree-l1 current"><a class="reference internal current" href="#">Overview</a>
     <ul class="current">
     </ul>
                 </li>
@@ -80,10 +80,10 @@
             <div class="section" itemprop="articleBody">
               
                 <h1 id="overview">Overview</h1>
-<p>Knot is a full-featured software stack for facilitating data science in Kubernetes-based environments, by integrating a web-based environment that includes an extensible set of productivity tools and services. At its core, the Knot dashboard supplies the landing page for users, allowing them to launch notebooks and other services, design workflows, and specify parameters related to execution through a user-friendly interface. Knot aims to make it straightforward for domain experts to interact with resources in the underlying infrastructure without having to understand lower-level mechanisms.</p>
+<p>Knot is a full-featured software stack for facilitating data science on Kubernetes, by integrating a web-based environment that includes an extensible set of productivity tools and services. At its core, the Knot dashboard supplies the landing page for users, allowing them to launch notebooks and other services, design workflows, and specify parameters related to execution through a user-friendly interface. Knot aims to make it straightforward for domain experts to interact with resources in the underlying infrastructure without having to understand lower-level mechanisms.</p>
 <p>The Knot dashboard is an interactive, graphical frontend for users to:</p>
 <ul>
-<li>Switch to any of the included integrations with <a href="https://jupyter.org/hub">JupyterHub</a> (notebook service), <a href="https://argoproj.github.io/workflows">Argo Workflows</a> (workflow service), <a href="https://goharbor.io">Harbor</a> (private container image and Knot service template registry), and <a href="https://grafana.com">Grafana</a> (metrics service).</li>
+<li>Switch to any of the included integrations with <a href="https://jupyter.org/hub">JupyterHub</a> (notebook service), <a href="https://argoproj.github.io/workflows">Argo Workflows</a> (workflow service), <a href="https://goharbor.io">Harbor</a> (private container image registry), <a href="https://gitea.com">Gitea</a> (local git repository hosting), <a href="https://grafana.com">Grafana</a> (metrics service), and <a href="https://opencost.io">OpenCost</a> (cost monitoring).</li>
 <li>Launch private services or applications from customizable templates.</li>
 <li>Manage files that are automatically attached to service and application containers when launched.</li>
 </ul>
@@ -96,7 +96,7 @@
 <p><img alt="" src="images/overall-diagram.png" /></p>
 <p><em>Knot includes the dashboard, default and custom services. The dashboard provides service, storage, and identity management to the integrated environment.</em></p>
 <p>Kubernetes provides all the tools to do data sharing, create namespaces, etc., but the exact implementation and structure of the overall environment is left to the developer. Knot implements a "traditional" user scheme, which is then mapped to Kubernetes namespaces and service accounts. Kubernetes does not have "users" and no place to "login into" by default.</p>
-<p>Knot sets up single sign-on at the integrated instances of JupyterHub, Argo Workflows, Harbor, and Grafana, so authenticated users can seamlessly move between services. In addition, it enforces authorization policies, so that each user will be allowed to access resources only in their corresponding Knot-defined namespace. For Harbor, Knot also fetches the users' CLI secrets, and configures Kubernetes to use them.</p>
+<p>Knot sets up single sign-on at the integrated instances of JupyterHub, Argo Workflows, Harbor, Gitea, and Grafana, so authenticated users can seamlessly move between services. In addition, it enforces authorization policies, so that each user will be allowed to access resources only in their corresponding Knot-defined namespace. For Harbor, Knot also fetches the users' CLI secrets, and configures Kubernetes to use them.</p>
 <p>Equally important to user management, authentication, and authorization, Knot wires up private and shared storage to predefined paths inside running containers, which significantly simplifies data management. Thus, user files are automatically accessible in all respective execution contexts and also available through the dashboard. A workflow can work on some data which have been prepared in a notebook, while produced results can be easily shared via an externally accessible web server. Inside workflows, data can be exchanged between steps, just by placing it on specific directories.</p>
               
             </div>
@@ -109,7 +109,7 @@
 
   <div role="contentinfo">
     <!-- Copyright etc -->
-      <p>© 2020-2023, FORTH-ICS</p>
+      <p>© 2020-2025, FORTH-ICS</p>
   </div>
 
   Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
@@ -149,6 +149,6 @@
 </html>
 
 <!--
-MkDocs version : 1.5.3
-Build Date UTC : 2024-04-12 11:54:52.157335+00:00
+MkDocs version : 1.6.1
+Build Date UTC : 2025-06-15 14:44:45.413118+00:00
 -->
