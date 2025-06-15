@@ -224,6 +224,18 @@ entries:
     version: 2.0.0
   knot:
   - apiVersion: v2
+    created: "2025-06-15T14:44:35.550809268Z"
+    description: Knot provides a complete environment for unleashing your productivity
+      on Kubernetes
+    digest: 3cab5dc9e3cc096dc623ea6d966f41b2286d25169ae0b0b9ee64432bfa1c08cd
+    name: knot
+    sources:
+    - https://github.com/CARV-ICS-FORTH/knot
+    type: application
+    urls:
+    - https://CARV-ICS-FORTH.github.io/knot/chart/knot-5.0.0.tgz
+    version: 5.0.0
+  - apiVersion: v2
     created: "2024-04-12T11:54:45.392401372Z"
     description: Knot provides a complete environment for unleashing your productivity
       on Kubernetes
@@ -337,4 +349,4 @@ entries:
     urls:
     - https://CARV-ICS-FORTH.github.io/knot/chart/knot-4.0.0.tgz
     version: 4.0.0
-generated: "2024-04-12T11:54:45.391568029Z"
+generated: "2025-06-15T14:44:35.549870812Z"
