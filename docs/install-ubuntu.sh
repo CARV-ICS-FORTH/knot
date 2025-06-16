@@ -79,10 +79,12 @@ rm -f helmfile_${HELMFILE_VERSION}_linux_$(dpkg --print-architecture).tar.gz hel
 # Install Knot
 IP_ADDRESS=`ip -o route get 1 | sed -n 's/.*src \([0-9.]\+\).*/\1/p'`
 export KNOT_HOST=${IP_ADDRESS}.nip.io
-mkdir -p /mnt/state /mnt/state/jupyterhub /mnt/state/harbor/{database,redis,registry,chartmuseum,jobservice}
+mkdir -p /mnt/state /mnt/state/jupyterhub /mnt/state/harbor/{database,redis,registry,chartmuseum,jobservice} /mnt/state/gitea/{database,redis,code}
 chown 1000:1000 /mnt/state/jupyterhub
 chown 999:999 /mnt/state/harbor/{database,redis}
 chown 10000:10000 /mnt/state/harbor/{registry,chartmuseum,jobservice}
+chown 1001:1001 /mnt/state/gitea/{database,redis}
+chown 1000:1000 /mnt/state/gitea/code
 mkdir -p /mnt/files
 helmfile -f git::https://github.com/CARV-ICS-FORTH/knot.git@helmfile.yaml \
   --state-values-set ingress.service.type=NodePort \
