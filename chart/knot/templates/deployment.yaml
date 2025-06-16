@@ -94,6 +94,8 @@ spec:
         volumeMounts:
         - name: {{ .Release.Name }}-state-volume
           mountPath: /db
+        - name: {{ .Release.Name }}-files-volume
+          mountPath: /files
         {{- if and .Values.knot.certificateSecretName .Values.knot.certificateSecretKey }}
         - name: ssl-certificate-volume
           mountPath: /usr/local/share/ca-certificates/{{ (split ":" ($ingressURL | urlParse).host)._0 }}.crt
