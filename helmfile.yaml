@@ -701,7 +701,7 @@ releases:
 - name: gitea
   namespace: gitea
   createNamespace: true
-  chart: gitea-charts/gitea
+  chart: gitea/gitea
   version: 11.0.1
   values:
   - redis:
