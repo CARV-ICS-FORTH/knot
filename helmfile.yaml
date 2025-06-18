@@ -38,9 +38,9 @@ environments:
     - grafana:
         enabled: true
         clientSecret: eYLaIV2NtZHhR7M9zh1ouLl4LpuwwpcrYBspXbS2gTCm61Hn01ghmZf7iBxxk5r3SdPHnlg6Ovm6IKK4CmJKNl8gnkvxjmOt7YOxZJR0BJH8DPHnA9Nh6pHpmESM8mfE
-    - opencost:
+    - openCost:
         enabled: true
-        cpuCost: 0.5
+        cpuCost: 1
         ramCost: 1
     - knot:
         # Forward requests for development.
@@ -85,7 +85,7 @@ repositories:
 - name: prometheus-community
   url: https://prometheus-community.github.io/helm-charts
 {{- end }}
-{{- if .Values.opencost.enabled }}
+{{- if .Values.openCost.enabled }}
 - name: opencost
   url: https://opencost.github.io/opencost-helm-chart/
 {{- end }}
@@ -899,7 +899,7 @@ releases:
         client-id: {{ "grafana" | b64enc }}
         client-secret: {{ .Values.grafana.clientSecret | b64enc }}
 {{- end }}
-{{- if .Values.opencost.enabled }}
+{{- if .Values.openCost.enabled }}
 - name: opencost
   namespace: opencost
   chart: opencost/opencost
@@ -937,8 +937,8 @@ releases:
         provider: custom
         costModel:
           description: Knot custom pricing configuration
-          CPU: {{ .Values.opencost.cpuCost }}
-          RAM: {{ .Values.opencost.ramCost }}
+          CPU: {{ .Values.openCost.cpuCost }}
+          RAM: {{ .Values.openCost.ramCost }}
       prometheus:
         external:
           enabled: false
@@ -1024,9 +1024,9 @@ releases:
       grafanaURL: https://grafana.{{ .Values.ingress.host }}
       grafanaNamespace: monitoring
       {{- end }}
-      {{- if .Values.opencost.enabled }}
-      opencostURL: https://opencost.{{ .Values.ingress.host }}
-      opencostNamespace: opencost
+      {{- if .Values.openCost.enabled }}
+      openCostURL: https://opencost.{{ .Values.ingress.host }}
+      openCostNamespace: opencost
       {{- end }}
 {{- if not .Values.storage.stateVolume.hostPath }}
 - name: knot-state-pvc
