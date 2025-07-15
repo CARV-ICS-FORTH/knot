@@ -412,6 +412,7 @@ releases:
   - singleuser:
       networkPolicy:
         enabled: false
+      allowPrivilegeEscalation: true
       extraEnv:
         GRANT_SUDO: "yes"
         NOTEBOOK_ARGS: "--allow-root"
