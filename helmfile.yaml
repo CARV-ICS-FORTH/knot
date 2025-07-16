@@ -271,6 +271,7 @@ releases:
   values:
   - crds:
       enabled: true
+  - maxConcurrentChallenges: 2
 {{- if not .Values.ingress.skip }}
 - name: ingress
   namespace: ingress-nginx
