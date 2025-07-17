@@ -85,6 +85,7 @@ develop: check-ip-address
 	export KNOT_INGRESS_URL="https://$(INGRESS_URL)"; \
 	export KNOT_JUPYTERHUB_URL="https://jupyterhub.$(INGRESS_URL)"; \
 	export KNOT_JUPYTERHUB_NOTEBOOK_DIR="notebooks"; \
+	export KNOT_JUPYTERHUB_NEXTFLOW_DIR="nextflow"; \
 	export KNOT_ARGO_WORKFLOWS_URL="https://argo.$(INGRESS_URL)"; \
 	export KNOT_ARGO_WORKFLOWS_NAMESPACE="argo"; \
 	export KNOT_HARBOR_URL="https://harbor.$(INGRESS_URL)"; \

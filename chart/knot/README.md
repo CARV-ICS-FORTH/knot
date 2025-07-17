@@ -54,6 +54,7 @@ Some of the variables set above are required. The table below lists all availabl
 | `knot.jupyterHubURL`            |          | JupyterHub URL for integration with the notebook frontend.                                    |                                    |
 | `knot.jupyterHubNamespace`      |          | JupyterHub namespace for integration.                                                         |                                    |
 | `knot.jupyterHubNotebookDir`    |          | Directory to create in the private file domain for JupyterHub notebooks.                      |                                    |
+| `knot.jupyterHubNextflowDir`    |          | Directory to create in the private file domain for integration with Nextflow.                 |                                    |
 | `knot.argoWorkflowsURL`         |          | Argo Workflows URL for integration with the workflow frontend.                                |                                    |
 | `knot.argoWorkflowsNamespace`   |          | Argo Workflows namespace for integration.                                                     |                                    |
 | `knot.harborURL`                |          | Harbor URL for integration with the container registry.                                       |                                    |

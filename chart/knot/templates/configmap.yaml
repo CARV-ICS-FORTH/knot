@@ -77,6 +77,7 @@ data:
   KNOT_JUPYTERHUB_URL: {{- if .Values.knot.jupyterHubURL }} {{ .Values.knot.jupyterHubURL | quote }} {{- else }} "" {{- end }}
   KNOT_JUPYTERHUB_NAMESPACE: {{- if .Values.knot.jupyterHubNamespace }} {{ .Values.knot.jupyterHubNamespace | quote }} {{- else }} "" {{- end }}
   KNOT_JUPYTERHUB_NOTEBOOK_DIR: {{- if .Values.knot.jupyterHubNotebookDir }} {{ .Values.knot.jupyterHubNotebookDir | quote }} {{- else }} "" {{- end }}
+  KNOT_JUPYTERHUB_NEXTFLOW_DIR: {{- if .Values.knot.jupyterHubNextflowDir }} {{ .Values.knot.jupyterHubNextflowDir | quote }} {{- else }} "" {{- end }}
   KNOT_ARGO_WORKFLOWS_URL: {{- if .Values.knot.argoWorkflowsURL }} {{ .Values.knot.argoWorkflowsURL | quote }} {{- else }} "" {{- end }}
   KNOT_ARGO_WORKFLOWS_NAMESPACE: {{- if .Values.knot.argoWorkflowsNamespace }} {{ .Values.knot.argoWorkflowsNamespace | quote }} {{- else }} "" {{- end }}
   KNOT_HARBOR_URL: {{- if .Values.knot.harborURL }} {{ .Values.knot.harborURL | quote }} {{- else }} "" {{- end }}

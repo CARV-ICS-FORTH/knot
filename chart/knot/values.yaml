@@ -68,6 +68,8 @@ knot:
   jupyterHubNamespace:
   # Directory to create in the private file domain for JupyterHub notebooks.
   jupyterHubNotebookDir:
+  # Directory to create in the private file domain for integration with Nextflow.
+  jupyterHubNextflowDir:
 
   # Argo Workflows URL for integration with the workflow frontend.
   argoWorkflowsURL:

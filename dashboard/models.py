@@ -89,6 +89,21 @@ subjects:
   namespace: {{ argo_namespace }}
 '''
 
+NEXTFLOW_CONFIG = '''
+process {
+  executor = 'k8s'
+  resourceLimits = [
+    cpus: 8,
+    memory: 32.GB,
+    time: 24.h
+  ]
+}
+
+k8s {
+    storageClaimName = ''
+}
+'''
+
 class User(AuthUser):
     class Meta:
         proxy = True
@@ -215,7 +230,7 @@ class User(AuthUser):
         for name, domain in self.file_domains.items():
             domain.create_domain()
 
-        # Create directory for notebooks.
+        # Create directory for Jupyter notebooks.
         if settings.JUPYTERHUB_NOTEBOOK_DIR:
             path_worker = self.file_domains['private'].path_worker([])
             notebook_dir = settings.JUPYTERHUB_NOTEBOOK_DIR.strip('/')
@@ -223,6 +238,25 @@ class User(AuthUser):
                 path_worker.mkdir(notebook_dir)
             try:
                 path_worker.chown(notebook_dir, 1000, 1000) # XXX Hardcoded for JupyterHub (won't work locally).
+            except:
+                pass
+
+        # Create directory for Jupyter integration with Nextflow.
+        if settings.JUPYTERHUB_NEXTFLOW_DIR:
+            path_worker = self.file_domains['private'].path_worker([])
+            nextflow_dir = settings.JUPYTERHUB_NEXTFLOW_DIR.strip('/')
+            if not path_worker.exists(nextflow_dir):
+                path_worker.mkdir(nextflow_dir)
+            try:
+                path_worker.chown(nextflow_dir, 1000, 1000) # XXX Hardcoded for JupyterHub (won't work locally).
+            except:
+                pass
+            nextflow_config = os.path.join(nextflow_dir, 'config')
+            if not path_worker.exists(nextflow_config):
+                with path_worker.open(nextflow_config, 'w') as f:
+                    f.write(NEXTFLOW_CONFIG.lstrip('\n'))
+            try:
+                path_worker.chown(nextflow_config, 1000, 1000) # XXX Hardcoded for JupyterHub (won't work locally).
             except:
                 pass
 

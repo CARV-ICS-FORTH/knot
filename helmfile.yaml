@@ -386,6 +386,7 @@ releases:
           c.KubeSpawner.user_namespace_template = "knot-{username}"
           c.KubeSpawner.notebook_dir = "/files/private/notebooks"
           c.KubeSpawner.args = ["--allow-root"]
+          c.KubeSpawner.service_account = "default"
       networkPolicy:
         enabled: false
       db:
@@ -410,6 +411,8 @@ releases:
       chp:
         networkPolicy:
           enabled: false
+  - cull:
+      enabled: false
   - singleuser:
       networkPolicy:
         enabled: false
@@ -418,6 +421,10 @@ releases:
         GRANT_SUDO: "yes"
         NOTEBOOK_ARGS: "--allow-root"
         CONDA_ENVS_PATH: "/files/private/conda"
+        NXF_HOME: "/files/private/nextflow"
+        {{- if sprigGet .Values.jupyterHub "singleuserEnvExtra" }}
+        {{ toYaml .Values.jupyterHub.singleuserEnvExtra | nindent 8 }}
+        {{- end }}
       uid: 0
       storage:
         type: none
@@ -1008,6 +1015,7 @@ releases:
       jupyterHubURL: https://jupyterhub.{{ .Values.ingress.host }}
       jupyterHubNamespace: jupyterhub
       jupyterHubNotebookDir: notebooks
+      jupyterHubNextflowDir: nextflow
       {{- end }}
       {{- if .Values.argo.enabled }}
       argoWorkflowsURL: https://argo.{{ .Values.ingress.host }}
